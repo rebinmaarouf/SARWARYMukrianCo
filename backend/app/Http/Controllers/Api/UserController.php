@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+
+class UserController extends Controller
+{
+    public function index()
+    {
+        return User::with('roles')->get();
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'roles' => 'required|array'
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        $user->syncRoles($request->roles);
+
+        return response()->json($user->load('roles'), 201);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'roles' => 'required|array'
+        ]);
+
+        $user->update($request->only('name', 'email'));
+
+        if ($request->has('password') && !empty($request->password)) {
+            $user->update(['password' => Hash::make($request->password)]);
+        }
+
+        $user->syncRoles($request->roles);
+
+        return response()->json($user->load('roles'));
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return response()->json(['message' => 'ناتوانی ئەکاونتی خۆت بسڕیتەوە.'], 403);
+        }
+        
+        $user->delete();
+        return response()->json(['message' => 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە.']);
+    }
+
+    public function roles()
+    {
+        return Role::all();
+    }
+}
