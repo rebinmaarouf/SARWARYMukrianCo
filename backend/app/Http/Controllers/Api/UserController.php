@@ -7,12 +7,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
     public function index()
     {
-        return User::with('roles')->get();
+        return response()->json(User::with(['roles', 'permissions'])->get());
     }
 
     public function store(Request $request)
@@ -30,9 +31,15 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->syncRoles($request->roles);
+        if ($request->has('roles')) {
+            $user->syncRoles($request->roles);
+        }
 
-        return response()->json($user->load('roles'), 201);
+        if ($request->has('permissions')) {
+            $user->syncPermissions($request->permissions);
+        }
+
+        return response()->json($user->load('roles', 'permissions'), 201);
     }
 
     public function update(Request $request, User $user)
@@ -40,7 +47,8 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'roles' => 'required|array'
+            'roles' => 'array',
+            'permissions' => 'array'
         ]);
 
         $user->update($request->only('name', 'email'));
@@ -49,9 +57,15 @@ class UserController extends Controller
             $user->update(['password' => Hash::make($request->password)]);
         }
 
-        $user->syncRoles($request->roles);
+        if ($request->has('roles')) {
+            $user->syncRoles($request->roles);
+        }
 
-        return response()->json($user->load('roles'));
+        if ($request->has('permissions')) {
+            $user->syncPermissions($request->permissions);
+        }
+
+        return response()->json($user->load('roles', 'permissions'));
     }
 
     public function destroy(User $user)
@@ -66,6 +80,11 @@ class UserController extends Controller
 
     public function roles()
     {
-        return Role::all();
+        return response()->json(Role::all());
+    }
+
+    public function permissions()
+    {
+        return response()->json(Permission::all());
     }
 }

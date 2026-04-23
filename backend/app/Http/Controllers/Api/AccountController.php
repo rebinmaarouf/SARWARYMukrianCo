@@ -47,38 +47,35 @@ class AccountController extends Controller
         return response()->json($account, 201);
     }
 
-    /**
-     * Display the specified account.
-     */
-    public function show(Account $registry)
+    public function show(Account $account)
     {
-        return response()->json($registry->load(['debtorEntries', 'creditorEntries']));
+        return response()->json($account->load(['debtorEntries', 'creditorEntries']));
     }
 
     /**
      * Update the specified account.
      */
-    public function update(Request $request, Account $registry)
+    public function update(Request $request, Account $account)
     {
         $validated = $request->validate([
-            'code' => 'nullable|string|unique:accounts,code,' . $registry->id,
+            'code' => 'nullable|string|unique:accounts,code,' . $account->id,
             'name' => 'required|string|max:255',
             'mobile' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
             'type' => 'required|string|in:vault,customer,expense,equity,revenue,general',
         ]);
 
-        $registry->update($validated);
+        $account->update($validated);
 
-        return response()->json($registry);
+        return response()->json($account);
     }
 
     /**
      * Remove the specified account.
      */
-    public function destroy(Account $registry)
+    public function destroy(Account $account)
     {
-        $registry->delete();
+        $account->delete();
         return response()->json(null, 204);
     }
 }
