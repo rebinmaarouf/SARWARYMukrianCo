@@ -149,9 +149,13 @@
                    <td class="px-6 py-4 font-black text-slate-200">{{ formatNum(t.secondary_amount) }} {{ t.secondary_currency }}</td>
                    <td class="px-6 py-4 font-black text-emerald-400 tracking-tight">+{{ formatNum(t.profit) }}</td>
                    <td class="px-6 py-4">
-                      <div class="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button @click="printReceipt(t)" class="p-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-emerald-500/20 hover:text-emerald-400 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h12z"/></svg></button>
-                         <button @click="deleteTransaction(t.id)" class="p-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-rose-500/20 hover:text-rose-400 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                      <div class="flex justify-center gap-2">
+                         <button @click="printReceipt(t)" class="p-2 bg-slate-800 text-emerald-400 rounded-lg hover:bg-emerald-500 hover:text-white transition-all shadow-sm" title="چاپکردنی وەسڵ">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h12z"/></svg>
+                         </button>
+                         <button @click="deleteTransaction(t.id)" class="p-2 bg-slate-800 text-rose-400 rounded-lg hover:bg-rose-500 hover:text-white transition-all shadow-sm" title="سڕینەوە">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                         </button>
                       </div>
                    </td>
                 </tr>
