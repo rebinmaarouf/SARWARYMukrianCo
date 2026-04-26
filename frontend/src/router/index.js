@@ -31,9 +31,19 @@ const routes = [
         component: () => import('../views/pos/QuickTrade.vue')
       },
       {
+        path: 'exchange',
+        name: 'ExchangeManager',
+        component: () => import('../views/admin/ExchangeManager.vue')
+      },
+      {
         path: 'accounts',
         name: 'AccountsManager',
         component: () => import('../views/admin/AccountsManager.vue')
+      },
+      {
+        path: 'print-invoice',
+        name: 'print-invoice',
+        component: () => import('../views/admin/InvoicePrint.vue')
       },
       {
         path: 'users',

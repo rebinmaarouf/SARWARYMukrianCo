@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RegistryController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\CurrencyController;
+use App\Http\Controllers\Api\ExchangeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 
@@ -26,4 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('registries', RegistryController::class);
     Route::apiResource('accounts', AccountController::class);
     Route::apiResource('currencies', CurrencyController::class);
+    // Exchange & Trading
+    Route::apiResource('exchanges', ExchangeController::class);
+    Route::get('reports/profit', [ExchangeController::class, 'report']);
 });
