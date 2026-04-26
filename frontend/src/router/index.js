@@ -30,40 +30,30 @@ const routes = [
         name: 'QuickTrade',
         component: () => import('../views/pos/QuickTrade.vue')
       },
-      {
-        path: 'exchange',
-        name: 'ExchangeManager',
-        component: () => import('../views/admin/ExchangeManager.vue')
+      // Finance Domain
+      { path: 'exchange', name: 'admin-exchange', component: () => import('../views/finance/ExchangeManager.vue') },
+      { path: 'general-accounts', name: 'admin-general-accounts', component: () => import('../views/finance/GeneralAccounts.vue') },
+      { path: 'accounts', name: 'admin-accounts', component: () => import('../views/finance/AccountsManager.vue') },
+      { 
+        path: 'registry/:currencyId', 
+        name: 'DynamicRegistry', 
+        component: () => import('../views/finance/DynamicRegistry.vue') 
       },
-      {
-        path: 'accounts',
-        name: 'AccountsManager',
-        component: () => import('../views/admin/AccountsManager.vue')
-      },
-      {
-        path: 'print-invoice',
-        name: 'print-invoice',
-        component: () => import('../views/admin/InvoicePrint.vue')
-      },
-      {
-        path: 'users',
-        name: 'UserManager',
-        component: () => import('../views/admin/UserManager.vue')
-      },
-      {
-        path: 'registry/:currencyId',
-        name: 'DynamicRegistry',
-        component: () => import('../views/admin/DynamicRegistry.vue')
-      },
+      { path: 'print-invoice', name: 'print-invoice', component: () => import('../views/finance/InvoicePrint.vue'), meta: { layout: 'empty' } },
+      
+      // Admin/Management Domain
+      { path: 'users', name: 'UserManager', component: () => import('../views/admin/UserManager.vue') },
+      
+      // Future Modules
       {
         path: 'hawala',
         name: 'Hawala',
-        component: () => import('../views/admin/ComingSoon.vue')
+        component: () => import('../views/hawala/ComingSoon.vue')
       },
       {
         path: 'vaults',
         name: 'Vaults',
-        component: () => import('../views/admin/ComingSoon.vue')
+        component: () => import('../views/vaults/ComingSoon.vue')
       }
     ]
   }
@@ -74,10 +64,8 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guard
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
-  
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')
   } else if (to.meta.guest && auth.isAuthenticated) {

@@ -120,8 +120,20 @@
 
     <!-- Transaction Table -->
     <div class="bg-[#1e293b]/60 backdrop-blur-xl rounded-3xl border border-slate-700/50 overflow-hidden shadow-xl no-print">
-       <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-          <h3 class="text-lg font-black text-white">دوایین مەعامەلەکان (سات بە سات)</h3>
+       <div class="p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+          <h3 class="text-lg font-black text-white">دوایین مەعامەلەکان</h3>
+          
+          <!-- Advanced Tabs -->
+          <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
+             <button @click="tableFilter = 'all'" :class="tableFilter === 'all' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="px-4 py-1.5 rounded-lg text-xs font-black transition-all">هەمووی</button>
+             <button @click="tableFilter = 'buy'" :class="tableFilter === 'buy' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="px-4 py-1.5 rounded-lg text-xs font-black transition-all">کڕین</button>
+             <button @click="tableFilter = 'sell'" :class="tableFilter === 'sell' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="px-4 py-1.5 rounded-lg text-xs font-black transition-all">فرۆشتن</button>
+          </div>
+
+          <div class="relative w-full md:w-64">
+             <input v-model="tableSearch" type="text" placeholder="گەڕان لە خشتەکە..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:border-emerald-500 outline-none" />
+             <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
        </div>
        <div class="overflow-x-auto">
           <table class="w-full text-right" dir="rtl">
@@ -138,16 +150,29 @@
                 </tr>
              </thead>
              <tbody class="divide-y divide-slate-800/50">
-                <tr v-for="t in transactions" :key="t.id" class="hover:bg-slate-400/5 transition-colors group">
+                <tr v-for="t in filteredTransactions" :key="t.id" class="hover:bg-slate-400/5 transition-colors group">
                    <td class="px-6 py-4 text-xs font-bold text-slate-400">{{ formatFullTime(t.created_at) }}</td>
-                   <td class="px-6 py-4 font-black text-white">{{ t.account?.name }}</td>
+                   <td class="px-6 py-4">
+                      <div class="flex flex-col">
+                         <span class="font-black text-white text-sm">{{ t.account?.name }}</span>
+                         <span class="font-mono text-[9px] text-emerald-500/60">{{ t.account?.code }}</span>
+                      </div>
+                   </td>
                    <td class="px-6 py-4">
                       <span class="px-3 py-1 rounded-full text-[10px] font-black" :class="t.type === 'buy' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'">{{ t.type === 'buy' ? 'کڕین' : 'فرۆشتن' }}</span>
                    </td>
                    <td class="px-6 py-4 font-black text-white">{{ formatNum(t.primary_amount) }} {{ t.primary_currency }}</td>
                    <td class="px-6 py-4 font-bold text-slate-400">{{ formatNum(t.rate) }}</td>
                    <td class="px-6 py-4 font-black text-slate-200">{{ formatNum(t.secondary_amount) }} {{ t.secondary_currency }}</td>
-                   <td class="px-6 py-4 font-black text-emerald-400 tracking-tight">+{{ formatNum(t.profit) }}</td>
+                   <td class="px-6 py-4 text-xs font-black">
+                      <span v-if="t.type === 'buy'" class="text-slate-500">0</span>
+                      <template v-else>
+                        <span class="text-emerald-500">+{{ formatNum(t.profit) }}</span>
+                        <span class="text-[9px] font-bold text-emerald-500/70 ml-1">
+                          {{ t.secondary_currency }}
+                        </span>
+                      </template>
+                   </td>
                    <td class="px-6 py-4">
                       <div class="flex justify-center gap-2">
                          <button @click="printReceipt(t)" class="p-2 bg-slate-800 text-emerald-400 rounded-lg hover:bg-emerald-500 hover:text-white transition-all shadow-sm" title="چاپکردنی وەسڵ">
@@ -188,8 +213,30 @@ const showResults = ref(null)
 const accountSearch = ref('')
 const accountSearchSell = ref('')
 
+const tableFilter = ref('all')
+const tableSearch = ref('')
+
 const buyForm = ref({ primary_amount: null, rate: 151000, secondary_amount: null, account_id: null, client_name: '', note: '' })
 const sellForm = ref({ primary_amount: null, rate: 152000, secondary_amount: null, account_id: null, client_name: '', note: '' })
+
+const filteredTransactions = computed(() => {
+  let list = transactions.value
+  
+  if (tableFilter.value !== 'all') {
+    list = list.filter(t => t.type === tableFilter.value)
+  }
+  
+  if (tableSearch.value) {
+    const q = tableSearch.value.toLowerCase()
+    list = list.filter(t => 
+      t.account?.name.toLowerCase().includes(q) || 
+      t.client_name?.toLowerCase().includes(q) ||
+      t.primary_currency.toLowerCase().includes(q)
+    )
+  }
+  
+  return list
+})
 
 async function fetchLiveRates() {
   loadingRates.value = true
