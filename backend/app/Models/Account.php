@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Account extends Model
 {
@@ -13,12 +15,46 @@ class Account extends Model
         'address',
         'type',
         'balance',
+        'parent_id',
     ];
 
     /**
+     * Hierarchy Relations
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Account::class, 'parent_id');
+    }
+
+    /**
+     * Accounting Relations
+     */
+    public function journalEntries(): HasMany
+    {
+        return $this->hasMany(JournalEntry::class);
+    }
+
+    public function summaries(): HasMany
+    {
+        return $this->hasMany(AccountSummary::class);
+    }
+
+    /**
+     * Get balance for a specific currency from the summary table.
+     */
+    public function getBalance($currencyId)
+    {
+        $summary = $this->summaries()->where('currency_id', $currencyId)->first();
+        return $summary ? $summary->balance : 0;
+    }
+
+    /**
      * Scope: Search by code or name (ultra-fast lookup).
-     * User types '13' → finds code 13.
-     * User types 'نات' → finds 'کۆمپانیای ناترۆن'.
      */
     public function scopeSearch($query, $term)
     {
@@ -29,16 +65,13 @@ class Account extends Model
     }
 
     /**
-     * Get all registry entries where this account is debtor.
+     * Legacy Relations
      */
     public function debtorEntries()
     {
         return $this->hasMany(RegistryEntry::class, 'debtor_account_id');
     }
 
-    /**
-     * Get all registry entries where this account is creditor.
-     */
     public function creditorEntries()
     {
         return $this->hasMany(RegistryEntry::class, 'creditor_account_id');

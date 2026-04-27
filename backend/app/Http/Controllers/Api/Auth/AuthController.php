@@ -36,6 +36,7 @@ class AuthController extends Controller
         Mail::to($user->email)->send(new TwoFactorCodeMail($code));
 
         return response()->json([
+            'two_factor_required' => true,
             'message' => 'کۆدی دڵنیایی بۆ ئیمەیڵەکەت نێردرا.',
             'email' => $user->email
         ]);

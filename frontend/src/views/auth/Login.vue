@@ -123,7 +123,7 @@ const handleLogin = async () => {
     if (result?.twoFactor) {
       router.push('/verify-2fa')
     } else {
-      router.push('/')
+      router.push('/admin')
     }
   } catch (err) {
     console.error('Login failed', err)

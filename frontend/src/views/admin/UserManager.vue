@@ -174,18 +174,18 @@ const form = reactive({
 
 const fetchUsers = async () => {
   try {
-    const response = await axios.get('/users')
-    users.value = response.data
-  } catch (err) {
-    console.error('Error fetching users:', err)
+    const { data } = await axios.get('/admin/users')
+    users.value = data
+  } catch (error) {
+    console.error('Error fetching users:', error)
   }
 }
 
 const fetchMetadata = async () => {
   try {
     const [rolesRes, permsRes] = await Promise.all([
-      axios.get('/roles'),
-      axios.get('/permissions')
+      axios.get('/admin/roles'),
+      axios.get('/admin/all-permissions')
     ])
     allRoles.value = rolesRes.data
     allPermissions.value = permsRes.data
@@ -231,14 +231,14 @@ const formatPerm = (perm) => {
 const saveUser = async () => {
   try {
     if (isEditing.value) {
-      await axios.put(`/users/${form.id}`, form)
+      await axios.put(`/admin/users/${form.id}`, form)
       PremiumAlert.fire({ 
         title: 'سەرکەوتوو بوو', 
         text: 'زانیارییەکانی کارمەند بە سەرکەوتوویی نوێکرایەوە', 
         icon: 'success' 
       })
     } else {
-      await axios.post('/users', form)
+      await axios.post('/admin/users', form)
       PremiumAlert.fire({ 
         title: 'سەرکەوتوو بوو', 
         text: 'کارمەندی نوێ بۆ ناو سیستم زیادکرا', 
@@ -269,7 +269,7 @@ const deleteUser = async (id) => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`/users/${id}`)
+      await axios.delete(`/admin/users/${id}`)
       PremiumAlert.fire({ title: 'سڕایەوە', text: 'کارمەندەکە بە سەرکەوتوویی سڕایەوە', icon: 'success' })
       fetchUsers()
     } catch (err) {

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\Account;
+use App\Models\Currency;
+use App\Services\JournalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,16 +30,23 @@ class ExchangeController extends Controller
                 'account_id' => 'required|exists:accounts,id',
                 'type' => 'required|in:buy,sell',
                 'pair' => 'required|string',
-                'primary_currency' => 'required|string',
+                'primary_currency' => 'required|string', 
                 'primary_amount' => 'required|numeric',
                 'secondary_currency' => 'required|string',
                 'secondary_amount' => 'required|numeric',
                 'rate' => 'required|numeric',
+                // New: Flexible Vault selection
+                'vault_from_id' => 'required|exists:accounts,id',
+                'vault_to_id' => 'required|exists:accounts,id',
                 'note' => 'nullable|string',
                 'client_name' => 'nullable|string'
             ]);
 
             return DB::transaction(function () use ($request) {
+                // 1. Calculate Profit (if any)
+                $profit = $this->calculateProfit($request);
+
+                // 2. Create Transaction record
                 $transaction = Transaction::create([
                     'user_id' => auth()->id(),
                     'account_id' => $request->account_id,
@@ -48,10 +57,13 @@ class ExchangeController extends Controller
                     'secondary_currency' => $request->secondary_currency,
                     'secondary_amount' => $request->secondary_amount,
                     'rate' => $request->rate,
-                    'profit' => $this->calculateProfit($request),
+                    'profit' => $profit,
                     'client_name' => $request->client_name,
                     'note' => $request->note
                 ]);
+
+                // 3. Journal Entries Logic (4-Leg Double Entry)
+                $this->recordJournalEntries($transaction, $request);
 
                 return response()->json($transaction->load('account'), 201);
             });
@@ -60,62 +72,91 @@ class ExchangeController extends Controller
         }
     }
 
+    private function recordJournalEntries(Transaction $transaction, Request $request)
+    {
+        $primaryCurrency = Currency::where('code', $request->primary_currency)->first();
+        $secondaryCurrency = Currency::where('code', $request->secondary_currency)->first();
+        $customerAccount = Account::find($request->account_id);
+        $vaultFrom = Account::find($request->vault_from_id);
+        $vaultTo = Account::find($request->vault_to_id);
+        $today = now();
+
+        if ($request->type === 'buy') {
+            // WE BUY Primary (USD) from Customer using Secondary (IQD)
+            
+            // 1. We receive Primary into our Vault (Debit Vault)
+            JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "کڕینی {$request->primary_currency} - وەرگیرا لە {$request->client_name}", $today);
+            
+            // 2. Customer gives Primary (Credit Customer)
+            JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "داپەنی {$request->primary_currency} بۆ ئاڵوگۆڕ", $today);
+
+            // 3. Customer receives Secondary (Debit Customer)
+            JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} لە ئاڵوگۆڕ", $today);
+
+            // 4. We give Secondary from our Vault (Credit Vault)
+            JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "فرۆشتنی {$request->secondary_currency} - درا بە {$request->client_name}", $today);
+
+        } else {
+            // WE SELL Primary (USD) to Customer receiving Secondary (IQD)
+            
+            // 1. We receive Secondary into our Vault (Debit Vault)
+            JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} لە {$request->client_name}", $today);
+
+            // 2. Customer gives Secondary (Credit Customer)
+            JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} بۆ ئاڵوگۆڕ", $today);
+
+            // 3. Customer receives Primary (Debit Customer)
+            JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} لە ئاڵوگۆڕ", $today);
+
+            // 4. We give Primary from our Vault (Credit Vault)
+            JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "فرۆشتنی {$request->primary_currency} - درا بە {$request->client_name}", $today);
+        }
+
+        // 5. Record Profit if realized
+        if ($transaction->profit > 0) {
+            $profitAccount = Account::where('type', 'revenue')->orWhere('code', 'LIKE', '4%')->first();
+            if ($profitAccount) {
+                JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $transaction->profit, "قازانجی ئاڵوگۆڕی پسوڵەی #{$transaction->id}", $today);
+            }
+        }
+    }
+
     public function getProfitReport(Request $request)
     {
-        $accountId = $request->account_id;
-        $startDate = $request->start_date . ' 00:00:00';
-        $endDate = $request->end_date . ' 23:59:59';
+        $startDate = $request->input('start_date', now()->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
-        // 1. Calculate Opening Balance (Everything before start_date)
-        $openingBalanceQuery = Transaction::where('created_at', '<', $startDate);
-        if ($accountId) $openingBalanceQuery->where('account_id', $accountId);
-        
-        $openingBalances = $openingBalanceQuery->get()->groupBy('primary_currency')->map(function ($group) {
-            return $group->where('type', 'buy')->sum('primary_amount') - $group->where('type', 'sell')->sum('primary_amount');
-        });
+        // 1. Profit from Revenue Accounts
+        $profitByCurrency = \App\Models\JournalEntry::whereBetween('date', [$startDate, $endDate])
+            ->whereHas('account', function($q) {
+                $q->where('code', 'LIKE', '4%')->orWhere('type', 'revenue');
+            })
+            ->select('currency_id', DB::raw('SUM(credit - debit) as total_profit'))
+            ->groupBy('currency_id')
+            ->with('currency')
+            ->get();
 
-        // 2. Fetch Period Transactions
-        $periodQuery = Transaction::query();
-        if ($accountId) $periodQuery->where('account_id', $accountId);
-        $periodQuery->whereBetween('created_at', [$startDate, $endDate]);
-        
-        $transactions = $periodQuery->latest()->get();
-
-        $totalProfitIQD = 0;
-        $currenciesData = $transactions->groupBy('primary_currency')->map(function ($group, $currency) use (&$totalProfitIQD, $openingBalances) {
-            $buyAmount = $group->where('type', 'buy')->sum('primary_amount');
-            $sellAmount = $group->where('type', 'sell')->sum('primary_amount');
-            
-            // Current Period Balance
-            $periodBalance = $buyAmount - $sellAmount;
-            // Total Balance = Opening + Period
-            $finalBalance = ($openingBalances[$currency] ?? 0) + $periodBalance;
-
-            foreach ($group as $t) {
-                if ($t->type === 'sell') {
-                    if ($t->secondary_currency === 'IQD') $totalProfitIQD += $t->profit;
-                    else $totalProfitIQD += $t->profit * 1515; 
-                }
-            }
-
-            return [
-                'opening_balance' => $openingBalances[$currency] ?? 0,
-                'period_balance' => $periodBalance,
-                'final_balance' => $finalBalance,
-                'total_buy' => $buyAmount,
-                'total_sell' => $sellAmount,
-                'profit' => $group->sum('profit'),
-                'currency' => $currency,
-                'secondary_symbol' => $group->first()->secondary_currency
-            ];
-        });
+        // 2. Current Asset Balances (Vaults)
+        $assets = Account::where('type', 'vault')
+            ->with('summaries.currency')
+            ->get()
+            ->map(function($account) {
+                return [
+                    'name' => $account->name,
+                    'balances' => $account->summaries->map(function($s) {
+                        return [
+                            'currency' => $s->currency->code,
+                            'balance' => $s->total_debit - $s->total_credit
+                        ];
+                    })
+                ];
+            });
 
         return response()->json([
-            'total_profit_iqd' => round($totalProfitIQD),
-            'total_profit_usd' => round($totalProfitIQD / 1515, 2),
-            'transaction_count' => $transactions->count(),
-            'currencies' => $currenciesData,
-            'transactions' => $transactions->load('account')
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'profits' => $profitByCurrency,
+            'assets' => $assets
         ]);
     }
 
@@ -126,9 +167,12 @@ class ExchangeController extends Controller
 
     public function destroy($id)
     {
-        $transaction = Transaction::findOrFail($id);
-        $transaction->delete();
-        return response()->json(['message' => 'Transaction deleted successfully']);
+        return DB::transaction(function () use ($id) {
+            $transaction = Transaction::findOrFail($id);
+            $transaction->journalEntries()->delete();
+            $transaction->delete();
+            return response()->json(['message' => 'Transaction deleted successfully']);
+        });
     }
 
     private function calculateProfit($request)
@@ -139,13 +183,10 @@ class ExchangeController extends Controller
         $rate = (float)$request->rate;
         $amount = (float)$request->primary_amount;
 
-        // Buying has 0 realized profit
         if ($type === 'buy') {
             return 0;
         }
 
-        // For Selling: We need to find what we bought it for (Average Cost)
-        // Let's find the latest "buy" rate for this currency in this account
         $lastBuyRate = Transaction::where('account_id', $request->account_id)
             ->where('type', 'buy')
             ->where('primary_currency', $primary)
@@ -153,14 +194,10 @@ class ExchangeController extends Controller
             ->latest()
             ->value('rate');
 
-        // If we found a previous buy rate, use it to calculate real profit
         if ($lastBuyRate) {
-            // Profit = (Sell Rate - Buy Rate) * (Amount / 100)
-            // Example: (152,000 - 151,000) * (100 / 100) = 1,000 IQD
             return ($rate - $lastBuyRate) * ($amount / 100);
         }
 
-        // Fallback: If no history, assume a standard 500 IQD spread per $100
         return ($amount / 100) * 500;
     }
 }

@@ -17,6 +17,10 @@ const routes = [
   },
   {
     path: '/',
+    redirect: '/admin'
+  },
+  {
+    path: '/admin',
     component: AdminLayout,
     meta: { requiresAuth: true },
     children: [
@@ -26,34 +30,49 @@ const routes = [
         component: () => import('../views/admin/Dashboard.vue')
       },
       {
-        path: 'pos',
-        name: 'QuickTrade',
-        component: () => import('../views/pos/QuickTrade.vue')
-      },
-      // Finance Domain
-      { path: 'exchange', name: 'admin-exchange', component: () => import('../views/finance/ExchangeManager.vue') },
-      { path: 'general-accounts', name: 'admin-general-accounts', component: () => import('../views/finance/GeneralAccounts.vue') },
-      { path: 'accounts', name: 'admin-accounts', component: () => import('../views/finance/AccountsManager.vue') },
-      { 
-        path: 'registry/:currencyId', 
-        name: 'DynamicRegistry', 
-        component: () => import('../views/finance/DynamicRegistry.vue') 
-      },
-      { path: 'print-invoice', name: 'print-invoice', component: () => import('../views/finance/InvoicePrint.vue'), meta: { layout: 'empty' } },
-      
-      // Admin/Management Domain
-      { path: 'users', name: 'UserManager', component: () => import('../views/admin/UserManager.vue') },
-      
-      // Future Modules
-      {
-        path: 'hawala',
-        name: 'Hawala',
-        component: () => import('../views/hawala/ComingSoon.vue')
+        path: 'currencies',
+        name: 'Currencies',
+        component: () => import('../views/finance/CurrencyManager.vue')
       },
       {
-        path: 'vaults',
-        name: 'Vaults',
-        component: () => import('../views/vaults/ComingSoon.vue')
+        path: 'account-statement',
+        name: 'admin-account-statement',
+        component: () => import('../views/finance/AccountStatement.vue')
+      },
+      {
+        path: 'transfers',
+        name: 'admin-transfers',
+        component: () => import('../views/finance/TransferManager.vue')
+      },
+      {
+        path: 'accounts',
+        name: 'admin-accounts',
+        component: () => import('../views/finance/AccountsManager.vue')
+      },
+      {
+        path: 'exchange',
+        name: 'Exchange',
+        component: () => import('../views/finance/ExchangeManager.vue')
+      },
+      {
+        path: 'general-ledger',
+        name: 'GeneralLedger',
+        component: () => import('../views/finance/DynamicRegistry.vue')
+      },
+      {
+        path: 'registry/:currencyId?',
+        name: 'DynamicRegistry',
+        component: () => import('../views/finance/DynamicRegistry.vue')
+      },
+      {
+        path: 'users',
+        name: 'UserManager',
+        component: () => import('../views/admin/UserManager.vue')
+      },
+      {
+        path: 'roles',
+        name: 'RoleManager',
+        component: () => import('../views/admin/RoleManager.vue')
       }
     ]
   }
@@ -69,7 +88,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')
   } else if (to.meta.guest && auth.isAuthenticated) {
-    next('/')
+    next('/admin')
   } else {
     next()
   }

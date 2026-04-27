@@ -56,6 +56,22 @@ class CurrencyController extends Controller
         return response()->json($currency);
     }
 
+    public function updateRate(Request $request)
+    {
+        $validated = $request->validate([
+            'to' => 'required|string|exists:currencies,code',
+            'rate' => 'required|numeric|min:0.00001',
+        ]);
+
+        $currency = Currency::where('code', $validated['to'])->firstOrFail();
+        $currency->update(['exchange_rate' => $validated['rate']]);
+
+        return response()->json([
+            'message' => 'Exchange rate updated successfully',
+            'currency' => $currency
+        ]);
+    }
+
     /**
      * Remove the specified currency.
      */

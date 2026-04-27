@@ -4,31 +4,33 @@ namespace App\Http\Controllers\Api\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Models\RegistryEntry;
+use App\Models\Account;
+use App\Services\JournalService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RegistryController extends Controller
 {
     /**
      * Display a listing of registry entries.
-     * Supports filtering by currency_id, date range, and search.
      */
     public function index(Request $request)
     {
         $query = RegistryEntry::with(['currency', 'debtorAccount', 'creditorAccount', 'user']);
 
-        if ($currencyId = $request->get('currency_id')) {
+        if ($currencyId = $request->input('currency_id')) {
             $query->where('currency_id', $currencyId);
         }
 
-        if ($from = $request->get('from_date')) {
+        if ($from = $request->input('from_date')) {
             $query->whereDate('entry_date', '>=', $from);
         }
 
-        if ($to = $request->get('to_date')) {
+        if ($to = $request->input('to_date')) {
             $query->whereDate('entry_date', '<=', $to);
         }
 
-        if ($search = $request->get('search')) {
+        if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('sender', 'LIKE', "%{$search}%")
                   ->orWhere('receiver', 'LIKE', "%{$search}%")
@@ -46,7 +48,7 @@ class RegistryController extends Controller
 
         return response()->json(
             $query->orderByDesc('entry_date')->orderByDesc('id')
-                  ->paginate($request->get('per_page', 50))
+                  ->paginate($request->input('per_page', 50))
         );
     }
 
@@ -68,14 +70,42 @@ class RegistryController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['user_id'] = $request->user()->id;
+        // Ensure commissions are never null for database integrity
+        $validated['commission_1'] = $validated['commission_1'] ?? 0;
+        $validated['commission_2'] = $validated['commission_2'] ?? 0;
 
-        $entry = RegistryEntry::create($validated);
+        return DB::transaction(function () use ($request, $validated) {
+            $validated['user_id'] = $request->user()->id;
+            $entry = RegistryEntry::create($validated);
 
-        return response()->json(
-            $entry->load(['currency', 'debtorAccount', 'creditorAccount', 'user']),
-            201
-        );
+            // Record Double-Entry Journal
+            if ($entry->debtor_account_id) {
+                JournalService::record($entry, $entry->debtor_account_id, $entry->currency_id, (float) $entry->amount, 0, "پسوڵەی ژمارە {$entry->id} - مەدین", $entry->entry_date);
+            }
+
+            if ($entry->creditor_account_id) {
+                JournalService::record($entry, $entry->creditor_account_id, $entry->currency_id, 0, (float) $entry->amount, "پسوڵەی ژمارە {$entry->id} - داین", $entry->entry_date);
+            }
+
+            // Commissions (Revenue)
+            if ($entry->commission_1 > 0 || $entry->commission_2 > 0) {
+                $revenueAccount = Account::where('type', 'revenue')
+                    ->orWhere('code', 'LIKE', '4%')
+                    ->first();
+                    
+                if ($revenueAccount) {
+                    $totalCommission = (float)($entry->commission_1 ?? 0) + (float)($entry->commission_2 ?? 0);
+                    if ($totalCommission > 0) {
+                        JournalService::record($entry, $revenueAccount->id, $entry->currency_id, 0, $totalCommission, "عمولەی پسوڵەی ژمارە {$entry->id}", $entry->entry_date);
+                    }
+                }
+            }
+
+            return response()->json(
+                $entry->load(['currency', 'debtorAccount', 'creditorAccount', 'user']),
+                201
+            );
+        });
     }
 
     /**
@@ -106,11 +136,37 @@ class RegistryController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $registry->update($validated);
+        $validated['commission_1'] = $validated['commission_1'] ?? 0;
+        $validated['commission_2'] = $validated['commission_2'] ?? 0;
 
-        return response()->json(
-            $registry->load(['currency', 'debtorAccount', 'creditorAccount', 'user'])
-        );
+        return DB::transaction(function () use ($registry, $validated) {
+            // Delete old journal entries
+            $registry->journalEntries()->delete();
+
+            $registry->update($validated);
+
+            // Re-record Journal Entries
+            if ($registry->debtor_account_id) {
+                JournalService::record($registry, $registry->debtor_account_id, $registry->currency_id, (float) $registry->amount, 0, "پسوڵەی ژمارە {$registry->id} (نوێکراوە) - مەدین", $registry->entry_date);
+            }
+
+            if ($registry->creditor_account_id) {
+                JournalService::record($registry, $registry->creditor_account_id, $registry->currency_id, 0, (float) $registry->amount, "پسوڵەی ژمارە {$registry->id} (نوێکراوە) - داین", $registry->entry_date);
+            }
+
+            // Commissions (Revenue)
+            if ($registry->commission_1 > 0 || $registry->commission_2 > 0) {
+                $revenueAccount = Account::where('code', 'LIKE', '4%')->orWhere('type', 'revenue')->first();
+                if ($revenueAccount) {
+                    $totalCommission = ($registry->commission_1 ?? 0) + ($registry->commission_2 ?? 0);
+                    JournalService::record($registry, $revenueAccount->id, $registry->currency_id, 0, $totalCommission, "عمولەی پسوڵەی ژمارە {$registry->id}", $registry->entry_date);
+                }
+            }
+
+            return response()->json(
+                $registry->load(['currency', 'debtorAccount', 'creditorAccount', 'user'])
+            );
+        });
     }
 
     /**
@@ -118,7 +174,10 @@ class RegistryController extends Controller
      */
     public function destroy(RegistryEntry $registry)
     {
-        $registry->delete();
-        return response()->json(null, 204);
+        return DB::transaction(function () use ($registry) {
+            $registry->journalEntries()->delete();
+            $registry->delete();
+            return response()->json(null, 204);
+        });
     }
 }

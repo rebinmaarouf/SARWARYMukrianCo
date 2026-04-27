@@ -7,10 +7,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\RoleController;
 use App\Http\Controllers\Api\Finance\AccountController;
 use App\Http\Controllers\Api\Finance\CurrencyController;
+use App\Http\Controllers\Api\Finance\TransferController;
 use App\Http\Controllers\Api\Finance\ExchangeController;
 use App\Http\Controllers\Api\Finance\RegistryController;
+use App\Http\Controllers\Api\Finance\JournalController;
 
 // Public/Auth Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,18 +27,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Domain
     Route::prefix('admin')->group(function () {
         Route::apiResource('users', UserController::class);
-        Route::get('/roles', [UserController::class, 'roles']);
-        Route::get('/permissions', [UserController::class, 'permissions']);
-        Route::get('/dashboard/stats', [DashboardController::class, 'stats']); // Fixed to match controller
+        Route::apiResource('roles', RoleController::class);
+        Route::get('/all-permissions', [RoleController::class, 'getAllPermissions']);
     });
 
-    // Dashboard Stats (Alternative global path)
+    // Dashboard Stats
     Route::get('dashboard/stats', [DashboardController::class, 'getStats']);
 
     // Finance Domain
     Route::apiResource('registries', RegistryController::class);
+    Route::get('accounts/recalculate', [AccountController::class, 'recalculateBalances']);
     Route::apiResource('accounts', AccountController::class);
+    Route::apiResource('transfers', TransferController::class);
+    Route::post('currencies/update-rate', [CurrencyController::class, 'updateRate']);
     Route::apiResource('currencies', CurrencyController::class);
     Route::apiResource('exchanges', ExchangeController::class);
+    Route::get('journals', [JournalController::class, 'index']);
     Route::get('reports/profit', [ExchangeController::class, 'getProfitReport']);
 });
