@@ -24,17 +24,30 @@ class TransferController extends Controller
             'to_account_id' => 'required|exists:accounts,id|different:from_account_id',
             'currency_id' => 'required|exists:currencies,id',
             'amount' => 'required|numeric|min:0.01',
+            'commission_amount' => 'nullable|numeric|min:0',
+            'commission_currency_id' => 'nullable|exists:currencies,id',
             'notes' => 'nullable|string',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
+            $commissionAmount = $request->input('commission_amount', 0);
+            $commissionCurrencyId = $request->input('commission_currency_id', $validated['currency_id']);
+            $commissionAccountId = 7; // Main Commission Revenue Account ID
+
             // 1. Record the Transfer
             $transfer = Transfer::create([
-                ...$validated,
+                'from_account_id' => $validated['from_account_id'],
+                'to_account_id' => $validated['to_account_id'],
+                'currency_id' => $validated['currency_id'],
+                'amount' => $validated['amount'],
+                'commission_amount' => $commissionAmount,
+                'commission_currency_id' => $commissionCurrencyId,
+                'commission_account_id' => $commissionAccountId,
+                'notes' => $validated['notes'] ?? null,
                 'user_id' => $request->user()->id,
             ]);
 
-            // 2. Journal Entry - FROM (Credit - Money leaving)
+            // 2. Journal Entry - FROM (Credit - Money leaving for principal)
             JournalEntry::create([
                 'account_id' => $validated['from_account_id'],
                 'currency_id' => $validated['currency_id'],
@@ -48,7 +61,7 @@ class TransferController extends Controller
                 'date' => now(),
             ]);
 
-            // 3. Journal Entry - TO (Debit - Money entering)
+            // 3. Journal Entry - TO (Debit - Money entering for principal)
             JournalEntry::create([
                 'account_id' => $validated['to_account_id'],
                 'currency_id' => $validated['currency_id'],
@@ -62,7 +75,42 @@ class TransferController extends Controller
                 'date' => now(),
             ]);
 
-            // 4. Update Summaries (The magic for Dashboard)
+            // 4. Handle Commission Journal Entries
+            if ($commissionAmount > 0) {
+                // Deduct commission from Sender (Credit)
+                JournalEntry::create([
+                    'account_id' => $validated['from_account_id'],
+                    'currency_id' => $commissionCurrencyId,
+                    'debit' => 0,
+                    'credit' => $commissionAmount,
+                    'type' => 'commission',
+                    'description' => 'Commission Fee for Transfer #' . $transfer->id,
+                    'user_id' => $request->user()->id,
+                    'reference_id' => $transfer->id,
+                    'reference_type' => Transfer::class,
+                    'date' => now(),
+                ]);
+
+                // Add to Revenue Account (Debit, since Balance = Debit - Credit)
+                JournalEntry::create([
+                    'account_id' => $commissionAccountId,
+                    'currency_id' => $commissionCurrencyId,
+                    'debit' => $commissionAmount,
+                    'credit' => 0,
+                    'type' => 'commission',
+                    'description' => 'Commission Revenue from Transfer #' . $transfer->id,
+                    'user_id' => $request->user()->id,
+                    'reference_id' => $transfer->id,
+                    'reference_type' => Transfer::class,
+                    'date' => now(),
+                ]);
+
+                // Update summaries for commission
+                $this->updateSummary($validated['from_account_id'], $commissionCurrencyId, -$commissionAmount);
+                $this->updateSummary($commissionAccountId, $commissionCurrencyId, $commissionAmount);
+            }
+
+            // 5. Update Summaries for principal
             $this->updateSummary($validated['from_account_id'], $validated['currency_id'], -$validated['amount']);
             $this->updateSummary($validated['to_account_id'], $validated['currency_id'], $validated['amount']);
 

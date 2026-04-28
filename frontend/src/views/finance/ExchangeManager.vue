@@ -1,235 +1,284 @@
 <template>
-  <div class="space-y-8 animate-fade-in max-w-[1600px] mx-auto pb-20">
-    <!-- Top Action Bar -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900/40 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/5">
-      <div dir="rtl" class="text-right">
-        <h1 class="text-3xl font-black text-white tracking-tight">تێرمیناڵی ئاڵوگۆڕی دراو</h1>
-        <p class="text-slate-500 font-medium mt-1">کڕین و فرۆشتنی خێرا بەپێی نرخەکانی بازاڕ</p>
+  <div class="space-y-8 animate-fade-in max-w-[1700px] mx-auto pb-20 text-white font-sans">
+    
+    <!-- Enterprise Trading Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-slate-900/40 backdrop-blur-3xl p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-white/5 relative overflow-hidden shadow-2xl">
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none"></div>
+      <div dir="rtl" class="text-right relative z-10 w-full md:w-auto">
+        <div class="flex items-center gap-3 mb-3">
+           <span class="w-10 h-1 bg-blue-500 rounded-full"></span>
+           <h2 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em]">FX Trading Terminal</h2>
+        </div>
+        <h1 class="text-2xl md:text-4xl font-black text-white tracking-tighter">تێرمیناڵی ئاڵوگۆڕی دراوەکان</h1>
+        <p class="text-slate-500 font-medium mt-2 text-sm md:text-lg">کڕین و فرۆشتنی سەرجەم دراوەکان بە نرخی بازاڕ</p>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="bg-slate-950 px-6 py-3 rounded-2xl border border-white/5 flex items-center gap-4">
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Market Status</span>
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="text-xs font-black text-emerald-400">Live & Connected</span>
+      <div class="flex items-center gap-6 relative z-10 w-full md:w-auto">
+        <div class="bg-slate-950 px-6 py-4 rounded-2xl border border-white/5 flex items-center gap-6 shadow-inner w-full md:w-auto justify-between md:justify-start">
+          <div class="flex flex-col items-start">
+             <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Status</span>
+             <div class="flex items-center gap-2">
+               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]"></span>
+               <span class="text-[10px] md:text-sm font-black text-emerald-400">Live</span>
+             </div>
+          </div>
+          <div class="w-px h-8 bg-white/10"></div>
+          <div class="flex flex-col items-start">
+             <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Latency</span>
+             <span class="text-[10px] md:text-sm font-black text-white font-mono">14ms</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Quick Pair Selector -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <!-- Professional Pair Ticker -->
+    <div class="flex gap-3 overflow-x-auto pb-4 custom-scrollbar px-2 snap-x">
       <button v-for="p in pairs" :key="p.id" @click="selectPair(p)"
-        class="relative group p-6 rounded-[2rem] border-2 transition-all duration-500 overflow-hidden"
-        :class="activePair.id === p.id ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/5 bg-slate-900/40 hover:border-white/10'">
-        <div class="relative z-10 flex flex-col items-center gap-3">
-          <span class="text-[10px] font-black uppercase tracking-[0.2em] transition-colors" :class="activePair.id === p.id ? 'text-emerald-400' : 'text-slate-500'">{{ p.label }}</span>
-          <span class="text-2xl font-black text-white tracking-tighter">{{ p.primary }}/{{ p.secondary }}</span>
+        class="flex-none snap-start min-w-[180px] md:min-w-[220px] relative group p-5 md:p-6 rounded-[2rem] md:rounded-[2.5rem] border transition-all duration-500 overflow-hidden"
+        :class="activePair.id === p.id ? 'border-blue-500 bg-blue-500/10' : 'border-white/5 bg-slate-900/40 hover:bg-slate-950 hover:border-white/20'">
+        <div class="relative z-10 flex flex-col items-center gap-1 md:gap-2">
+          <span class="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]" :class="activePair.id === p.id ? 'text-blue-400' : 'text-slate-600'">{{ p.label }}</span>
+          <div class="flex items-center gap-1.5">
+             <span class="text-lg md:text-2xl font-black text-white tracking-tighter">{{ p.primary }}</span>
+             <span class="text-slate-700 font-bold text-xs">/</span>
+             <span class="text-lg md:text-2xl font-black text-slate-400 tracking-tighter">{{ p.secondary }}</span>
+          </div>
         </div>
-        <div v-if="activePair.id === p.id" class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent"></div>
+        <div v-if="activePair.id === p.id" class="absolute bottom-0 left-0 w-full h-1 bg-blue-500 shadow-[0_0_15px_#3b82f6]"></div>
       </button>
     </div>
 
-    <!-- Main Trading Engine -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+    <!-- Dual Trading Engine (Buy/Sell) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+      
       <!-- BUY PANEL -->
-      <div class="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] border border-white/5 p-10 overflow-hidden transition-all hover:border-emerald-500/30">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+      <div class="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] md:rounded-[4rem] border border-white/5 p-8 md:p-12 overflow-hidden transition-all hover:border-emerald-500/40 shadow-3xl">
+        <div class="absolute -top-32 -right-32 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-emerald-500/10 transition-all"></div>
         
         <div class="flex justify-between items-center mb-10 relative z-10">
-          <div class="bg-emerald-500 text-slate-950 px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Buy Mode</div>
-          <h2 class="text-2xl font-black text-white">کڕینی {{ activePair.primary }}</h2>
+          <div class="flex items-center gap-4">
+             <div class="w-10 h-10 md:w-12 md:h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-slate-950 shadow-xl shadow-emerald-500/20">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+             </div>
+             <div dir="rtl" class="text-right">
+                <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">کڕینی {{ activePair.primary }}</h2>
+                <span class="text-emerald-500/60 text-[9px] font-black uppercase tracking-widest block mt-0.5">Market Buy</span>
+             </div>
+          </div>
         </div>
 
-        <div class="space-y-8 relative z-10" dir="rtl">
-          <!-- Amounts Row -->
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-3">
+        <div class="space-y-6 md:space-y-8 relative z-10" dir="rtl">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بڕی {{ activePair.primary }}</label>
-              <input v-model="buyForm.primary_amount" @input="calculate('buy', 'primary')" type="number" 
-                class="w-full bg-slate-950 border border-white/5 rounded-2xl p-6 text-3xl font-black text-white focus:border-emerald-500 outline-none transition-all shadow-2xl" />
+              <div class="relative">
+                <input :value="buyFormText.primary" @input="e => onInput('buy', 'primary', e.target.value)" type="text" 
+                  class="w-full bg-slate-950 border border-white/5 rounded-2xl md:rounded-3xl p-5 md:p-7 text-2xl md:text-3xl font-black text-white focus:border-emerald-500 outline-none transition-all shadow-inner pl-16 md:pl-20" />
+                <span class="absolute left-6 md:left-8 top-1/2 -translate-y-1/2 text-emerald-500 font-black text-sm md:text-lg">{{ activePair.primary }}</span>
+              </div>
             </div>
-            <div class="space-y-3">
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">نرخ ({{ activePair.rateLabel }})</label>
-              <input v-model="buyForm.rate" @input="calculate('buy', 'rate')" type="number" step="any"
-                class="w-full bg-slate-950 border border-white/5 rounded-2xl p-6 text-3xl font-black text-emerald-400 focus:border-emerald-500 outline-none transition-all shadow-2xl" />
-            </div>
-          </div>
-
-          <!-- Total Display -->
-          <div class="bg-slate-950/80 border border-white/5 p-8 rounded-[2rem] space-y-2">
-             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">کۆی گشتی بە {{ activePair.secondary }}</label>
-             <div class="text-4xl font-black text-white text-center tracking-tighter">{{ formatNum(buyForm.secondary_amount) }}</div>
-          </div>
-
-          <!-- Advanced Vault Selection -->
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-3">
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بۆ سندوقی (هاتن)</label>
-              <select v-model="buyForm.vault_to_id" class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500">
-                <option v-for="v in vaults" :key="v.id" :value="v.id">{{ v.name }}</option>
-              </select>
-            </div>
-            <div class="space-y-3">
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">لە سندوقی (دەرچوون)</label>
-              <select v-model="buyForm.vault_from_id" class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500">
-                <option v-for="v in vaults" :key="v.id" :value="v.id">{{ v.name }}</option>
-              </select>
+            <div class="space-y-2">
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{{ activePair.rateLabel }}</label>
+              <input :value="buyFormText.rate" @input="e => onInput('buy', 'rate', e.target.value)" type="text" 
+                class="w-full bg-slate-950 border border-white/5 rounded-2xl md:rounded-3xl p-5 md:p-7 text-2xl md:text-3xl font-black text-emerald-400 focus:border-emerald-500 outline-none transition-all shadow-inner" />
             </div>
           </div>
 
-          <!-- Client & Account -->
-          <div class="space-y-3">
-             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">لە حسابی (کڕیار / وەکیل)</label>
-             <div class="relative group">
-                <input v-model="accountSearchBuy" @focus="showResults = 'buy'" @input="searchAccounts('buy')" type="text" placeholder="بگەڕێ بۆ حساب..."
-                  class="w-full bg-slate-950 border border-white/5 rounded-2xl p-5 text-white font-bold focus:border-emerald-500 outline-none" />
-                <div v-if="showResults === 'buy' && filteredAccounts.length" class="absolute top-full left-0 w-full mt-4 bg-slate-900 border border-emerald-500/50 rounded-2xl z-50 shadow-3xl overflow-hidden backdrop-blur-xl">
-                  <div v-for="acc in filteredAccounts" :key="acc.id" @click="selectAccount(acc, 'buy')" class="p-5 border-b border-white/5 hover:bg-emerald-500/10 cursor-pointer flex justify-between items-center group/item transition-colors">
-                    <span class="font-black text-white group-hover/item:text-emerald-400">{{ acc.name }}</span>
-                    <span class="text-[10px] font-black text-emerald-500/60 font-mono">{{ acc.code }}</span>
-                  </div>
-                </div>
+          <div class="bg-slate-950 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-white/5 shadow-inner group/total relative">
+             <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest block text-center mb-3 md:mb-4">کۆی گشتی بە {{ activePair.secondary }}</label>
+             <div class="relative flex justify-center items-end gap-2 md:gap-4">
+                <span class="text-4xl md:text-6xl font-black text-white tracking-tighter font-mono">{{ buyFormText.secondary || '0' }}</span>
+                <span class="text-base md:text-xl font-black text-emerald-500/50 mb-1.5 md:mb-3">{{ activePair.secondary }}</span>
              </div>
           </div>
 
-          <button @click="submitTrade('buy')" :disabled="loading"
-            class="w-full py-6 bg-emerald-500 text-slate-950 font-black text-2xl rounded-[2rem] shadow-2xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
-            {{ loading ? 'خەریکی تۆمارکردنە...' : 'تۆمارکردنی کڕین' }}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div class="space-y-2 relative">
+                <span class="text-[9px] font-black text-slate-600 uppercase px-2 tracking-widest">لە حیسابی کڕیار</span>
+                <input v-model="accountSearchBuy" @focus="showResults = 'buy'" @input="searchAccounts('buy')" type="text" placeholder="بگەڕێ..."
+                  class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 md:p-5 text-sm font-bold focus:border-emerald-500 outline-none" />
+                <div v-if="showResults === 'buy' && filteredAccounts.length" class="absolute top-full left-0 right-0 mt-2 bg-[#020617] border border-emerald-500/50 rounded-2xl z-50 shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                   <div v-for="acc in filteredAccounts" :key="acc.id" @click="selectAccount(acc, 'buy')" class="p-4 border-b border-white/5 hover:bg-emerald-500/10 cursor-pointer flex justify-between items-center transition-all">
+                     <span class="font-bold text-white text-xs">{{ acc.name }}</span>
+                     <span class="text-[9px] font-black text-emerald-500">{{ acc.code }}</span>
+                   </div>
+                </div>
+             </div>
+             <div class="space-y-2">
+                <span class="text-[9px] font-black text-slate-600 uppercase px-2 tracking-widest">تێبینی</span>
+                <input v-model="buyForm.note" type="text" placeholder="تێبینی..." class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 md:p-5 text-sm font-bold focus:border-emerald-500 outline-none" />
+             </div>
+          </div>
+
+          <button @click="submitTrade('buy')" :disabled="loading || !buyFormText.primary"
+            class="w-full py-6 md:py-8 bg-emerald-500 text-slate-950 font-black text-2xl md:text-3xl rounded-3xl md:rounded-[2.5rem] shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-20">
+            تۆمارکردنی کڕین (BUY)
           </button>
         </div>
       </div>
 
       <!-- SELL PANEL -->
-      <div class="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] border border-white/5 p-10 overflow-hidden transition-all hover:border-rose-500/30">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+      <div class="group relative bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] md:rounded-[4rem] border border-white/5 p-8 md:p-12 overflow-hidden transition-all hover:border-rose-500/40 shadow-3xl">
+        <div class="absolute -top-32 -right-32 w-80 h-80 bg-rose-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-rose-500/10 transition-all"></div>
         
         <div class="flex justify-between items-center mb-10 relative z-10">
-          <div class="bg-rose-500 text-white px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Sell Mode</div>
-          <h2 class="text-2xl font-black text-white">فرۆشتنی {{ activePair.primary }}</h2>
+          <div class="flex items-center gap-4">
+             <div class="w-10 h-10 md:w-12 md:h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-rose-500/20">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"/></svg>
+             </div>
+             <div dir="rtl" class="text-right">
+                <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">فرۆشتنی {{ activePair.primary }}</h2>
+                <span class="text-rose-500/60 text-[9px] font-black uppercase tracking-widest block mt-0.5">Market Sell</span>
+             </div>
+          </div>
         </div>
 
-        <div class="space-y-8 relative z-10" dir="rtl">
-          <!-- Amounts Row -->
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-3">
+        <div class="space-y-6 md:space-y-8 relative z-10" dir="rtl">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بڕی {{ activePair.primary }}</label>
-              <input v-model="sellForm.primary_amount" @input="calculate('sell', 'primary')" type="number" 
-                class="w-full bg-slate-950 border border-white/5 rounded-2xl p-6 text-3xl font-black text-white focus:border-rose-500 outline-none transition-all shadow-2xl" />
+              <div class="relative">
+                <input :value="sellFormText.primary" @input="e => onInput('sell', 'primary', e.target.value)" type="text" 
+                  class="w-full bg-slate-950 border border-white/5 rounded-2xl md:rounded-3xl p-5 md:p-7 text-2xl md:text-3xl font-black text-white focus:border-rose-500 outline-none transition-all shadow-inner pl-16 md:pl-20" />
+                <span class="absolute left-6 md:left-8 top-1/2 -translate-y-1/2 text-rose-500 font-black text-sm md:text-lg">{{ activePair.primary }}</span>
+              </div>
             </div>
-            <div class="space-y-3">
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">نرخ ({{ activePair.rateLabel }})</label>
-              <input v-model="sellForm.rate" @input="calculate('sell', 'rate')" type="number" step="any"
-                class="w-full bg-slate-950 border border-white/5 rounded-2xl p-6 text-3xl font-black text-rose-400 focus:border-rose-500 outline-none transition-all shadow-2xl" />
-            </div>
-          </div>
-
-          <!-- Total Display -->
-          <div class="bg-slate-950/80 border border-white/5 p-8 rounded-[2rem] space-y-2">
-             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block text-center">کۆی گشتی بە {{ activePair.secondary }}</label>
-             <div class="text-4xl font-black text-white text-center tracking-tighter">{{ formatNum(sellForm.secondary_amount) }}</div>
-          </div>
-
-          <!-- Advanced Vault Selection -->
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-3">
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بۆ سندوقی (هاتن)</label>
-              <select v-model="sellForm.vault_to_id" class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 text-white font-bold outline-none focus:border-rose-500">
-                <option v-for="v in vaults" :key="v.id" :value="v.id">{{ v.name }}</option>
-              </select>
-            </div>
-            <div class="space-y-3">
-              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">لە سندوقی (دەرچوون)</label>
-              <select v-model="sellForm.vault_from_id" class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 text-white font-bold outline-none focus:border-rose-500">
-                <option v-for="v in vaults" :key="v.id" :value="v.id">{{ v.name }}</option>
-              </select>
+            <div class="space-y-2">
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{{ activePair.rateLabel }}</label>
+              <input :value="sellFormText.rate" @input="e => onInput('sell', 'rate', e.target.value)" type="text" 
+                class="w-full bg-slate-950 border border-white/5 rounded-2xl md:rounded-3xl p-5 md:p-7 text-2xl md:text-3xl font-black text-rose-400 focus:border-rose-500 outline-none transition-all shadow-inner" />
             </div>
           </div>
 
-          <!-- Client & Account -->
-          <div class="space-y-3">
-             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بۆ حسابی (کڕیار / وەکیل)</label>
-             <div class="relative group">
-                <input v-model="accountSearchSell" @focus="showResults = 'sell'" @input="searchAccounts('sell')" type="text" placeholder="بگەڕێ بۆ حساب..."
-                  class="w-full bg-slate-950 border border-white/5 rounded-2xl p-5 text-white font-bold focus:border-rose-500 outline-none" />
-                <div v-if="showResults === 'sell' && filteredAccounts.length" class="absolute top-full left-0 w-full mt-4 bg-slate-900 border border-rose-500/50 rounded-2xl z-50 shadow-3xl overflow-hidden backdrop-blur-xl">
-                  <div v-for="acc in filteredAccounts" :key="acc.id" @click="selectAccount(acc, 'sell')" class="p-5 border-b border-white/5 hover:bg-rose-500/10 cursor-pointer flex justify-between items-center group/item transition-colors">
-                    <span class="font-black text-white group-hover/item:text-rose-400">{{ acc.name }}</span>
-                    <span class="text-[10px] font-black text-rose-500/60 font-mono">{{ acc.code }}</span>
-                  </div>
-                </div>
+          <div class="bg-slate-950 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-white/5 shadow-inner group/total relative">
+             <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest block text-center mb-3 md:mb-4">کۆی گشتی بە {{ activePair.secondary }}</label>
+             <div class="relative flex justify-center items-end gap-2 md:gap-4">
+                <span class="text-4xl md:text-6xl font-black text-white tracking-tighter font-mono">{{ sellFormText.secondary || '0' }}</span>
+                <span class="text-base md:text-xl font-black text-rose-500/50 mb-1.5 md:mb-3">{{ activePair.secondary }}</span>
              </div>
           </div>
 
-          <button @click="submitTrade('sell')" :disabled="loading"
-            class="w-full py-6 bg-rose-500 text-white font-black text-2xl rounded-[2rem] shadow-2xl shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
-            {{ loading ? 'خەریکی تۆمارکردنە...' : 'تۆمارکردنی فرۆشتن' }}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div class="space-y-2 relative">
+                <span class="text-[9px] font-black text-slate-600 uppercase px-2 tracking-widest">بۆ حسابی کڕیار</span>
+                <input v-model="accountSearchSell" @focus="showResults = 'sell'" @input="searchAccounts('sell')" type="text" placeholder="بگەڕێ..."
+                  class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 md:p-5 text-sm font-bold focus:border-rose-500 outline-none" />
+                <div v-if="showResults === 'sell' && filteredAccounts.length" class="absolute top-full left-0 right-0 mt-2 bg-[#020617] border border-rose-500/50 rounded-2xl z-50 shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                   <div v-for="acc in filteredAccounts" :key="acc.id" @click="selectAccount(acc, 'sell')" class="p-4 border-b border-white/5 hover:bg-rose-500/10 cursor-pointer flex justify-between items-center transition-all">
+                     <span class="font-bold text-white text-xs">{{ acc.name }}</span>
+                     <span class="text-[9px] font-black text-rose-500">{{ acc.code }}</span>
+                   </div>
+                </div>
+             </div>
+             <div class="space-y-2">
+                <span class="text-[9px] font-black text-slate-600 uppercase px-2 tracking-widest">تێبینی</span>
+                <input v-model="sellForm.note" type="text" placeholder="تێبینی..." class="w-full bg-slate-950 border border-white/5 rounded-2xl p-4 md:p-5 text-sm font-bold focus:border-rose-500 outline-none" />
+             </div>
+          </div>
+
+          <button @click="submitTrade('sell')" :disabled="loading || !sellFormText.primary"
+            class="w-full py-6 md:py-8 bg-rose-500 text-white font-black text-2xl md:text-3xl rounded-3xl md:rounded-[2.5rem] shadow-xl shadow-rose-500/20 active:scale-[0.98] transition-all disabled:opacity-20">
+            تۆمارکردنی فرۆشتن (SELL)
           </button>
         </div>
       </div>
     </div>
 
-    <!-- History Table -->
-    <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
-      <div class="p-8 border-b border-white/5 flex justify-between items-center">
-        <h3 class="text-xl font-black text-white">دوایین مەعامەلات</h3>
-        <div class="flex gap-2 bg-slate-950 p-1 rounded-xl">
+    <!-- Live Execution Log -->
+    <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-2xl">
+      <div class="p-6 md:p-10 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6" dir="rtl">
+        <div>
+           <h3 class="text-xl md:text-2xl font-black text-white">مێژووی ئاڵوگۆڕەکان</h3>
+           <p class="text-slate-500 text-[10px] font-bold mt-1">دوایین مامەڵە جێبەجێکراوەکان</p>
+        </div>
+        <div class="flex gap-2 bg-slate-950 p-1.5 rounded-2xl border border-white/5 w-full md:w-auto overflow-x-auto">
            <button v-for="f in ['all', 'buy', 'sell']" :key="f" @click="tableFilter = f"
-             class="px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-             :class="tableFilter === f ? 'bg-white/10 text-white' : 'text-slate-600 hover:text-slate-400'">
+             class="flex-1 md:flex-none px-6 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all"
+             :class="tableFilter === f ? 'bg-emerald-500 text-slate-950' : 'text-slate-500 hover:text-white'">
              {{ f }}
            </button>
         </div>
       </div>
+      
+      <!-- Responsive List -->
       <div class="overflow-x-auto">
-        <table class="w-full text-right" dir="rtl">
+        <!-- Desktop List -->
+        <table class="hidden lg:table w-full text-right" dir="rtl">
           <thead>
-            <tr class="bg-slate-950/40 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5">
-              <th class="px-10 py-6">کات</th>
-              <th class="px-10 py-6 text-center">جۆر</th>
-              <th class="px-10 py-6">کڕیار / حساب</th>
-              <th class="px-10 py-6">بڕی ئاڵوگۆڕ</th>
-              <th class="px-10 py-6">نرخی بازاڕ</th>
-              <th class="px-10 py-6 text-left">قازانج (IQD)</th>
+            <tr class="bg-slate-950/40 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5">
+              <th class="px-12 py-6">کات و بەروار</th>
+              <th class="px-12 py-6 text-center">جۆری جوڵە</th>
+              <th class="px-12 py-6">حیسابی کڕیار</th>
+              <th class="px-12 py-6">بڕی مامەڵە</th>
+              <th class="px-12 py-6">نرخی جێبەجێکردن</th>
+              <th class="px-12 py-6 text-left">قازانج</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
-            <tr v-for="t in filteredTransactions" :key="t.id" class="group hover:bg-white/[0.01] transition-all">
-              <td class="px-10 py-6 text-slate-500 font-bold text-xs">{{ formatFullTime(t.created_at) }}</td>
-              <td class="px-10 py-6 text-center">
-                <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest"
-                  :class="t.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'">
-                  {{ t.type === 'buy' ? 'BUY' : 'SELL' }}
+            <tr v-for="t in filteredTransactions" :key="t.id" class="group hover:bg-white/[0.02] transition-all">
+              <td class="px-12 py-7 text-slate-500 font-bold text-[11px]">{{ formatFullTime(t.created_at) }}</td>
+              <td class="px-12 py-7 text-center">
+                <span class="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase" :class="t.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-500 border border-rose-500/30'">
+                  {{ t.type === 'buy' ? 'MARKET BUY' : 'MARKET SELL' }}
                 </span>
               </td>
-              <td class="px-10 py-6">
+              <td class="px-12 py-7">
                 <div class="flex flex-col">
-                  <span class="text-white font-black group-hover:text-emerald-400 transition-colors">{{ t.client_name || t.account?.name }}</span>
-                  <span class="text-[9px] text-slate-600 font-black tracking-widest uppercase">{{ t.account?.name }}</span>
+                   <span class="text-white font-black text-sm group-hover:text-blue-400">{{ t.client_name || t.account?.name }}</span>
+                   <span class="text-[9px] text-slate-600 font-black uppercase">{{ t.account?.code }}</span>
                 </div>
               </td>
-              <td class="px-10 py-6">
-                 <div class="flex flex-col">
-                    <span class="text-white font-black text-lg">{{ formatNum(t.primary_amount) }} <span class="text-[10px] text-slate-500">{{ t.primary_currency }}</span></span>
-                    <span class="text-xs text-slate-500 font-bold tracking-tighter">{{ formatNum(t.secondary_amount) }} {{ t.secondary_currency }}</span>
-                 </div>
+              <td class="px-12 py-7">
+                <div class="flex flex-col">
+                   <span class="text-white font-black text-xl tracking-tight">{{ formatNum(t.primary_amount) }} <span class="text-[10px] text-slate-500 uppercase">{{ t.primary_currency }}</span></span>
+                   <span class="text-[10px] text-slate-500 font-bold mt-0.5">{{ formatNum(t.secondary_amount) }} {{ t.secondary_currency }}</span>
+                </div>
               </td>
-              <td class="px-10 py-6 font-black text-slate-400 font-mono">{{ formatNum(t.rate) }}</td>
-              <td class="px-10 py-6 text-left font-black text-emerald-500 text-lg">
-                {{ t.profit > 0 ? '+' + formatNum(t.profit) : '—' }}
-              </td>
+              <td class="px-12 py-7 font-black text-slate-400 font-mono text-base">{{ formatNum(t.rate) }}</td>
+              <td class="px-12 py-7 text-left font-black text-emerald-500 text-xl font-mono">{{ t.profit > 0 ? '+' + formatNum(t.profit) : '—' }}</td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Mobile/Tablet Card List -->
+        <div class="lg:hidden divide-y divide-white/[0.03]" dir="rtl">
+           <div v-for="t in filteredTransactions" :key="t.id" class="p-6 space-y-4 hover:bg-white/[0.02] transition-all">
+              <div class="flex justify-between items-center">
+                 <span class="text-[10px] font-black text-slate-600 uppercase">{{ formatFullTime(t.created_at) }}</span>
+                 <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase" :class="t.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'">
+                    {{ t.type === 'buy' ? 'BUY' : 'SELL' }}
+                 </span>
+              </div>
+              <div class="flex justify-between items-end">
+                 <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-slate-500 uppercase mb-1">بڕی مامەڵە</span>
+                    <span class="text-2xl font-black text-white font-mono leading-none">{{ formatNum(t.primary_amount) }} <span class="text-[10px] text-slate-500">{{ t.primary_currency }}</span></span>
+                 </div>
+                 <div class="text-left">
+                    <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">نرخی گۆڕینەوە</span>
+                    <span class="text-lg font-black text-slate-400 font-mono">{{ formatNum(t.rate) }}</span>
+                 </div>
+              </div>
+              <div class="bg-slate-950/50 p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                 <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-slate-600 uppercase mb-1">بۆ حیسابی</span>
+                    <span class="text-sm font-bold text-white">{{ t.client_name || t.account?.name }}</span>
+                 </div>
+                 <div class="text-left">
+                    <span class="text-[9px] font-black text-emerald-500 uppercase block mb-1">قازانج</span>
+                    <span class="text-base font-black text-emerald-500 font-mono">{{ t.profit > 0 ? '+' + formatNum(t.profit) : '—' }}</span>
+                 </div>
+              </div>
+           </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from '../../plugins/axios'
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
 
 const pairs = ref([])
 const activePair = ref({ id: 0, primary: 'USD', secondary: 'IQD', label: 'دینار - دۆلار', multiplier: 0.01, rateLabel: 'بۆ هەر 100$' })
@@ -238,20 +287,19 @@ async function generatePairs() {
   try {
     const { data } = await axios.get('/currencies')
     const activeCurrencies = data.data || data
-    
-    // We assume USD is our reference for pairs (standard for exchange offices)
-    const base = activeCurrencies.find(c => c.code === 'USD') || activeCurrencies[0]
+    const quote = activeCurrencies.find(c => c.code === 'IQD') || activeCurrencies.find(c => c.is_base)
     
     const newPairs = []
     activeCurrencies.forEach(c => {
-      if (c.id !== base.id) {
+      if (quote && c.id !== quote.id) {
+        let multiplier = 1;
+        let rateLabel = `بۆ هەر 1 ${c.code}`;
+        if (['USD', 'EUR', 'GBP', 'TRY'].includes(c.code)) { multiplier = 0.01; rateLabel = `بۆ هەر 100 ${c.code}`; }
+        else if (c.code === 'IRR') { multiplier = 0.0000001; rateLabel = `بۆ هەر 1,000,000 تمەن`; }
+
         newPairs.push({
-          id: c.id,
-          primary: base.code,
-          secondary: c.code,
-          label: `${c.name} - ${base.name}`,
-          multiplier: c.code === 'IQD' || c.code === 'IRR' || c.code === 'TRY' ? 0.01 : 1,
-          rateLabel: c.code === 'IQD' || c.code === 'IRR' || c.code === 'TRY' ? `بۆ هەر 100${base.code}` : `بۆ هەر 1 ${base.code}`
+          id: c.id, primary: c.code, secondary: quote.code,
+          label: `${quote.code} - ${c.code}`, multiplier, rateLabel
         })
       }
     })
@@ -259,8 +307,8 @@ async function generatePairs() {
     if (newPairs.length > 0) activePair.value = newPairs[0]
   } catch (e) { console.error(e) }
 }
+
 const accounts = ref([])
-const vaults = ref([])
 const transactions = ref([])
 const loading = ref(false)
 const showResults = ref(null)
@@ -268,8 +316,49 @@ const accountSearchBuy = ref('')
 const accountSearchSell = ref('')
 const tableFilter = ref('all')
 
-const buyForm = ref({ primary_amount: null, rate: 151000, secondary_amount: 0, account_id: null, vault_from_id: null, vault_to_id: null, client_name: '', note: '' })
-const sellForm = ref({ primary_amount: null, rate: 152000, secondary_amount: 0, account_id: null, vault_from_id: null, vault_to_id: null, client_name: '', note: '' })
+const buyFormText = ref({ primary: '', rate: '151,000', secondary: '' })
+const sellFormText = ref({ primary: '', rate: '152,000', secondary: '' })
+
+const buyForm = ref({ vault_from_id: null, vault_to_id: null, account_id: null, client_name: '', note: '' })
+const sellForm = ref({ vault_from_id: null, vault_to_id: null, account_id: null, client_name: '', note: '' })
+
+function formatWithCommas(str) {
+  if (!str) return '';
+  let clean = str.toString().replace(/[^\d.]/g, '');
+  const parts = clean.split('.');
+  if (parts.length > 2) clean = parts[0] + '.' + parts.slice(1).join('');
+  const [whole, decimal] = clean.split('.');
+  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decimal !== undefined ? `${formattedWhole}.${decimal}` : formattedWhole;
+}
+
+function onInput(type, source, rawValue) {
+  const formText = type === 'buy' ? buyFormText.value : sellFormText.value;
+  formText[source] = formatWithCommas(rawValue);
+  if (rawValue && rawValue !== '') calculate(type, source);
+}
+
+function calculate(type, source) {
+  const formText = type === 'buy' ? buyFormText.value : sellFormText.value;
+  const m = activePair.value.multiplier;
+  const p = parseFloat(formText.primary.replace(/,/g, '')) || 0;
+  const r = parseFloat(formText.rate.replace(/,/g, '')) || 0;
+  const s = parseFloat(formText.secondary.replace(/,/g, '')) || 0;
+
+  if (source === 'primary' || source === 'rate') {
+     formText.secondary = formatWithCommas(((p * m) * r).toFixed(0));
+  } else if (source === 'secondary') {
+     if (r > 0 && m > 0) formText.primary = formatWithCommas(((s / r) / m).toFixed(2).replace(/\.00$/, '')); 
+  }
+}
+
+watch(activePair, (newPair) => {
+  if (newPair.primary === 'USD') { buyFormText.value.rate = '151,000'; sellFormText.value.rate = '152,000' }
+  else if (newPair.primary === 'IRR') { buyFormText.value.rate = '2,500'; sellFormText.value.rate = '2,550' }
+  else { buyFormText.value.rate = '1,000'; sellFormText.value.rate = '1,100' }
+  buyFormText.value.primary = ''; buyFormText.value.secondary = '';
+  sellFormText.value.primary = ''; sellFormText.value.secondary = '';
+})
 
 const filteredTransactions = computed(() => {
   if (tableFilter.value === 'all') return transactions.value
@@ -282,32 +371,8 @@ const filteredAccounts = computed(() => {
   return accounts.value.filter(a => a.name.toLowerCase().includes(q) || a.code.toString().includes(q)).slice(0, 8)
 })
 
-function searchAccounts(type) {
-  showResults.value = type
-}
-
-function selectPair(p) {
-  activePair.value = p
-  if (p.primary === 'USD' && p.secondary === 'IQD') {
-    buyForm.value.rate = 151000
-    sellForm.value.rate = 152000
-  } else {
-    buyForm.value.rate = 1
-    sellForm.value.rate = 1
-  }
-  calculate('buy', 'primary')
-  calculate('sell', 'primary')
-}
-
-function calculate(type, source) {
-  const form = type === 'buy' ? buyForm.value : sellForm.value
-  const m = activePair.value.multiplier
-  if (source === 'primary' || source === 'rate') {
-    form.secondary_amount = (form.primary_amount * m) * form.rate
-  } else {
-    form.primary_amount = (form.secondary_amount / form.rate) / m
-  }
-}
+function searchAccounts(type) { showResults.value = type }
+function selectPair(p) { activePair.value = p }
 
 async function fetchData() {
   try {
@@ -316,15 +381,11 @@ async function fetchData() {
       axios.get('/exchanges')
     ])
     accounts.value = accRes.data.data || accRes.data
-    vaults.value = accounts.value.filter(a => a.type === 'vault')
     transactions.value = transRes.data.data || transRes.data
-    
-    // Auto-select first vaults
-    if (vaults.value.length >= 1) {
-      buyForm.value.vault_from_id = vaults.value[0].id
-      buyForm.value.vault_to_id = vaults.value[0].id
-      sellForm.value.vault_from_id = vaults.value[0].id
-      sellForm.value.vault_to_id = vaults.value[0].id
+    const firstVault = accounts.value.find(a => a.type === 'vault')
+    if (firstVault) {
+      buyForm.value.vault_from_id = firstVault.id; buyForm.value.vault_to_id = firstVault.id;
+      sellForm.value.vault_from_id = firstVault.id; sellForm.value.vault_to_id = firstVault.id;
     }
   } catch (e) { console.error(e) }
 }
@@ -336,49 +397,42 @@ function selectAccount(acc, type) {
 }
 
 async function submitTrade(type) {
-  const form = type === 'buy' ? buyForm.value : sellForm.value
-  if (!form.account_id || !form.vault_from_id || !form.vault_to_id) {
-    return Swal.fire({ icon: 'error', title: 'تکایە هەموو خانەکان پڕ بکەرەوە', background: '#0f172a', color: '#fff' })
-  }
+  const formObj = type === 'buy' ? buyForm.value : sellForm.value;
+  const formText = type === 'buy' ? buyFormText.value : sellFormText.value;
+
+  if (!formObj.account_id) return Swal.fire({ icon: 'warning', title: 'حیساب هەڵبژێرە', background: '#020617', color: '#fff' })
 
   loading.value = true
   try {
     const payload = { 
-      ...form, 
-      type, 
-      pair: `${activePair.value.primary}/${activePair.value.secondary}`,
-      primary_currency: activePair.value.primary,
-      secondary_currency: activePair.value.secondary
+      ...formObj,
+      primary_amount: parseFloat(formText.primary.replace(/,/g, '')),
+      rate: parseFloat(formText.rate.replace(/,/g, '')),
+      secondary_amount: parseFloat(formText.secondary.replace(/,/g, '')),
+      type, pair: `${activePair.value.primary}/${activePair.value.secondary}`,
+      primary_currency: activePair.value.primary, secondary_currency: activePair.value.secondary
     }
     const { data } = await axios.post('/exchanges', payload)
     transactions.value.unshift(data)
-    
-    // Reset forms partially
-    form.primary_amount = null
-    form.secondary_amount = 0
-    
-    Swal.fire({ icon: 'success', title: 'مەعامەلەکە بە سەرکەوتوویی تۆمارکرا', toast: true, position: 'top-end', timer: 3000, showConfirmButton: false })
+    formText.primary = ''; formText.secondary = '';
+    Swal.fire({ icon: 'success', title: 'مامەڵەکە تۆمارکرا', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#10b981', color: '#fff' })
   } catch (e) {
-    Swal.fire({ icon: 'error', title: 'هەڵە لە تۆمارکردن', text: e.response?.data?.error || 'سێرڤەر وەڵامی نییە', background: '#0f172a', color: '#fff' })
-  } finally {
-    loading.value = false
-  }
+    Swal.fire({ icon: 'error', title: 'هەڵە لە تۆمارکردن', background: '#020617', color: '#fff' })
+  } finally { loading.value = false }
 }
 
 const formatNum = (val) => new Intl.NumberFormat().format(val || 0)
 const formatFullTime = (dateStr) => {
   const d = new Date(dateStr)
-  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })
 }
 
-onMounted(() => {
-  fetchData()
-  generatePairs()
-})
+onMounted(() => { fetchData(); generatePairs() })
 </script>
 
 <style scoped>
 .animate-fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.custom-scrollbar::-webkit-scrollbar { height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 </style>

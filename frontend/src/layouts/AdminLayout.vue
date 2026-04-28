@@ -4,8 +4,14 @@
     <aside class="w-24 md:w-80 bg-slate-900/20 backdrop-blur-3xl border-l border-white/5 flex flex-col transition-all duration-500 relative z-50">
       <!-- Logo -->
       <div class="p-8 mb-6 flex justify-center md:justify-start">
-        <div class="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 rotate-3">
-           <span class="text-2xl font-black text-slate-950">SM</span>
+        <div class="w-16 h-16 relative group cursor-pointer">
+           <!-- Premium Badge Container for non-transparent logos -->
+           <div class="absolute inset-0 bg-white rounded-2xl shadow-2xl shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-500"></div>
+           <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-2xl z-20"></div>
+           <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain relative z-10 p-2 rounded-2xl" @error="logoError = true" v-if="!logoError" />
+           <div v-else class="w-full h-full bg-slate-800 rounded-2xl flex items-center justify-center relative z-10 border border-white/10">
+              <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+           </div>
         </div>
       </div>
 
@@ -94,7 +100,7 @@
           </div>
        </header>
 
-       <div class="flex-1 overflow-y-auto p-10 custom-scrollbar relative z-30">
+       <div class="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar relative z-30">
           <router-view v-slot="{ Component }">
             <transition name="page" mode="out-in">
               <component :is="Component" />
@@ -116,6 +122,9 @@ const router = useRouter()
 const currencies = ref([])
 const loadingCurrencies = ref(true)
 
+const logoUrl = '/logo.png'
+const logoError = ref(false)
+
 const fetchCurrencies = async () => {
   try {
     const { data } = await axios.get('/currencies')
@@ -136,8 +145,25 @@ onMounted(fetchCurrencies)
 </script>
 
 <style scoped>
-.nav-link { @apply flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 text-slate-400 hover:bg-white/5 hover:text-white; }
-.nav-link.active { @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-lg shadow-emerald-500/10; }
+.nav-link { 
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  color: #94a3b8;
+}
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+.nav-link.active { 
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+}
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 .page-enter-active, .page-leave-active { transition: all 0.3s ease; }
