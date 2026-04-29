@@ -1,286 +1,279 @@
 <template>
-  <div class="p-6 md:p-10 space-y-8 max-w-[1920px] mx-auto pb-32 animate-fade-in text-white font-sans">
+  <div class="p-4 md:p-8 lg:p-10 space-y-8 max-w-[1900px] mx-auto pb-40 text-white font-sans" dir="rtl">
     
-    <!-- Top Navbar & Greeting -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900/50 backdrop-blur-3xl border border-white/5 p-6 rounded-3xl shadow-2xl relative overflow-hidden">
-       <div class="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none"></div>
-       <div dir="rtl" class="flex items-center gap-6 relative z-10">
-          <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl shadow-emerald-500/20 relative group cursor-pointer overflow-hidden">
-             <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent"></div>
-             <!-- Embedded Logo -->
-             <img :src="logoUrl" alt="Logo" class="w-12 h-12 object-contain relative z-10 group-hover:scale-110 transition-transform duration-500" @error="logoError = true" v-if="!logoError" />
-             <div v-else class="text-emerald-500 font-black text-xl relative z-10">{{ user?.name?.charAt(0) }}</div>
-          </div>
-          <div>
-             <div class="flex items-center gap-3 mb-1">
-                <div class="flex h-2 w-2 relative">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </div>
-                <h2 class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Global Terminal Active</h2>
-             </div>
-             <h1 class="text-3xl font-black tracking-tight leading-none">بەخێربێیتەوە، {{ user?.name?.split(' ')[0] || 'بەڕێز' }}</h1>
-          </div>
-       </div>
-       
-       <div class="flex gap-4 relative z-10">
-          <div class="bg-slate-950 border border-white/5 px-6 py-3 rounded-2xl flex items-center gap-6">
-             <div class="text-left">
-                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">System Time</p>
-                <p class="text-xl font-black text-white font-mono">{{ currentTime }}</p>
-             </div>
-             <div class="w-px h-8 bg-white/10"></div>
-             <div class="text-left">
-                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Date</p>
-                <p class="text-xs font-black text-slate-400 uppercase mt-1">{{ currentDate }}</p>
-             </div>
-          </div>
-       </div>
-    </header>
-
-    <!-- Compact Vault Balances (Ticker/Horizontal Strip Style) -->
-    <section dir="rtl" class="space-y-4">
-      <div class="flex items-center justify-between px-2">
-         <h3 class="text-lg font-black text-white flex items-center gap-3">
-           <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-           باڵانسی سندوقەکان
-         </h3>
-         <router-link to="/admin/accounts" class="text-[10px] font-black text-slate-500 hover:text-emerald-500 transition-colors uppercase tracking-widest bg-slate-900 px-3 py-1.5 rounded-lg border border-white/5">بەڕێوەبردن</router-link>
-      </div>
-
-      <!-- Compact Horizontal Scrollable Area -->
-      <div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
-        <div v-for="vault in groupedVaults" :key="vault.name" 
-             class="snap-start flex-none w-[320px] bg-slate-900/40 border border-white/5 rounded-3xl p-5 hover:bg-slate-900/60 hover:border-white/10 transition-all flex flex-col gap-4">
-           
-           <div class="flex justify-between items-center border-b border-white/5 pb-3">
-              <span class="text-sm font-black text-white truncate max-w-[200px]">{{ vault.name }}</span>
-              <div class="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
-                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-              </div>
+    <!-- PREMIUM SYSTEM HEADER (The Global Terminal) -->
+    <header class="bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-3xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-8">
+      <div class="absolute inset-0 bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none"></div>
+      
+      <div class="flex items-center gap-6 relative z-10">
+        <!-- Branded Logo Box -->
+        <div class="w-20 h-20 bg-white rounded-[1.8rem] border-4 border-slate-950 flex items-center justify-center p-3 shadow-2xl">
+           <img src="/logo.png" class="max-w-full max-h-full object-contain" alt="Logo" />
+        </div>
+        <div>
+           <div class="flex items-center gap-3 mb-2">
+              <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse">Global Terminal Active</span>
            </div>
-
-           <div class="space-y-2">
-             <div v-for="bal in vault.balances" :key="bal.currency" class="flex justify-between items-center bg-slate-950 px-3 py-2 rounded-xl">
-                <span class="text-[10px] font-black text-slate-500 uppercase">{{ bal.currency }}</span>
-                <span class="text-base font-black tracking-tight" :class="bal.balance >= 0 ? 'text-white' : 'text-rose-400'">{{ formatNum(bal.balance) }}</span>
-             </div>
-             <div v-if="vault.balances.length === 0" class="text-xs text-slate-600 text-center py-2 font-bold">هیچ باڵانسێک نییە</div>
-           </div>
+           <h1 class="text-4xl font-black tracking-tight leading-none">بەخێربێیتەوە، {{ user?.name?.split(' ')[0] || 'بەڕێز' }}</h1>
         </div>
       </div>
-    </section>
 
-    <!-- Main Dynamic Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-       
-       <!-- Market Analytics & Charts (Takes 8 columns) -->
-       <div class="lg:col-span-8 bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8 flex flex-col relative overflow-hidden">
-          <div class="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-          
-          <div class="flex justify-between items-center mb-8 relative z-10">
-             <div dir="rtl">
+      <!-- Real-time Clock & System Status -->
+      <div class="flex gap-4 relative z-10">
+         <div class="bg-slate-950/80 p-5 rounded-[2rem] border border-white/10 flex items-center gap-8 shadow-2xl">
+            <div class="text-left px-4 border-l border-white/5">
+               <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">System Time</span>
+               <p class="text-2xl font-black text-white font-mono">{{ currentTime }}</p>
+            </div>
+            <div class="text-left px-4">
+               <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Market Date</span>
+               <p class="text-xs font-black text-slate-400 uppercase">{{ currentDate }}</p>
+            </div>
+         </div>
+      </div>
+    </header>
+
+    <!-- KEY PERFORMANCE INDICATORS (IUAS P&L) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+       <!-- Revenue -->
+       <div class="bg-slate-900/60 p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی داهات (Revenue - 4)</span>
+          <h3 class="text-3xl font-black text-emerald-400 font-mono tracking-tighter">{{ formatNum(stats.summary?.revenue_iqd) }} <span class="text-xs text-slate-600">IQD</span></h3>
+          <div class="mt-4 flex items-center gap-2">
+             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></div>
+             <span class="text-[8px] text-slate-500 font-black uppercase">Live Updates</span>
+          </div>
+       </div>
+
+       <!-- Expenses -->
+       <div class="bg-slate-900/60 p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی خەرجی (Expenses - 3)</span>
+          <h3 class="text-3xl font-black text-rose-400 font-mono tracking-tighter">{{ formatNum(stats.summary?.expense_iqd) }} <span class="text-xs text-slate-600">IQD</span></h3>
+          <p class="text-[8px] text-slate-600 font-black mt-4 uppercase">Operational Overhead</p>
+       </div>
+
+       <!-- Net Profit (USD) -->
+       <div class="bg-emerald-500 p-8 rounded-[2.5rem] shadow-emerald-500/20 shadow-2xl text-slate-950 flex flex-col justify-between">
+          <div>
+            <span class="text-[9px] font-black opacity-60 uppercase tracking-widest block mb-2">Estimated Net Profit</span>
+            <div class="flex items-baseline gap-1">
+               <span class="text-xl font-black">$</span>
+               <h3 class="text-5xl font-black font-mono tracking-tighter">{{ formatNum(stats.summary?.net_profit_usd) }}</h3>
+            </div>
+          </div>
+          <p class="text-[9px] font-black mt-4 uppercase opacity-60 tracking-widest">Global Valuation Mode</p>
+       </div>
+
+       <!-- Period Toggles (Quick Select) -->
+       <div class="bg-slate-950/60 p-4 rounded-[2.5rem] border border-white/5 flex flex-col gap-2">
+          <h4 class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2 text-center">Analytics Period</h4>
+          <button v-for="p in ['7d', '30d', '1y']" :key="p" @click="changePeriod(p)"
+            class="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all"
+            :class="filters.period === p ? 'bg-white text-slate-950 shadow-xl' : 'text-slate-500 hover:text-white'">
+            {{ p }} View
+          </button>
+       </div>
+    </div>
+
+    <!-- MAIN ANALYTICS CHART & VAULTS MONITOR -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+       <!-- SVG Advanced Multi-Stream Analytics Chart -->
+       <div class="lg:col-span-2 bg-slate-900/40 rounded-[3.5rem] border border-white/5 p-10 relative overflow-hidden shadow-3xl">
+          <div class="flex items-center justify-between mb-12 relative z-10">
+             <div>
                 <h3 class="text-xl font-black text-white">شیکاری دارایی (Financial Analytics)</h3>
-                <p class="text-xs text-slate-500 font-medium mt-1">پوختەی مەعامەلات و قازانجەکان لە ٧ ڕۆژی ڕابردوودا</p>
+                <p class="text-xs text-slate-500 font-medium mt-1">پوختەی مەعامەلات و قازانجەکان بەپێی نیزامی موەحەد</p>
              </div>
-             <div class="flex items-center gap-2">
-                <button class="px-3 py-1.5 bg-emerald-500 text-slate-950 rounded-lg text-[10px] font-black uppercase">1W</button>
-                <button class="px-3 py-1.5 bg-slate-950 text-slate-500 rounded-lg text-[10px] font-black uppercase border border-white/5 hover:text-white">1M</button>
+             <div class="flex gap-6">
+                <div class="flex items-center gap-2">
+                   <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                   <span class="text-[9px] font-black text-slate-500 uppercase">Revenue</span>
+                </div>
+                <div class="flex items-center gap-2">
+                   <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+                   <span class="text-[9px] font-black text-slate-500 uppercase">Expense</span>
+                </div>
              </div>
           </div>
 
-          <!-- The Graph Area -->
-          <div class="flex-1 relative min-h-[300px] z-10 w-full bg-slate-950/50 rounded-3xl border border-white/5 p-6">
-             <!-- Background Grid Lines -->
-             <div class="absolute inset-0 flex flex-col justify-between px-6 py-6 opacity-10 pointer-events-none">
-                <div class="w-full h-px bg-white"></div>
-                <div class="w-full h-px bg-white"></div>
-                <div class="w-full h-px bg-white"></div>
-                <div class="w-full h-px bg-white"></div>
-                <div class="w-full h-px bg-white"></div>
-             </div>
-
-             <!-- SVG Chart -->
-             <svg class="w-full h-full overflow-visible" viewBox="0 0 800 200" preserveAspectRatio="none">
+          <!-- Chart Area -->
+          <div class="h-80 w-full relative z-10">
+             <svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 400">
                 <defs>
-                   <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.4" />
-                      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.2" />
+                      <stop offset="100%" stop-color="transparent" />
+                   </linearGradient>
+                   <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.1" />
+                      <stop offset="100%" stop-color="transparent" />
                    </linearGradient>
                 </defs>
-                <!-- Line -->
-                <path :d="chartPath" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="drop-shadow-[0_4px_12px_rgba(16,185,129,0.4)]" />
-                <!-- Area -->
-                <path :d="chartAreaPath" fill="url(#profitGrad)" />
-                <!-- Dots -->
-                <g v-for="(p, i) in chartPoints" :key="i">
-                   <circle :cx="p.x" :cy="p.y" r="5" fill="#10b981" stroke="#020617" stroke-width="3" class="hover:r-7 transition-all cursor-pointer" />
-                   <text v-if="apiStats.chart_data[i]" :x="p.x" :y="p.y - 15" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle" class="opacity-0 hover:opacity-100 transition-opacity">
-                      ${{ formatNum(apiStats.chart_data[i].profit) }}
-                   </text>
-                </g>
+                
+                <!-- Grid Lines -->
+                <line v-for="i in 5" :key="i" x1="0" :y1="i*80" x2="1000" :y2="i*80" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+                
+                <!-- Paths -->
+                <path :d="revenuePath" fill="url(#revGrad)" />
+                <path :d="revenuePathLine" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+                
+                <path :d="expensePath" fill="url(#expGrad)" />
+                <path :d="expensePathLine" fill="none" stroke="#f43f5e" stroke-width="4" stroke-dasharray="10 6" />
              </svg>
              
-             <!-- X Axis Labels -->
-             <div class="absolute bottom-2 left-6 right-6 flex justify-between px-2">
-                <span v-for="d in apiStats.chart_data" :key="d.day" class="text-[9px] font-black text-slate-600 uppercase">{{ d.day }}</span>
+             <!-- X-Axis Labels -->
+             <div class="absolute bottom-[-30px] inset-x-0 flex justify-between px-4">
+                <span v-for="d in stats.chart_data" :key="d.label" class="text-[9px] font-black text-slate-600 uppercase">{{ d.label }}</span>
              </div>
           </div>
        </div>
 
-       <!-- Right Side Widgets (Takes 4 columns) -->
-       <div class="lg:col-span-4 flex flex-col gap-6">
-          
-          <!-- Key Metrics -->
-          <div class="grid grid-cols-2 gap-4">
-             <!-- Metric 1 -->
-             <div class="bg-slate-900/40 p-5 rounded-3xl border border-white/5 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-3">
-                   <div class="w-8 h-8 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                   </div>
-                </div>
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-10">Total Profit</p>
-                <p class="text-2xl font-black text-white mt-1 group-hover:text-emerald-400 transition-colors">${{ formatNum(apiStats.total_profit_usd) }}</p>
-             </div>
-             
-             <!-- Metric 2 -->
-             <div class="bg-slate-900/40 p-5 rounded-3xl border border-white/5 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-3">
-                   <div class="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                   </div>
-                </div>
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-10">Transactions</p>
-                <p class="text-2xl font-black text-white mt-1 group-hover:text-blue-400 transition-colors">{{ formatNum(apiStats.total_transactions) }}</p>
-             </div>
+       <!-- Real-time Vault Balances Strip -->
+       <div class="bg-slate-950/40 rounded-[3.5rem] border border-white/5 p-8 flex flex-col shadow-3xl">
+          <div class="flex items-center justify-between mb-8">
+             <h3 class="text-lg font-black tracking-tight">باڵانسی سندوقەکان</h3>
+             <router-link to="/admin/accounts" class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+             </router-link>
           </div>
-
-          <!-- Quick Actions Panel -->
-          <div class="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-6 flex-1 flex flex-col relative" dir="rtl">
-             <h3 class="text-lg font-black text-white mb-6">کردارە خێراکان</h3>
-             <div class="space-y-4 flex-1">
-                <router-link to="/admin/exchange" class="flex items-center justify-between p-5 bg-gradient-to-l from-emerald-500 to-teal-500 text-slate-950 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/20 group/action">
-                   <div class="flex items-center gap-4">
-                      <div class="w-10 h-10 bg-slate-950/20 rounded-xl flex items-center justify-center">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                      </div>
-                      <span class="text-base font-black">ئاڵوگۆڕی دراو</span>
-                   </div>
-                   <svg class="w-5 h-5 group-hover/action:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
-                </router-link>
-
-                <router-link to="/admin/transfers" class="flex items-center justify-between p-5 bg-slate-950 border border-white/5 rounded-2xl transition-all hover:border-emerald-500/40 hover:scale-[1.02] active:scale-[0.98] group/action">
-                   <div class="flex items-center gap-4">
-                      <div class="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                      </div>
-                      <span class="text-base font-black text-white">گواستنەوەی پارە</span>
-                   </div>
-                   <svg class="w-5 h-5 text-slate-500 group-hover/action:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
-                </router-link>
-                
-                <router-link to="/admin/registry" class="flex items-center justify-between p-5 bg-slate-950 border border-white/5 rounded-2xl transition-all hover:border-blue-500/40 hover:scale-[1.02] active:scale-[0.98] group/action">
-                   <div class="flex items-center gap-4">
-                      <div class="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                      </div>
-                      <span class="text-base font-black text-white">تۆمارکردن (مەعامەلات)</span>
-                   </div>
-                   <svg class="w-5 h-5 text-slate-500 group-hover/action:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
-                </router-link>
+          
+          <div class="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+             <div v-for="v in stats.vault_balances" :key="v.account_name + v.currency_code" 
+                  class="bg-slate-900/60 p-6 rounded-[2rem] border border-white/5 hover:border-emerald-500/30 transition-all group">
+                <div class="flex justify-between items-center mb-2">
+                   <span class="text-[9px] font-black text-slate-500 uppercase">{{ v.account_name }}</span>
+                   <span class="px-3 py-1 bg-slate-950 rounded-lg text-[9px] font-black text-emerald-500">{{ v.currency_code }}</span>
+                </div>
+                <h4 class="text-2xl font-black font-mono tracking-tighter" :class="v.balance >= 0 ? 'text-white' : 'text-rose-400'">
+                   {{ formatNum(v.balance) }}
+                </h4>
              </div>
           </div>
        </div>
     </div>
+
+    <!-- LIVE JOURNAL FEED & QUICK ACTIONS -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+       <!-- Fast Command Center -->
+       <div class="bg-slate-900/60 rounded-[3rem] p-8 border border-white/5 space-y-4">
+          <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 px-2">کردارە خێراکان</h4>
+          <router-link to="/admin/registry" class="flex items-center justify-between p-6 bg-emerald-500 rounded-3xl text-slate-950 font-black shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+             <span>تۆمارکردنی مامەڵە</span>
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          </router-link>
+          <router-link to="/admin/transfers" class="flex items-center justify-between p-6 bg-slate-950 rounded-3xl border border-white/10 font-black hover:bg-white/5 transition-all">
+             <span>گواستنەوەی پارە</span>
+             <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          </router-link>
+          <router-link to="/admin/account-statement" class="flex items-center justify-between p-6 bg-slate-950 rounded-3xl border border-white/10 font-black hover:bg-white/5 transition-all">
+             <span>وردبینی حسابەکان</span>
+             <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 17v-2m3 2v-4m3 2v-6m0 10v4a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012-2H7a2 2 0 012-2"/></svg>
+          </router-link>
+       </div>
+
+       <!-- Real-time Event Feed -->
+       <div class="lg:col-span-3 bg-slate-900/40 rounded-[3rem] border border-white/5 overflow-hidden shadow-3xl">
+          <div class="p-8 bg-slate-950/80 border-b border-white/5 flex items-center justify-between">
+             <h3 class="text-lg font-black tracking-tight">جوڵەی ڕۆژنامەی گشتی (Live Journal)</h3>
+             <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Real-time Feed</span>
+             </div>
+          </div>
+          <div class="overflow-x-auto">
+             <table class="w-full text-right border-collapse">
+                <thead>
+                   <tr class="text-[9px] font-black text-slate-700 uppercase tracking-widest border-b border-white/5 bg-slate-950/30">
+                      <th class="px-8 py-6">وەسفی مامەڵە و حیساب</th>
+                      <th class="px-8 py-6 text-center">بۆ (Debit)</th>
+                      <th class="px-8 py-6 text-center">لە (Credit)</th>
+                      <th class="px-8 py-6 text-center">دراو</th>
+                      <th class="px-8 py-6">کاتی تۆمار</th>
+                   </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.02]">
+                   <tr v-for="j in journals" :key="j.id" class="hover:bg-white/[0.02] transition-colors group">
+                      <td class="px-8 py-5">
+                         <div class="flex flex-col gap-1">
+                            <span class="text-sm font-black text-white group-hover:text-emerald-400 transition-colors">{{ j.description }}</span>
+                            <div class="flex items-center gap-2">
+                               <span class="px-2 py-0.5 bg-slate-950 rounded text-[8px] font-black text-slate-500 uppercase">{{ j.account?.type }}</span>
+                               <span class="text-[9px] text-slate-600 font-bold">{{ j.account?.name }}</span>
+                            </div>
+                         </div>
+                      </td>
+                      <!-- Debit Column -->
+                      <td class="px-8 py-5 text-center font-mono text-base font-black">
+                         <span v-if="parseFloat(j.debit) > 0" class="text-emerald-400">
+                            {{ formatNum(j.debit) }}
+                         </span>
+                         <span v-else class="text-slate-800">-</span>
+                      </td>
+                      <!-- Credit Column -->
+                      <td class="px-8 py-5 text-center font-mono text-base font-black">
+                         <span v-if="parseFloat(j.credit) > 0" class="text-rose-400">
+                            {{ formatNum(j.credit) }}
+                         </span>
+                         <span v-else class="text-slate-800">-</span>
+                      </td>
+                      <td class="px-8 py-5 text-center">
+                         <span class="px-3 py-1 bg-slate-950 rounded-lg text-[9px] font-black text-slate-500 group-hover:text-white transition-colors border border-white/5">{{ j.currency?.code }}</span>
+                      </td>
+                      <td class="px-8 py-5">
+                         <span class="text-[10px] font-black text-slate-400 font-mono">{{ formatDate(j.date) }}</span>
+                      </td>
+                   </tr>
+                </tbody>
+             </table>
+          </div>
+       </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, reactive, computed } from 'vue'
 import axios from '../../plugins/axios'
 
-const router = useRouter()
 const user = ref(null)
-
-const logoUrl = '/logo.png'
-const logoError = ref(false)
-
-const apiStats = ref({
-  total_transactions: 0,
-  today_transactions: 0,
-  total_accounts: 0,
-  total_profit_usd: 0,
-  vault_balances: [],
-  chart_data: []
-})
-
-// Group balances by account for compact display
-const groupedVaults = computed(() => {
-  const groups = {}
-  apiStats.value.vault_balances.forEach(vb => {
-    if (!groups[vb.account_name]) {
-      groups[vb.account_name] = { name: vb.account_name, balances: [] }
-    }
-    groups[vb.account_name].balances.push({
-      currency: vb.currency_code,
-      balance: vb.balance
-    })
-  })
-  return Object.values(groups)
-})
+const stats = ref({ summary: {}, vault_balances: [], chart_data: [] })
+const journals = ref([])
+const filters = reactive({ period: '7d' })
 
 const currentTime = ref('')
 const currentDate = ref('')
 
-// Chart Math
-const chartPoints = computed(() => {
-  if (!apiStats.value.chart_data?.length) return []
-  const data = apiStats.value.chart_data
-  const maxProfit = Math.max(...data.map(d => d.profit), 10)
-  const width = 800
-  const height = 180
-  const step = width / Math.max(data.length - 1, 1)
-  
-  return data.map((d, i) => ({
-    x: i * step,
-    y: height - (d.profit / maxProfit * (height - 20))
-  }))
-})
+const revenuePath = computed(() => generatePath(stats.value.chart_data, 'revenue', true))
+const revenuePathLine = computed(() => generatePath(stats.value.chart_data, 'revenue', false))
+const expensePath = computed(() => generatePath(stats.value.chart_data, 'expense', true))
+const expensePathLine = computed(() => generatePath(stats.value.chart_data, 'expense', false))
 
-const chartPath = computed(() => {
-  if (chartPoints.value.length < 2) return ''
-  return 'M ' + chartPoints.value.map(p => `${p.x},${p.y}`).join(' L ')
-})
-
-const chartAreaPath = computed(() => {
-  if (chartPoints.value.length < 2) return ''
-  const first = chartPoints.value[0]
-  const last = chartPoints.value[chartPoints.value.length - 1]
-  return `M ${first.x},200 L ` + chartPoints.value.map(p => `${p.x},${p.y}`).join(' L ') + ` L ${last.x},200 Z`
-})
+function generatePath(data, key, close) {
+  if (!data?.length) return ''
+  const max = Math.max(...data.map(d => Math.max(d.revenue, d.expense))) || 100
+  const points = data.map((d, i) => {
+    const x = (i / (data.length - 1)) * 1000
+    const y = 400 - (d[key] / max) * 350
+    return `${x},${y}`
+  })
+  let path = `M ${points[0]}`
+  for (let i = 1; i < points.length; i++) { path += ` L ${points[i]}` }
+  if (close) { path += ` L 1000,400 L 0,400 Z` }
+  return path
+}
 
 async function fetchData() {
   try {
-    const [userRes, statsRes] = await Promise.all([
+    const [userRes, statsRes, journalsRes] = await Promise.all([
       axios.get('/user'),
-      axios.get('/dashboard/stats')
+      axios.get('/dashboard/stats', { params: filters }),
+      axios.get('/journals', { params: { per_page: 8 } })
     ])
     user.value = userRes.data
-    apiStats.value = statsRes.data
-    
-    // Inject fake chart data if empty (for visual demo)
-    if (!apiStats.value.chart_data || apiStats.value.chart_data.length === 0) {
-      apiStats.value.chart_data = [
-         { day: 'Mon', profit: 120 }, { day: 'Tue', profit: 150 }, { day: 'Wed', profit: 140 },
-         { day: 'Thu', profit: 210 }, { day: 'Fri', profit: 180 }, { day: 'Sat', profit: 320 }, { day: 'Sun', profit: 280 }
-      ]
-    }
-  } catch (e) {
-    console.error(e)
-    router.push('/login')
-  }
+    stats.value = statsRes.data
+    journals.value = journalsRes.data.data
+  } catch (e) { console.error(e) }
 }
 
 function updateTime() {
@@ -289,9 +282,9 @@ function updateTime() {
   currentDate.value = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-function formatNum(val) {
-  return new Intl.NumberFormat().format(val || 0)
-}
+function changePeriod(p) { filters.period = p; fetchData(); }
+function formatNum(val) { return new Intl.NumberFormat().format(parseFloat(val || 0)) }
+function formatDate(d) { return new Date(d).toLocaleDateString('ku-IQ', { month: 'short', day: 'numeric' }) }
 
 onMounted(() => {
   fetchData()
@@ -301,11 +294,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.animate-fade-in { animation: fadeIn 0.5s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.custom-scrollbar::-webkit-scrollbar { height: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.shadow-3xl { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5); }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.4); }
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

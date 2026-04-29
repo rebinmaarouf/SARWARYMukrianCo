@@ -183,7 +183,7 @@
       </div>
     </div>
 
-    <!-- Live Execution Log -->
+    <!-- Live Execution Log Section -->
     <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-2xl">
       <div class="p-6 md:p-10 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6" dir="rtl">
         <div>
@@ -199,7 +199,7 @@
         </div>
       </div>
       
-      <!-- Responsive List -->
+      <!-- Responsive List Container -->
       <div class="overflow-x-auto">
         <!-- Desktop List -->
         <table class="hidden lg:table w-full text-right" dir="rtl">
@@ -234,7 +234,12 @@
                 </div>
               </td>
               <td class="px-12 py-7 font-black text-slate-400 font-mono text-base">{{ formatNum(t.rate) }}</td>
-              <td class="px-12 py-7 text-left font-black text-emerald-500 text-xl font-mono">{{ t.profit > 0 ? '+' + formatNum(t.profit) : '—' }}</td>
+              <td class="px-12 py-7 text-left flex items-center justify-end gap-6">
+                 <span class="font-black text-emerald-500 text-xl font-mono">{{ t.profit > 0 ? '+' + formatNum(t.profit) : '—' }}</span>
+                 <button @click="printInvoice(t)" class="p-2 hover:bg-white/10 rounded-lg text-slate-500 hover:text-white transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                 </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -271,6 +276,89 @@
            </div>
         </div>
       </div>
+    </div>
+
+    <!-- OPTIMIZED PRINT TEMPLATE -->
+    <div v-if="printingTx" id="print-area" class="print-area-wrapper" dir="rtl">
+       <div v-for="i in 2" :key="i" class="print-voucher">
+          <div class="flex justify-between items-center border-b-4 border-black pb-4 mb-6">
+             <div class="flex items-center gap-4">
+                <img src="/logo.png" class="h-16 w-16 object-contain grayscale" />
+                <div>
+                   <h1 class="text-xl font-black text-black">کۆمپانیای سەروەری موکریان</h1>
+                   <p class="text-[10px] font-bold text-black uppercase">Sarwary Mukrian Co. for Currency Exchange</p>
+                </div>
+             </div>
+             <div class="text-left" dir="ltr">
+                <h2 class="text-xl font-black text-black leading-none">EXCHANGE VOUCHER</h2>
+                <p class="text-xs font-black mt-1">ID: #{{ printingTx.id }}</p>
+             </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mb-6 text-[10px]">
+             <div class="border border-black p-2 rounded">
+                <span class="font-black block text-slate-500">بەروار / Date</span>
+                <span class="font-black">{{ formatFullTime(printingTx.created_at) }}</span>
+             </div>
+             <div class="border border-black p-2 rounded">
+                <span class="font-black block text-slate-500">کڕیار / Client</span>
+                <span class="font-black">{{ printingTx.client_name || printingTx.account?.name }}</span>
+             </div>
+             <div class="border border-black p-2 rounded text-center">
+                <span class="font-black block text-slate-500">جۆری مامەڵە / Type</span>
+                <span class="font-black" :class="printingTx.type === 'buy' ? 'text-emerald-700' : 'text-rose-700'">{{ printingTx.type === 'buy' ? 'کڕین (BUY)' : 'فرۆشتن (SELL)' }}</span>
+             </div>
+          </div>
+
+          <table class="w-full border-2 border-black mb-6 text-xs">
+             <thead class="bg-black text-white">
+                <tr>
+                   <th class="p-2 text-right">وەسف / Desc</th>
+                   <th class="p-2 text-center">بڕ / Amount</th>
+                   <th class="p-2 text-center">نرخ / Rate</th>
+                   <th class="p-2 text-left">کۆی گشتی / Total</th>
+                </tr>
+             </thead>
+             <tbody>
+                <tr class="font-black">
+                   <td class="border-t border-black p-4">{{ printingTx.primary_currency }} / {{ printingTx.secondary_currency }}</td>
+                   <td class="border-t border-black p-4 text-center font-mono">{{ formatNum(printingTx.primary_amount) }} {{ printingTx.primary_currency }}</td>
+                   <td class="border-t border-black p-4 text-center font-mono">{{ formatNum(printingTx.rate) }}</td>
+                   <td class="border-t border-black p-4 text-left font-mono text-xl">{{ formatNum(printingTx.secondary_amount) }} {{ printingTx.secondary_currency }}</td>
+                </tr>
+             </tbody>
+          </table>
+
+          <div v-if="printingTx.note" class="border border-black p-2 rounded mb-6 text-[10px]">
+             <span class="font-black block text-slate-500">تێبینی / Notes</span>
+             <p class="font-bold">{{ printingTx.note }}</p>
+          </div>
+
+          <div class="flex justify-between mt-12 px-10">
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-[9px] font-black uppercase">نوسینگە / Office</p>
+             </div>
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-[9px] font-black uppercase">کڕیار / Client</p>
+             </div>
+          </div>
+
+          <!-- Legal Disclaimer & Contact -->
+          <div class="mt-10 border-t border-slate-100 pt-4 flex justify-between items-end">
+             <div class="text-[9px] font-bold text-slate-500 leading-tight">
+                <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
+                <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
+             </div>
+             <div class="text-left text-[8px] font-black opacity-30 uppercase tracking-tighter">
+                <p>Sarwary Mukrian Co. | Exchange Division</p>
+                <p>Transaction Hash: EX-{{ printingTx.id }} | {{ i === 1 ? 'OFFICE COPY' : 'CUSTOMER COPY' }}</p>
+             </div>
+          </div>
+
+          <div v-if="i === 1" class="my-14 border-t-2 border-dashed border-slate-300 relative">
+             <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-2 text-[6px] text-slate-400">ببڕدرێت لێرەوە / CUT HERE</span>
+          </div>
+       </div>
     </div>
   </div>
 </template>
@@ -315,6 +403,15 @@ const showResults = ref(null)
 const accountSearchBuy = ref('')
 const accountSearchSell = ref('')
 const tableFilter = ref('all')
+const printingTx = ref(null)
+
+async function printInvoice(tx) {
+  printingTx.value = tx
+  setTimeout(() => {
+    window.print()
+    printingTx.value = null
+  }, 100)
+}
 
 const buyFormText = ref({ primary: '', rate: '151,000', secondary: '' })
 const sellFormText = ref({ primary: '', rate: '152,000', secondary: '' })
@@ -431,6 +528,48 @@ onMounted(() => { fetchData(); generatePairs() })
 </script>
 
 <style scoped>
+@media print {
+  /* Hide EVERYTHING by default */
+  body * { display: none !important; }
+  
+  /* Show ONLY the print area and its children */
+  #print-area, #print-area * { display: block !important; visibility: visible !important; }
+  #print-area div, #print-area p, #print-area span, #print-area table, #print-area thead, #print-area tr, #print-area th, #print-area td, #print-area img {
+    display: block !important;
+  }
+  
+  #print-area table { display: table !important; }
+  #print-area thead { display: table-header-group !important; }
+  #print-area tr { display: table-row !important; }
+  #print-area th, #print-area td { display: table-cell !important; }
+  #print-area .flex { display: flex !important; }
+  #print-area .grid { display: grid !important; }
+
+  #print-area {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: white !important;
+    color: black !important;
+    padding: 2cm;
+    margin: 0;
+    z-index: 9999;
+  }
+
+  .print-voucher {
+    width: 100%;
+    background: white !important;
+    color: black !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
 .animate-fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .custom-scrollbar::-webkit-scrollbar { height: 4px; }
