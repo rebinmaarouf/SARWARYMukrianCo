@@ -2,105 +2,146 @@
   <!-- Main Container -->
   <div class="p-2 md:p-6 lg:p-10 space-y-4 max-w-[1700px] mx-auto pb-40 text-white font-sans" dir="rtl">
     
-    <!-- BRANDED TERMINAL HEADER -->
-    <div class="bg-slate-900/60 backdrop-blur-3xl p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/5 shadow-3xl relative overflow-hidden print-header-container">
-      <!-- Gradient (Hidden in Print) -->
-      <div class="absolute inset-0 bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none no-print"></div>
+    <!-- PROFESSIONAL STATEMENT HEADER (Visible in Print/PDF) -->
+    <div class="bg-slate-900/60 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-3xl relative overflow-hidden print-header-container">
+      <div class="absolute inset-0 bg-gradient-to-l from-emerald-500/10 via-transparent to-transparent pointer-events-none no-print"></div>
       
-      <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="flex items-center gap-6 print-logo-row">
-          <!-- Logo - Simplified for Print -->
-          <div class="w-20 h-20 md:w-28 md:h-28 bg-white rounded-[2rem] border-4 border-slate-950 flex items-center justify-center p-3 shadow-2xl print-logo-box">
+      <div class="relative z-10 flex flex-col md:flex-row justify-between items-start gap-8">
+        <!-- Brand & Logo -->
+        <div class="flex items-center gap-6">
+          <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2.5rem] border-4 border-slate-950 flex items-center justify-center p-4 shadow-2xl print-logo-box">
              <img src="/logo.png" class="max-w-full max-h-full object-contain" alt="SARWARY MUKRIAN" />
           </div>
-          <div class="text-right print-title-box">
+          <div class="text-right">
              <h1 class="text-3xl md:text-5xl font-black text-white tracking-tighter leading-tight print-text-black">کۆمپانیای سەروەری موکریان</h1>
-             <p class="text-slate-400 font-black text-xs md:text-sm uppercase tracking-[0.3em] mt-1 print-text-slate">SARWARY MUKRIAN FOR EXCHANGE & FINANCE</p>
+             <p class="text-slate-400 font-black text-xs md:text-sm uppercase tracking-[0.3em] mt-1 print-text-slate">SARWARY MUKRIAN / ENTERPRISE FINANCE</p>
+             <div class="mt-4 flex items-center gap-3 no-print">
+                <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black text-emerald-500 uppercase tracking-widest">Official Statement</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+             </div>
           </div>
         </div>
 
-        <!-- Terminal Controls -->
-        <div class="flex flex-col items-end gap-3 no-print w-full md:w-auto">
-          <div class="bg-slate-950/80 p-1.5 rounded-[1.5rem] border border-white/5 flex gap-2 w-full md:w-auto">
-             <button @click="viewMode = 'ledger'" class="flex-1 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all" :class="viewMode === 'ledger' ? 'bg-emerald-500 text-slate-950' : 'text-slate-500'">Ledger</button>
-             <button @click="viewMode = 'audit'" class="flex-1 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all" :class="viewMode === 'audit' ? 'bg-blue-500 text-white' : 'text-slate-500'">Audit</button>
-          </div>
-          <button @click="printReport" class="px-8 py-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 text-[10px] font-black uppercase">Print Report</button>
+        <!-- Statement Metadata -->
+        <div class="bg-slate-950/80 p-6 rounded-[2rem] border border-white/10 min-w-[320px] print-meta-box">
+           <h2 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4 border-b border-white/5 pb-2">Statement Details</h2>
+           <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                 <span class="text-[10px] font-bold text-slate-500 uppercase">Customer</span>
+                 <span class="text-sm font-black text-white print-text-black">{{ selectedAccount?.name || '---' }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                 <span class="text-[10px] font-bold text-slate-500 uppercase">Account Code</span>
+                 <span class="text-sm font-black text-emerald-400 font-mono print-text-black">{{ selectedAccount?.code || '---' }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                 <span class="text-[10px] font-bold text-slate-500 uppercase">Period</span>
+                 <span class="text-sm font-black text-white print-text-black">{{ filters.start_date || 'Inception' }} - Today</span>
+              </div>
+           </div>
         </div>
       </div>
 
-      <!-- Metadata (Print Only) -->
-      <div class="hidden print-only-block mt-2 grid grid-cols-3 gap-10 pt-2 border-t border-slate-900">
-         <div class="flex gap-2 items-center">
-            <span class="text-[8px] font-black text-slate-400 uppercase">Account:</span>
-            <span class="text-[10px] font-black text-slate-950">{{ selectedAccount?.name || '---' }}</span>
+      <!-- Action Bar (Hidden in Print) -->
+      <div class="mt-8 flex justify-end gap-4 no-print">
+         <div class="bg-slate-950/60 p-1.5 rounded-2xl border border-white/5 flex gap-2">
+            <button @click="viewMode = 'ledger'" class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all" :class="viewMode === 'ledger' ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:text-white'">Movements</button>
+            <button @click="viewMode = 'summary'" class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all" :class="viewMode === 'summary' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-slate-500 hover:text-white'">Summary</button>
          </div>
-         <div class="flex gap-2 items-center">
-            <span class="text-[8px] font-black text-slate-400 uppercase">Period:</span>
-            <span class="text-[10px] font-black text-slate-950">{{ filters.start_date || 'Full' }}</span>
-         </div>
-         <div class="text-left flex gap-2 items-center justify-end">
-            <span class="text-[8px] font-black text-slate-400 uppercase">Ref:</span>
-            <span class="text-[10px] font-mono font-bold text-slate-800">#{{ new Date().getTime().toString().slice(-6) }}</span>
-         </div>
+         <button @click="printReport" class="px-8 py-2.5 bg-emerald-500 text-slate-950 rounded-xl font-black text-[10px] uppercase hover:bg-emerald-400 active:scale-95 transition-all shadow-xl shadow-emerald-500/20">
+            Export PDF Statement
+         </button>
       </div>
     </div>
 
-    <!-- Selection Bar -->
-    <div class="bg-slate-950/40 p-4 rounded-[2rem] border border-white/5 flex flex-wrap items-center gap-6 no-print shadow-xl">
+    <!-- Selection Bar (Hidden in Print) -->
+    <div class="bg-slate-950/40 p-4 rounded-[2rem] border border-white/5 flex flex-wrap items-center gap-6 no-print shadow-xl backdrop-blur-3xl">
        <div class="flex flex-col px-6 border-l border-white/10 flex-1 min-w-[250px]">
-          <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Account Entity</span>
-          <select v-model="filters.account_id" @change="fetchStatement" class="bg-transparent border-none p-0 text-sm font-black text-emerald-400 focus:ring-0">
-            <option :value="null" disabled>Select Account...</option>
-            <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.code }} - {{ a.name }}</option>
+          <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Select Client Account</span>
+          <select v-model="filters.account_id" @change="fetchStatement" class="bg-transparent border-none p-0 text-sm font-black text-emerald-400 focus:ring-0 cursor-pointer">
+            <option :value="null" disabled>Choose from list...</option>
+            <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.code }} | {{ a.name }}</option>
           </select>
        </div>
        <div class="flex flex-col px-6 border-l border-white/10">
-          <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Starting From</span>
+          <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">Filter From Date</span>
           <input v-model="filters.start_date" type="date" class="bg-transparent border-none p-0 text-sm font-black text-white focus:ring-0 cursor-pointer" />
        </div>
-       <button @click="fetchStatement" :disabled="loading || !filters.account_id" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-8 py-3 rounded-xl font-black text-[10px]">Load</button>
+       <button @click="fetchStatement" :disabled="loading || !filters.account_id" class="bg-white/5 hover:bg-white/10 text-white px-8 py-3 rounded-xl font-black text-[10px] border border-white/10 transition-all uppercase tracking-widest">
+          Update Report
+       </button>
     </div>
 
-    <!-- Ledger View -->
-    <div v-if="viewMode === 'ledger' && filters.account_id" class="bg-slate-900/60 border border-white/5 rounded-[2.5rem] overflow-visible shadow-3xl animate-fade-in print-ledger-container">
+    <!-- MOVEMENT SUMMARY SECTION (Task 3 Requirement) -->
+    <div v-if="filters.account_id" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 print-summary-grid">
+       <div v-for="sum in summaries" :key="sum.id" class="bg-slate-900/40 border border-white/5 p-6 rounded-[2rem] relative overflow-hidden group hover:border-emerald-500/20 transition-all">
+          <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
+          <div class="flex items-center gap-4 mb-4">
+             <div class="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-emerald-500 border border-white/5">{{ sum.currency?.code }}</div>
+             <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ sum.currency?.name }} Summary</h4>
+          </div>
+          <div class="space-y-3">
+             <div class="flex justify-between items-center text-[10px]">
+                <span class="font-bold text-slate-600 uppercase">Debits (+)</span>
+                <span class="font-black text-emerald-400 font-mono">{{ formatNum(sum.total_debit) }}</span>
+             </div>
+             <div class="flex justify-between items-center text-[10px]">
+                <span class="font-bold text-slate-600 uppercase">Credits (-)</span>
+                <span class="font-black text-rose-400 font-mono">{{ formatNum(sum.total_credit) }}</span>
+             </div>
+             <div class="pt-2 border-t border-white/5 flex justify-between items-center">
+                <span class="text-[11px] font-black text-white uppercase">Balance</span>
+                <span class="text-xl font-black font-mono tracking-tight" :class="getBalanceValue(sum) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
+                   {{ formatNum(getBalanceValue(sum)) }}
+                </span>
+             </div>
+          </div>
+       </div>
+    </div>
+
+    <!-- Detailed Ledger Movements -->
+    <div v-if="filters.account_id" class="bg-slate-900/60 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-3xl animate-fade-in print-ledger-container">
+      <div class="p-6 bg-slate-950/40 border-b border-white/5 flex justify-between items-center">
+         <h3 class="text-sm font-black text-white uppercase tracking-widest">Transaction Movement Log</h3>
+         <span class="text-[10px] font-black text-slate-500">{{ entries.length }} Operations Recorded</span>
+      </div>
       <div class="overflow-x-auto print-overflow-visible">
-        <table class="w-full text-right border-collapse print-table-a4">
+        <table class="w-full text-right border-collapse">
           <thead>
             <tr class="text-[9px] font-black text-slate-600 uppercase tracking-widest bg-slate-950/80 border-b border-white/5 print-bg-slate">
-              <th class="px-3 py-4 print-col-date">بەروار</th>
-              <th class="px-3 py-4 print-col-desc">وەسفی مامەڵە</th>
-              <th class="px-3 py-4 text-center text-emerald-400 print-col-amount">مەدین (Debit)</th>
-              <th class="px-3 py-4 text-center text-rose-400 print-col-amount">داین (Credit)</th>
-              <th class="px-3 py-4 text-center print-col-cur">دراو</th>
-              <th class="px-3 py-4 text-left print-col-net">NET EQ.</th>
+              <th class="px-6 py-5">Date / بەروار</th>
+              <th class="px-6 py-5">Description / وردەکاری</th>
+              <th class="px-6 py-5 text-center text-emerald-400">Debit / مەدین (+)</th>
+              <th class="px-6 py-5 text-center text-rose-400">Credit / داین (-)</th>
+              <th class="px-6 py-5 text-center">Currency / دراو</th>
+              <th class="px-6 py-5 text-left">Internal Ref.</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/[0.03] print-divide-slate">
-            <tr v-for="entry in entries" :key="entry.id" class="hover:bg-white/[0.04]">
-              <td class="px-3 py-3 print-col-date">
-                <p class="text-[9px] font-black text-slate-400 font-mono print-text-black">{{ formatDate(entry.date) }}</p>
-                <p class="text-[7px] text-slate-600 font-black mt-1">#{{ entry.id }}</p>
+            <tr v-for="entry in entries" :key="entry.id" class="hover:bg-white/[0.04] transition-colors group">
+              <td class="px-6 py-5">
+                <p class="text-xs font-black text-white group-hover:text-emerald-400 transition-colors print-text-black">{{ formatDate(entry.date) }}</p>
+                <p class="text-[8px] text-slate-600 font-bold mt-1">LOG-#{{ entry.id }}</p>
               </td>
-              <td class="px-3 py-3 print-col-desc">
-                <p class="text-xs font-black text-white leading-tight print-text-black">{{ entry.description }}</p>
+              <td class="px-6 py-5 max-w-md">
+                <p class="text-xs font-bold text-slate-300 leading-relaxed print-text-black">{{ entry.description }}</p>
               </td>
-              <td class="px-3 py-3 text-center print-col-amount">
+              <td class="px-6 py-5 text-center">
                  <span v-if="entry.debit > 0" class="text-lg font-black text-emerald-400 font-mono print-text-black">{{ formatNum(entry.debit) }}</span>
                  <span v-else class="text-slate-900 opacity-10 print-opacity-0">—</span>
               </td>
-              <td class="px-3 py-3 text-center print-col-amount">
+              <td class="px-6 py-5 text-center">
                  <span v-if="entry.credit > 0" class="text-lg font-black text-rose-400 font-mono print-text-black">{{ formatNum(entry.credit) }}</span>
                  <span v-else class="text-slate-900 opacity-10 print-opacity-0">—</span>
               </td>
-              <td class="px-3 py-3 text-center print-col-cur">
-                <span class="px-2 py-0.5 bg-slate-950 border border-white/5 rounded text-[8px] font-black text-slate-400 print-border-black">
-                  {{ entry.currency?.code }}
+              <td class="px-6 py-5 text-center">
+                <span class="px-3 py-1 bg-slate-950 border border-white/5 rounded-lg text-[9px] font-black text-slate-400 uppercase print-border-black">
+                   {{ entry.currency?.code }}
                 </span>
               </td>
-              <td class="px-3 py-3 text-left print-col-net">
-                <span class="text-[10px] font-black font-mono print-text-slate" :class="entry.base_amount >= 0 ? 'text-emerald-500/40' : 'text-rose-500/40'">
-                   {{ formatNum(entry.base_amount) }}
+              <td class="px-6 py-5 text-left">
+                <span class="text-[10px] font-black font-mono text-slate-600 uppercase tracking-tighter">
+                   {{ entry.transaction_id ? `TX-${entry.transaction_id}` : `REG-${entry.registry_id}` }}
                 </span>
               </td>
             </tr>
@@ -108,45 +149,43 @@
         </table>
       </div>
       
-      <!-- Footer Summaries -->
-      <div v-if="entries.length" class="p-6 bg-slate-950/80 border-t border-white/5 space-y-4 print-footer-summary">
-         <div class="grid grid-cols-4 gap-4 print-grid-summary">
-            <div v-for="sum in summaries" :key="sum.currency_id" class="flex items-center gap-3 bg-slate-900/60 p-2 rounded-lg border border-white/5 print-border-slate">
-               <div class="w-6 h-6 rounded bg-white/5 flex items-center justify-center font-black text-[8px] text-slate-400 print-text-black">{{ sum.currency?.code }}</div>
-               <div>
-                  <span class="text-[7px] font-black text-slate-600 uppercase block print-text-slate">{{ sum.currency?.code }} Bal.</span>
-                  <p class="text-xs font-black font-mono tracking-tighter" :class="getBalanceValue(sum) >= 0 ? 'text-emerald-400' : 'text-rose-400'">
-                     {{ formatNum(getBalanceValue(sum)) }}
-                  </p>
-               </div>
+      <!-- Professional Audit Footer -->
+      <div class="p-10 bg-slate-950/80 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
+         <div class="flex items-center gap-6">
+            <div class="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+               <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+               <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Valuation (Consolidated IQD)</span>
+               <p class="text-3xl font-black text-white font-mono tracking-tighter print-text-black">{{ formatNum(totalIqdNet) }} <span class="text-sm text-slate-500">IQD</span></p>
             </div>
          </div>
-         
-         <div class="pt-4 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-               <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-               </div>
-               <div>
-                  <span class="text-[8px] font-black text-slate-600 uppercase tracking-widest print-text-slate">Valuation (IQD)</span>
-                  <p class="text-2xl font-black text-white font-mono tracking-tighter print-text-black">{{ formatNum(totalIqdNet) }} <span class="text-xs text-slate-500">IQD</span></p>
-               </div>
-            </div>
+         <div class="bg-slate-900 border border-white/10 px-8 py-3 rounded-full no-print">
+            <span class="text-xs font-black text-slate-400 tracking-widest uppercase">Verified by SM-ERP Audit Engine v2.0</span>
          </div>
       </div>
     </div>
 
-    <!-- Official Footer -->
-    <div class="hidden print-only-block mt-8 pt-4 border-t border-slate-300">
-       <div class="flex justify-between items-center px-10">
-          <div class="flex items-center gap-4">
-             <span class="text-[9px] font-black text-slate-500 uppercase">Sign:</span>
-             <div class="w-40 h-8 border-b border-dashed border-slate-300"></div>
+    <!-- OFFICIAL SEAL & SIGNATURE (Task 3 Requirement) -->
+    <div class="hidden print-only-block mt-12 pt-8 border-t-2 border-slate-900">
+       <div class="flex justify-between items-start">
+          <div class="space-y-6">
+             <div class="flex flex-col gap-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Legal Disclaimer:</span>
+                <p class="text-[10px] font-bold text-slate-800 leading-tight max-w-sm">
+                   ئەم ڕاپۆرتە بە شێوەیەکی فەرمی لەلایەن سیستەمی کۆمپانیای سەروەری موکریانەوە دەرچووە. تکایە لە کاتی هەر هەڵەیەکدا پەیوەندی بە بەشی وردبینی بکەن.
+                </p>
+             </div>
+             <div class="flex items-center gap-4">
+                <span class="text-[10px] font-black text-slate-500 uppercase">Official Signature:</span>
+                <div class="w-48 h-10 border-b border-slate-300"></div>
+             </div>
           </div>
-          <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">SARWARY MUKRIAN ERP — {{ new Date().toLocaleString() }}</div>
-          <div class="flex items-center gap-4">
-             <span class="text-[9px] font-black text-slate-500 uppercase">Seal:</span>
-             <div class="w-16 h-16 rounded-full border border-slate-200"></div>
+          <div class="text-center space-y-2">
+             <div class="w-24 h-24 rounded-full border-4 border-double border-slate-200 mx-auto flex items-center justify-center">
+                <span class="text-[8px] font-black text-slate-300 uppercase rotate-12">Official Seal</span>
+             </div>
+             <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ new Date().toLocaleString('ku-IQ') }}</p>
           </div>
        </div>
     </div>

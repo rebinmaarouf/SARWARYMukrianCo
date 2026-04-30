@@ -43,5 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('currencies', CurrencyController::class);
     Route::apiResource('exchanges', ExchangeController::class);
     Route::get('journals', [JournalController::class, 'index']);
+    
+    // Reports & Audit
     Route::get('reports/profit', [ExchangeController::class, 'getProfitReport']);
+    Route::get('reports/unified', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getUnifiedReport']);
+    Route::get('reports/liquidity', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getVaultLiquidity']);
 });

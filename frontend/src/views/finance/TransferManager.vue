@@ -2,12 +2,14 @@
   <div class="space-y-8 animate-fade-in max-w-5xl mx-auto pb-20">
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-slate-900/40 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
-      <div dir="rtl" class="text-right">
-        <h1 class="text-3xl font-black text-white tracking-tight italic">گواستنەوەی پارە</h1>
-        <p class="text-slate-500 font-medium mt-1 uppercase text-xs tracking-[0.2em]">Money Transfer & Internal Movement</p>
+      <div dir="rtl" class="text-right flex-1">
+        <h1 class="text-3xl font-black text-white tracking-tight">بزوێنەری گواستنەوە و حەواڵەکان</h1>
+        <p class="text-slate-400 text-sm font-medium mt-3 leading-relaxed">
+          ئەم پەیجە تایبەتە بە بەڕێوەبردنی گشت جوڵە داراییەکانی کۆمپانیا. لێرەدا دەتوانیت حەواڵە بۆ مشتەری بنێریت یان پارە لە نێوان سندوقەکانتدا بگوازیتەوە. هەروەها باشترین شوێنە بۆ ڕێکخستنەوەی سندوقەکان ئەگەر پارەیەکت بە هەڵە ڕادابێت.
+        </p>
       </div>
-      <div class="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+      <div class="p-4 bg-blue-500/10 rounded-3xl border border-blue-500/20 shadow-inner">
+        <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
       </div>
     </div>
 

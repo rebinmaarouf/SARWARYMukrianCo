@@ -60,6 +60,11 @@ const routes = [
         component: () => import('../views/finance/DynamicRegistry.vue')
       },
       {
+        path: 'audit',
+        name: 'AuditCenter',
+        component: () => import('../views/finance/AuditCenter.vue')
+      },
+      {
         path: 'registry/:currencyId?',
         name: 'DynamicRegistry',
         component: () => import('../views/finance/DynamicRegistry.vue')
