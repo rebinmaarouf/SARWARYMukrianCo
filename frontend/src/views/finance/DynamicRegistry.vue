@@ -25,7 +25,7 @@
            <span class="w-8 h-1 bg-emerald-500 rounded-full"></span>
            <h2 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em]">Universal General Ledger & Audit</h2>
         </div>
-        <h1 class="text-2xl md:text-4xl font-black text-white tracking-tighter">ڕۆژنامەی گشتی و تۆماری مەسروفات</h1>
+        <h1 class="text-2xl md:text-4xl font-black text-white tracking-tighter">تۆماری گشتی و مەسروفات</h1>
         <p class="text-slate-400 text-xs md:text-sm font-medium mt-3 max-w-3xl leading-relaxed">
           ئەم بەشە تایبەتە بە تۆمارکردنی گشت ڕووداوە داراییە کارگێڕییەکان (وەک مووچە، کرێ، کڕینی کەلوپەل). لێرە دەتوانیت وردبینی (Audit) بۆ هەموو حیسابەکان بکەیت و چاودێری "مەدین و داین" بکەیت بەپێی بنەماکانی ژمێریاریی موەحەد.
         </p>

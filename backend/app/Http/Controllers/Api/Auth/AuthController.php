@@ -65,6 +65,9 @@ class AuthController extends Controller
             'two_factor_expires_at' => null,
         ]);
 
+        // Enforce Single Device Login: Revoke all existing tokens before creating a new one
+        $user->tokens()->delete();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
