@@ -12,8 +12,14 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state) => !!state.token,
-    isSuperAdmin: (state) => state.user?.roles?.includes('Super Admin'),
-    permissions: (state) => state.user?.permissions || []
+    isSuperAdmin: (state) => {
+      if (!state.user?.roles) return false
+      return state.user.roles.some(r => r === 'Super Admin' || r.name === 'Super Admin')
+    },
+    permissions: (state) => {
+      if (!state.user?.permissions) return []
+      return state.user.permissions.map(p => typeof p === 'string' ? p : p.name)
+    }
   },
 
   actions: {
@@ -67,6 +73,16 @@ export const useAuthStore = defineStore('auth', {
         this.token = null
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+      }
+    },
+    async fetchProfile() {
+      try {
+        const response = await axios.get('/user')
+        this.user = response.data
+        localStorage.setItem('user', JSON.stringify(this.user))
+        return this.user
+      } catch (err) {
+        console.error('Fetch profile error', err)
       }
     }
   }

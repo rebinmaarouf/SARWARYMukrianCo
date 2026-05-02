@@ -73,13 +73,13 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user->load(['roles', 'permissions'])
         ]);
     }
 
     public function me(Request $request)
     {
-        return $request->user();
+        return $request->user()->load(['roles', 'permissions']);
     }
 
     public function logout(Request $request)

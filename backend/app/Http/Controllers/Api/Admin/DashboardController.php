@@ -32,6 +32,7 @@ class DashboardController extends Controller
             ->join('accounts', 'journal_entries.account_id', '=', 'accounts.id')
             ->join('currencies', 'journal_entries.currency_id', '=', 'currencies.id')
             ->where('accounts.type', 'vault')
+            ->whereNull('journal_entries.deleted_at')
             ->select(
                 'accounts.name as account_name',
                 'currencies.code as currency_code',

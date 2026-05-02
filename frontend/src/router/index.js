@@ -65,6 +65,12 @@ const routes = [
         component: () => import('../views/finance/AuditCenter.vue')
       },
       {
+        path: 'forensics',
+        name: 'ForensicLogs',
+        component: () => import('../views/finance/ForensicLogs.vue'),
+        meta: { permission: 'view_forensics' }
+      },
+      {
         path: 'registry/:currencyId?',
         name: 'DynamicRegistry',
         component: () => import('../views/finance/DynamicRegistry.vue')
@@ -88,11 +94,18 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
+  
+  if (auth.isAuthenticated && (!auth.user?.roles || auth.user.roles.length === 0)) {
+    await auth.fetchProfile()
+  }
+
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')
   } else if (to.meta.guest && auth.isAuthenticated) {
+    next('/admin')
+  } else if (to.meta.permission && !auth.isSuperAdmin && !auth.permissions.includes(to.meta.permission)) {
     next('/admin')
   } else {
     next()

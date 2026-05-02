@@ -140,8 +140,8 @@ class RegistryController extends Controller
         $validated['commission_2'] = $validated['commission_2'] ?? 0;
 
         return DB::transaction(function () use ($registry, $validated) {
-            // Delete old journal entries
-            $registry->journalEntries()->delete();
+            // Delete old journal entries (Triggering Events)
+            $registry->journalEntries->each->delete();
 
             $registry->update($validated);
 
@@ -175,7 +175,7 @@ class RegistryController extends Controller
     public function destroy(RegistryEntry $registry)
     {
         return DB::transaction(function () use ($registry) {
-            $registry->journalEntries()->delete();
+            $registry->journalEntries->each->delete();
             $registry->delete();
             return response()->json(null, 204);
         });

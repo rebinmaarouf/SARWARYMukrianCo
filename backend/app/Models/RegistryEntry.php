@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Traits\HasAudit;
 
 class RegistryEntry extends Model
 {
+    use SoftDeletes, HasAudit;
+
     protected $fillable = [
         'entry_date',
         'currency_id',
@@ -22,9 +26,9 @@ class RegistryEntry extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
-        'commission_1' => 'decimal:2',
-        'commission_2' => 'decimal:2',
+        'amount' => 'decimal:4',
+        'commission_1' => 'decimal:4',
+        'commission_2' => 'decimal:4',
         'entry_date' => 'date',
     ];
 

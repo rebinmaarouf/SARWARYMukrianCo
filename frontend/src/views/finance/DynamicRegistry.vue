@@ -130,8 +130,12 @@
                  <input v-model="newEntry.notes" type="text" placeholder="تێبینی مامەڵە..." class="w-full bg-slate-950 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white focus:border-emerald-500/30 outline-none shadow-inner" @keydown.enter="submitNewEntry" />
                </td>
                <td class="px-2 py-4">
-                 <button @click="submitNewEntry" :disabled="!newEntry.amount" class="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl hover:bg-emerald-400 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-20 flex items-center justify-center">
-                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                 <button @click="submitNewEntry" :disabled="!newEntry.amount || loading" class="w-full py-4 bg-emerald-500 text-slate-950 rounded-2xl hover:bg-emerald-400 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-20 flex items-center justify-center">
+                    <svg v-if="loading" class="animate-spin h-6 w-6 text-slate-950" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                  </button>
                </td>
             </tr>
@@ -178,8 +182,17 @@
             </div>
          </div>
          <input v-model="newEntry.notes" type="text" placeholder="تێبینی مامەڵە..." class="w-full bg-slate-950 border border-white/5 rounded-2xl p-5 text-sm text-white outline-none" />
-         <button @click="submitNewEntry" :disabled="!newEntry.amount" class="w-full py-6 bg-emerald-500 text-slate-950 font-black text-xl rounded-3xl shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">
-            تۆمارکردنی مامەڵەی نوێ
+         <button @click="submitNewEntry" :disabled="!newEntry.amount || loading" class="w-full py-6 bg-emerald-500 text-slate-950 font-black text-xl rounded-3xl shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+            <template v-if="loading">
+              <svg class="animate-spin h-6 w-6 text-slate-950" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              چاوەڕێ بکە...
+            </template>
+            <template v-else>
+              تۆمارکردنی مامەڵەی نوێ
+            </template>
          </button>
       </div>
 
@@ -374,6 +387,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
+import { useAuthStore } from '../../stores/auth'
+const auth = useAuthStore()
 
 const route = useRoute()
 const entries = ref([])
@@ -440,9 +455,18 @@ async function searchAccounts(type) {
   const term = type === 'debtor' ? debtorSearch.value : creditorSearch.value
   if (!term) return
   try {
-    const { data } = await axios.get('/accounts', { params: { search: term, per_page: 8 } })
-    if (type === 'debtor') { debtorResults.value = data.data || data; showDebtorDropdown.value = true }
-    else { creditorResults.value = data.data || data; showCreditorDropdown.value = true }
+    const { data } = await axios.get('/accounts', { params: { search: term, per_page: 20 } })
+    let results = data.data || data
+    
+    // Protection: Filter out Equity accounts for non-admins/authorized users
+    const isAuthorized = auth.isSuperAdmin || auth.user?.roles?.some(r => r === 'Manager' || r.name === 'Manager' || r === 'Admin' || r.name === 'Admin');
+    
+    if (!isAuthorized && !auth.permissions.includes('manage_finances')) {
+      results = results.filter(acc => acc.type !== 'equity')
+    }
+    
+    if (type === 'debtor') { debtorResults.value = results; showDebtorDropdown.value = true }
+    else { creditorResults.value = results; showCreditorDropdown.value = true }
   } catch (e) { console.error(e) }
 }
 
@@ -455,6 +479,7 @@ function onBlur(type) { setTimeout(() => { if (type === 'debtor') showDebtorDrop
 
 async function submitNewEntry() {
   if (!newEntry.value.amount || !newEntry.value.debtor_account_id || !newEntry.value.creditor_account_id) return
+  loading.value = true
   try {
     const { data } = await axios.post('/registries', newEntry.value)
     entries.value.unshift(data)
@@ -462,6 +487,7 @@ async function submitNewEntry() {
     debtorSearch.value = ''; creditorSearch.value = ''; selectedDebtorCode.value = ''; selectedCreditorCode.value = '';
     Swal.fire({ icon: 'success', title: 'Saved', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#10b981', color: '#fff' })
   } catch (e) { console.error(e) }
+  finally { loading.value = false }
 }
 
 async function confirmDelete(entry) {

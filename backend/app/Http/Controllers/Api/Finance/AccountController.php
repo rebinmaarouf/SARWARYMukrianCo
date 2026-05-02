@@ -37,6 +37,7 @@ class AccountController extends Controller
         // Fetch sums grouped by account and currency
         $balances = DB::table('journal_entries')
             ->whereIn('account_id', $accountIds)
+            ->whereNull('deleted_at')
             ->select('account_id', 'currency_id', DB::raw('SUM(debit - credit) as balance'))
             ->groupBy('account_id', 'currency_id')
             ->get()
@@ -68,7 +69,7 @@ class AccountController extends Controller
     {
         $validated = $request->validate([
             'code' => 'nullable|string|unique:accounts,code',
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:accounts,name',
             'mobile' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
             'type' => 'required|string|in:vault,customer,expense,equity,revenue,general',
@@ -91,7 +92,7 @@ class AccountController extends Controller
     public function update(Request $request, Account $account)
     {
         $validated = $request->validate([
-            'name' => 'nullable|string|max:255',
+            'name' => 'nullable|string|max:255|unique:accounts,name,' . $account->id,
             'type' => 'nullable|in:vault,client,revenue,expense,equity',
             'code' => 'nullable|unique:accounts,code,' . $account->id,
             'notes' => 'nullable|string',
@@ -135,7 +136,12 @@ class AccountController extends Controller
             \App\Models\AccountSummary::truncate();
 
             // Recalculate everything from Journal Entries
-            $balances = \App\Models\JournalEntry::select('account_id', 'currency_id', \Illuminate\Support\Facades\DB::raw('SUM(debit - credit) as total_balance'))
+            $balances = \App\Models\JournalEntry::select(
+                    'account_id', 
+                    'currency_id', 
+                    \Illuminate\Support\Facades\DB::raw('SUM(debit) as sum_debit'),
+                    \Illuminate\Support\Facades\DB::raw('SUM(credit) as sum_credit')
+                )
                 ->groupBy('account_id', 'currency_id')
                 ->get();
 
@@ -143,7 +149,8 @@ class AccountController extends Controller
                 \App\Models\AccountSummary::create([
                     'account_id' => $b->account_id,
                     'currency_id' => $b->currency_id,
-                    'balance' => $b->total_balance,
+                    'total_debit' => $b->sum_debit,
+                    'total_credit' => $b->sum_credit,
                 ]);
             }
 

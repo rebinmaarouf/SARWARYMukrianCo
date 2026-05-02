@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Finance\TransferController;
 use App\Http\Controllers\Api\Finance\ExchangeController;
 use App\Http\Controllers\Api\Finance\RegistryController;
 use App\Http\Controllers\Api\Finance\JournalController;
+use App\Http\Controllers\Api\Finance\ActivityLogController;
 
 // Public/Auth Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -45,6 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('journals', [JournalController::class, 'index']);
     
     // Reports & Audit
+    Route::middleware('can:view_forensics')->group(function () {
+        Route::get('audit-logs', [ActivityLogController::class, 'index']);
+        Route::get('audit-logs/{id}', [ActivityLogController::class, 'show']);
+    });
     Route::get('reports/profit', [ExchangeController::class, 'getProfitReport']);
     Route::get('reports/unified', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getUnifiedReport']);
     Route::get('reports/liquidity', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getVaultLiquidity']);

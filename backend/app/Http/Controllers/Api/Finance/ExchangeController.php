@@ -43,7 +43,23 @@ class ExchangeController extends Controller
             ]);
 
             return DB::transaction(function () use ($request) {
-                // 1. Calculate Profit (if any)
+                // 1. Check if the Vault has enough balance to perform this operation (The "Scientific" Lock)
+                $vaultFrom = Account::find($request->vault_from_id);
+                $currencyToGive = $request->type === 'buy' ? $request->secondary_currency : $request->primary_currency;
+                $amountToGive = $request->type === 'buy' ? $request->secondary_amount : $request->primary_amount;
+                
+                $currencyModel = Currency::where('code', $currencyToGive)->first();
+                $balance = \App\Models\AccountSummary::where('account_id', $vaultFrom->id)
+                    ->where('currency_id', $currencyModel->id)
+                    ->first();
+
+                $currentBalance = $balance ? ($balance->total_debit - $balance->total_credit) : 0;
+
+                if ($currentBalance < $amountToGive) {
+                    throw new \Exception("سندوقی دەستنیشانکراو بڕی پێویست ({$currencyToGive})ی تیا نییە. هاوسەنگی ئێستا: " . number_format($currentBalance));
+                }
+
+                // 2. Calculate Profit (if any)
                 $profit = $this->calculateProfit($request);
 
                 // 2. Create Transaction record
@@ -169,7 +185,7 @@ class ExchangeController extends Controller
     {
         return DB::transaction(function () use ($id) {
             $transaction = Transaction::findOrFail($id);
-            $transaction->journalEntries()->delete();
+            $transaction->journalEntries->each->delete();
             $transaction->delete();
             return response()->json(['message' => 'Transaction deleted successfully']);
         });

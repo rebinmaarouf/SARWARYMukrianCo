@@ -14,7 +14,12 @@
     </header>
 
     <!-- Roles Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="w-12 h-12 border-4 border-emerald-500/10 border-t-emerald-500 rounded-full animate-spin"></div>
+      <p class="text-xs font-black text-slate-500 uppercase tracking-widest animate-pulse">Loading access controls...</p>
+    </div>
+
+    <div v-else-if="roles.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div v-for="role in roles" :key="role.id" class="bg-slate-900/30 border border-slate-800 p-8 rounded-[3rem] hover:border-emerald-500/30 transition-all relative overflow-hidden group">
         <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all"></div>
         
@@ -46,6 +51,15 @@
           </span>
         </div>
       </div>
+    </div>
+
+    <div v-else class="bg-slate-900/50 border border-slate-800 rounded-[3rem] p-20 text-center animate-fade-in">
+       <div class="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-600">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+       </div>
+       <h3 class="text-xl font-black text-white mb-2">هیچ ڕۆڵێک نەدۆزرایەوە</h3>
+       <p class="text-slate-500 font-medium max-w-xs mx-auto">وادیارە هێشتا هیچ ڕۆڵێک لە سیستمدا دروست نەکراوە یان داتاکان بار نەکراون.</p>
+       <button @click="fetchData" class="mt-8 text-emerald-500 font-black uppercase text-xs tracking-widest hover:text-emerald-400 transition-colors">دووبارە هەوڵ بدەرەوە</button>
     </div>
 
     <!-- Modal -->
@@ -90,16 +104,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2'
 
 const roles = ref([])
 const allPermissions = ref([])
 const showModal = ref(false)
+const isLoading = ref(false)
+const route = useRoute()
 const form = ref({ id: null, name: '', permissions: [] })
 
 async function fetchData() {
+  isLoading.value = true
   try {
     const [rolesRes, permsRes] = await Promise.all([
       axios.get('/admin/roles'),
@@ -107,7 +125,11 @@ async function fetchData() {
     ])
     roles.value = rolesRes.data
     allPermissions.value = permsRes.data
-  } catch (e) { console.error(e) }
+  } catch (e) { 
+    console.error(e) 
+  } finally {
+    isLoading.value = false
+  }
 }
 
 function getPerms(role) {
@@ -154,7 +176,12 @@ async function deleteRole(id) {
   }
 }
 
-onMounted(fetchData)
+// Watch for route changes - MOVED TO BOTTOM
+watch(() => route.path, (newPath) => {
+  if (newPath === '/admin/roles') {
+    fetchData()
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>

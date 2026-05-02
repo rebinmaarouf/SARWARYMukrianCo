@@ -367,7 +367,10 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
+import { useAuthStore } from '../../stores/auth'
+const auth = useAuthStore()
 
+const allCurrencies = ref([])
 const pairs = ref([])
 const activePair = ref({ id: 0, primary: 'USD', secondary: 'IQD', label: 'دینار - دۆلار', multiplier: 0.01, rateLabel: 'بۆ هەر 100$' })
 
@@ -375,6 +378,7 @@ async function generatePairs() {
   try {
     const { data } = await axios.get('/currencies')
     const activeCurrencies = data.data || data
+    allCurrencies.value = activeCurrencies 
     const quote = activeCurrencies.find(c => c.code === 'IQD') || activeCurrencies.find(c => c.is_base)
     
     const newPairs = []
@@ -387,7 +391,8 @@ async function generatePairs() {
 
         newPairs.push({
           id: c.id, primary: c.code, secondary: quote.code,
-          label: `${quote.code} - ${c.code}`, multiplier, rateLabel
+          label: `${quote.code} - ${c.code}`, multiplier, rateLabel,
+          official_rate: c.exchange_rate
         })
       }
     })
@@ -413,8 +418,8 @@ async function printInvoice(tx) {
   }, 100)
 }
 
-const buyFormText = ref({ primary: '', rate: '151,000', secondary: '' })
-const sellFormText = ref({ primary: '', rate: '152,000', secondary: '' })
+const buyFormText = ref({ primary: '', rate: '', secondary: '' })
+const sellFormText = ref({ primary: '', rate: '', secondary: '' })
 
 const buyForm = ref({ vault_from_id: null, vault_to_id: null, account_id: null, client_name: '', note: '' })
 const sellForm = ref({ vault_from_id: null, vault_to_id: null, account_id: null, client_name: '', note: '' })
@@ -450,9 +455,18 @@ function calculate(type, source) {
 }
 
 watch(activePair, (newPair) => {
-  if (newPair.primary === 'USD') { buyFormText.value.rate = '151,000'; sellFormText.value.rate = '152,000' }
-  else if (newPair.primary === 'IRR') { buyFormText.value.rate = '2,500'; sellFormText.value.rate = '2,550' }
-  else { buyFormText.value.rate = '1,000'; sellFormText.value.rate = '1,100' }
+  let dbRate = parseFloat(newPair.official_rate) || 1515
+  
+  // Scale the rate based on the multiplier (e.g., 1515 for 1 USD -> 151,500 for 100 USD)
+  if (newPair.multiplier === 0.01) {
+    dbRate = dbRate * 100
+  } else if (newPair.multiplier === 0.0000001) {
+    dbRate = dbRate * 1000000
+  }
+
+  buyFormText.value.rate = formatWithCommas(Math.round(dbRate - 500))
+  sellFormText.value.rate = formatWithCommas(Math.round(dbRate + 500))
+  
   buyFormText.value.primary = ''; buyFormText.value.secondary = '';
   sellFormText.value.primary = ''; sellFormText.value.secondary = '';
 })
@@ -477,7 +491,16 @@ async function fetchData() {
       axios.get('/accounts?per_page=1000'),
       axios.get('/exchanges')
     ])
-    accounts.value = accRes.data.data || accRes.data
+    let allAccounts = accRes.data.data || accRes.data
+    
+    // Protection: Filter out Equity accounts for non-admins
+    const isAuthorized = auth.isSuperAdmin || auth.user?.roles?.some(r => r === 'Manager' || r.name === 'Manager' || r === 'Admin' || r.name === 'Admin');
+    
+    if (!isAuthorized && !auth.permissions.includes('manage_finances')) {
+      allAccounts = allAccounts.filter(acc => acc.type !== 'equity')
+    }
+    
+    accounts.value = allAccounts
     transactions.value = transRes.data.data || transRes.data
     const firstVault = accounts.value.find(a => a.type === 'vault')
     if (firstVault) {
@@ -514,7 +537,15 @@ async function submitTrade(type) {
     formText.primary = ''; formText.secondary = '';
     Swal.fire({ icon: 'success', title: 'مامەڵەکە تۆمارکرا', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#10b981', color: '#fff' })
   } catch (e) {
-    Swal.fire({ icon: 'error', title: 'هەڵە لە تۆمارکردن', background: '#020617', color: '#fff' })
+    const errorMsg = e.response?.data?.error || 'هەڵە لە تۆمارکردن';
+    Swal.fire({ 
+      icon: 'error', 
+      title: 'شکستی هێنا', 
+      text: errorMsg,
+      background: '#020617', 
+      color: '#fff',
+      confirmButtonColor: '#ef4444'
+    })
   } finally { loading.value = false }
 }
 

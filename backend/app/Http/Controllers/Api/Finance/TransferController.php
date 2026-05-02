@@ -121,6 +121,45 @@ class TransferController extends Controller
         });
     }
 
+    public function destroy(Transfer $transfer)
+    {
+        if ($transfer->voided_at) {
+            return response()->json(['message' => 'ئەم حەواڵەیە پێشتر پوچەڵ کراوەتەوە'], 422);
+        }
+
+        return DB::transaction(function () use ($transfer) {
+            $user = auth()->user();
+
+            // 1. Mark as Voided
+            $transfer->update([
+                'voided_at' => now(),
+                'voided_by' => $user->id
+            ]);
+
+            // 2. Reverse Balances in Summaries
+            // Reverse Principal
+            $this->updateSummary($transfer->from_account_id, $transfer->currency_id, $transfer->amount);
+            $this->updateSummary($transfer->to_account_id, $transfer->currency_id, -$transfer->amount);
+
+            // Reverse Commission if exists
+            if ($transfer->commission_amount > 0) {
+                $this->updateSummary($transfer->from_account_id, $transfer->commission_currency_id, $transfer->commission_amount);
+                $this->updateSummary($transfer->commission_account_id, $transfer->commission_currency_id, -$transfer->commission_amount);
+            }
+
+            // 3. Soft Delete associated Journal Entries
+            // This ensures they are excluded from balance calculations and lists
+            JournalEntry::where('reference_id', $transfer->id)
+                ->where('reference_type', Transfer::class)
+                ->delete();
+
+            // 4. Soft Delete the Transfer itself
+            $transfer->delete();
+
+            return response()->json(['message' => 'حەواڵەکە بە سەرکەوتوویی پوچەڵ کرایەوە و باڵانسەکان ڕاستکرانەوە']);
+        });
+    }
+
     private function updateSummary($accountId, $currencyId, $amount)
     {
         $summary = \App\Models\AccountSummary::firstOrNew([

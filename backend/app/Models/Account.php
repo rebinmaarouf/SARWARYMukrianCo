@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasAudit;
 
 class Account extends Model
 {
+    use SoftDeletes, HasAudit;
+
     protected $fillable = [
         'code',
         'name',
@@ -59,9 +63,15 @@ class Account extends Model
     public function scopeSearch($query, $term)
     {
         return $query->where(function ($q) use ($term) {
+            // Priority: Start match for code, partial match for name
             $q->where('code', 'LIKE', "{$term}%")
-              ->orWhere('name', 'LIKE', "%{$term}%");
-        });
+              ->orWhere('name', 'LIKE', "%{$term}%")
+              ->orWhere('mobile', 'LIKE', "{$term}%");
+        })->orderByRaw("CASE 
+            WHEN code = ? THEN 1 
+            WHEN code LIKE ? THEN 2 
+            WHEN name LIKE ? THEN 3 
+            ELSE 4 END", [$term, "{$term}%", "{$term}%"]);
     }
 
     /**

@@ -47,7 +47,7 @@ class JournalService
         // Usually, it's the value of the line. We can store it as (debit - credit) * rate.
         $signedBaseAmount = ($debit - $credit) * $rate;
 
-        return JournalEntry::create([
+        $entry = JournalEntry::create([
             'account_id' => $accountId,
             'currency_id' => $currencyId,
             'debit' => $debit,
@@ -60,5 +60,7 @@ class JournalService
             'date' => $date,
             'description' => $description
         ]);
+
+        return $entry;
     }
 }

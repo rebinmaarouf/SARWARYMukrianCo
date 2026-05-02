@@ -13,7 +13,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        return response()->json(User::with(['roles', 'permissions'])->get());
+        $query = User::with(['roles', 'permissions']);
+        
+        // Hide Master User from anyone else
+        if (auth()->user()->email !== 'rebin.maaruf@gmail.com') {
+            $query->where('email', '!=', 'rebin.maaruf@gmail.com');
+        }
+        
+        return response()->json($query->get());
     }
 
     public function store(Request $request)
@@ -44,6 +51,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        // Prevent editing Master User by anyone else
+        if ($user->email === 'rebin.maaruf@gmail.com' && auth()->user()->email !== 'rebin.maaruf@gmail.com') {
+            return response()->json(['message' => 'ئەم یوزەرە پارێزراوە و ناتوانی دەستکاری بکەیت.'], 403);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -70,6 +82,10 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->email === 'rebin.maaruf@gmail.com') {
+            return response()->json(['message' => 'ئەم یوزەرە ماستەرە و هەرگیز ناسڕێتەوە.'], 403);
+        }
+
         if ($user->id === auth()->id()) {
             return response()->json(['message' => 'ناتوانی ئەکاونتی خۆت بسڕیتەوە.'], 403);
         }
