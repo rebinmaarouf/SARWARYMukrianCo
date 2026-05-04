@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+use App\Traits\BelongsToBranch;
+
 class Transaction extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToBranch;
 
     protected $fillable = [
         'user_id',
@@ -22,7 +24,10 @@ class Transaction extends Model
         'rate',
         'profit',
         'client_name',
-        'note'
+        'note',
+        'vault_from_id',
+        'vault_to_id',
+        'branch_id'
     ];
 
     public function user()
@@ -33,6 +38,16 @@ class Transaction extends Model
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function vault_from()
+    {
+        return $this->belongsTo(Account::class, 'vault_from_id');
+    }
+
+    public function vault_to()
+    {
+        return $this->belongsTo(Account::class, 'vault_to_id');
     }
 
     /**

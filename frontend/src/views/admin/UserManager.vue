@@ -39,6 +39,11 @@
         <div class="space-y-1" dir="rtl">
           <h3 class="text-xl font-black text-white">{{ user.name }}</h3>
           <p class="text-slate-500 text-sm font-medium">{{ user.email }}</p>
+          <div class="flex flex-wrap gap-1 mt-2">
+             <span v-for="b in user.branches" :key="b.id" class="text-[8px] font-black bg-blue-500/5 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/10">
+               {{ b.name }}
+             </span>
+          </div>
         </div>
 
         <div class="mt-6 flex flex-wrap gap-2" dir="rtl">
@@ -91,6 +96,28 @@
                 <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-2" dir="rtl">وشەی نهێنی</label>
                   <input v-model="form.password" type="password" class="w-full bg-slate-950 border-2 border-slate-800 text-white rounded-2xl px-6 py-4 focus:border-emerald-500/50 transition-all font-bold" dir="ltr" :placeholder="isEditing ? 'بەتاڵ بێت ناگۆڕێت' : '********'">
+                </div>
+              </div>
+
+              <!-- Primary Branch Selector -->
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-2" dir="rtl">لقی سەرەکی (Primary Branch)</label>
+                <select v-model="form.branch_id" required class="w-full bg-slate-950 border-2 border-slate-800 text-white rounded-2xl px-6 py-4 focus:border-emerald-500/50 transition-all font-bold text-right appearance-none cursor-pointer">
+                  <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }} ({{ b.location }})</option>
+                </select>
+              </div>
+
+              <!-- Multi-Branch Authorization -->
+              <div class="space-y-4 pt-6 border-t border-white/5">
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-2" dir="rtl">لقە ڕێگاپێدراوەکان (Authorized Branches)</label>
+                <div class="grid grid-cols-2 gap-3">
+                   <div v-for="b in branches" :key="b.id" 
+                        @click="toggleBranch(b.id)"
+                        class="flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all"
+                        :class="form.allowed_branches.includes(b.id) ? 'bg-blue-500/10 border-blue-500 text-blue-400' : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'">
+                     <span class="text-[10px] font-black">{{ b.name }}</span>
+                     <div v-if="form.allowed_branches.includes(b.id)" class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div>
+                   </div>
                 </div>
               </div>
             </div>
@@ -188,6 +215,7 @@ const PremiumAlert = Swal.mixin({
 const users = ref([])
 const allRoles = ref([])
 const allPermissions = ref([])
+const branches = ref([])
 const showModal = ref(false)
 const isEditing = ref(false)
 const isLoading = ref(false)
@@ -200,7 +228,9 @@ const form = reactive({
   email: '',
   password: '',
   roles: [],
-  permissions: []
+  permissions: [],
+  branch_id: null,
+  allowed_branches: []
 })
 
 const fetchUsers = async () => {
@@ -217,12 +247,14 @@ const fetchUsers = async () => {
 
 const fetchMetadata = async () => {
   try {
-    const [rolesRes, permsRes] = await Promise.all([
+    const [rolesRes, permsRes, branchRes] = await Promise.all([
       axios.get('/admin/roles'),
-      axios.get('/admin/all-permissions')
+      axios.get('/admin/all-permissions'),
+      axios.get('/branches')
     ])
     allRoles.value = rolesRes.data
     allPermissions.value = permsRes.data
+    branches.value = branchRes.data
   } catch (err) {
     console.error('Error fetching metadata:', err)
   }
@@ -245,6 +277,8 @@ const openModal = (user = null) => {
     form.password = ''
     form.roles = user.roles?.map(r => r.name) || []
     form.permissions = user.permissions?.map(p => p.name) || []
+    form.branch_id = user.branch_id
+    form.allowed_branches = user.branches?.map(b => b.id) || []
   } else {
     isEditing.value = false
     form.id = null
@@ -253,8 +287,19 @@ const openModal = (user = null) => {
     form.password = ''
     form.roles = []
     form.permissions = []
+    form.branch_id = auth.user?.branch_id
+    form.allowed_branches = auth.user?.branch_id ? [auth.user.branch_id] : []
   }
   showModal.value = true
+}
+
+const toggleBranch = (id) => {
+  const index = form.allowed_branches.indexOf(id)
+  if (index > -1) {
+    form.allowed_branches.splice(index, 1)
+  } else {
+    form.allowed_branches.push(id)
+  }
 }
 
 const toggleRole = (roleName) => {

@@ -78,26 +78,23 @@ class RegistryController extends Controller
             $validated['user_id'] = $request->user()->id;
             $entry = RegistryEntry::create($validated);
 
-            // Record Double-Entry Journal
+            // 1. Debtor Leg (Customer pays principal + all commissions)
             if ($entry->debtor_account_id) {
-                JournalService::record($entry, $entry->debtor_account_id, $entry->currency_id, (float) $entry->amount, 0, "پسوڵەی ژمارە {$entry->id} - مەدین", $entry->entry_date);
+                $totalToCollect = (float)$entry->amount + (float)$entry->commission_1 + (float)$entry->commission_2;
+                JournalService::record($entry, $entry->debtor_account_id, $entry->currency_id, $totalToCollect, 0, "پسوڵەی #{$entry->id} - مەدین (کۆی گشتی)", $entry->entry_date);
             }
 
+            // 2. Creditor Leg (We owe agent: Principal + Commission 2)
             if ($entry->creditor_account_id) {
-                JournalService::record($entry, $entry->creditor_account_id, $entry->currency_id, 0, (float) $entry->amount, "پسوڵەی ژمارە {$entry->id} - داین", $entry->entry_date);
+                $totalWeOweAgent = (float)$entry->amount + (float)$entry->commission_2;
+                JournalService::record($entry, $entry->creditor_account_id, $entry->currency_id, 0, $totalWeOweAgent, "پسوڵەی #{$entry->id} - داین (ئەسڵ + عمولەی ٢)", $entry->entry_date);
             }
 
-            // Commissions (Revenue)
-            if ($entry->commission_1 > 0 || $entry->commission_2 > 0) {
-                $revenueAccount = Account::where('type', 'revenue')
-                    ->orWhere('code', 'LIKE', '4%')
-                    ->first();
-                    
-                if ($revenueAccount) {
-                    $totalCommission = (float)($entry->commission_1 ?? 0) + (float)($entry->commission_2 ?? 0);
-                    if ($totalCommission > 0) {
-                        JournalService::record($entry, $revenueAccount->id, $entry->currency_id, 0, $totalCommission, "عمولەی پسوڵەی ژمارە {$entry->id}", $entry->entry_date);
-                    }
+            // 3. Our Profit (Commission 1 -> Goes to Profit & Loss 02)
+            if ($entry->commission_1 > 0) {
+                $profitAccount = Account::where('code', '02')->first();
+                if ($profitAccount) {
+                    JournalService::record($entry, $profitAccount->id, $entry->currency_id, 0, (float)$entry->commission_1, "قازانجی حەواڵە (عمولەی ١) - پسوڵەی #{$entry->id}", $entry->entry_date);
                 }
             }
 
@@ -145,21 +142,23 @@ class RegistryController extends Controller
 
             $registry->update($validated);
 
-            // Re-record Journal Entries
+            // 1. Debtor Leg (Customer pays principal + all commissions)
             if ($registry->debtor_account_id) {
-                JournalService::record($registry, $registry->debtor_account_id, $registry->currency_id, (float) $registry->amount, 0, "پسوڵەی ژمارە {$registry->id} (نوێکراوە) - مەدین", $registry->entry_date);
+                $totalToCollect = (float)$registry->amount + (float)$registry->commission_1 + (float)$registry->commission_2;
+                JournalService::record($registry, $registry->debtor_account_id, $registry->currency_id, $totalToCollect, 0, "پسوڵەی #{$registry->id} (نوێکراوە) - مەدین (کۆی گشتی)", $registry->entry_date);
             }
 
+            // 2. Creditor Leg (We owe agent: Principal + Commission 2)
             if ($registry->creditor_account_id) {
-                JournalService::record($registry, $registry->creditor_account_id, $registry->currency_id, 0, (float) $registry->amount, "پسوڵەی ژمارە {$registry->id} (نوێکراوە) - داین", $registry->entry_date);
+                $totalWeOweAgent = (float)$registry->amount + (float)$registry->commission_2;
+                JournalService::record($registry, $registry->creditor_account_id, $registry->currency_id, 0, $totalWeOweAgent, "پسوڵەی #{$registry->id} (نوێکراوە) - داین (ئەسڵ + عمولەی ٢)", $registry->entry_date);
             }
 
-            // Commissions (Revenue)
-            if ($registry->commission_1 > 0 || $registry->commission_2 > 0) {
-                $revenueAccount = Account::where('code', 'LIKE', '4%')->orWhere('type', 'revenue')->first();
-                if ($revenueAccount) {
-                    $totalCommission = ($registry->commission_1 ?? 0) + ($registry->commission_2 ?? 0);
-                    JournalService::record($registry, $revenueAccount->id, $registry->currency_id, 0, $totalCommission, "عمولەی پسوڵەی ژمارە {$registry->id}", $registry->entry_date);
+            // 3. Our Profit (Commission 1 -> Goes to Profit & Loss 02)
+            if ($registry->commission_1 > 0) {
+                $profitAccount = Account::where('code', '02')->first();
+                if ($profitAccount) {
+                    JournalService::record($registry, $profitAccount->id, $registry->currency_id, 0, (float)$registry->commission_1, "قازانجی حەواڵە (عمولەی ١) - پسوڵەی #{$registry->id} (نوێکراوە)", $registry->entry_date);
                 }
             }
 

@@ -148,6 +148,13 @@
               </div>
 
               <div class="space-y-2">
+                <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">بۆ کام لق (Branch)</label>
+                <select v-model="activeForm.branch_id" required class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                  <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }} ({{ b.location }})</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
                 <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">تێبینی (ئارەزوومەندانە)</label>
                 <textarea v-model="activeForm.notes" rows="3" class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-medium focus:border-blue-500 outline-none transition-all"></textarea>
               </div>
@@ -199,6 +206,7 @@ const can = (permission) => {
 }
 
 const accounts = ref([])
+const branches = ref([])
 const searchTerm = ref('')
 const filterType = ref('all')
 const showCreateModal = ref(false)
@@ -207,7 +215,8 @@ const form = ref({
   name: '',
   code: '',
   type: 'client',
-  notes: ''
+  notes: '',
+  branch_id: null
 })
 
 const typeLabels = {
@@ -265,12 +274,6 @@ const editingAccount = ref(null)
 const editForm = ref({ name: '', type: '', code: '', notes: '' })
 
 const activeForm = computed(() => editingAccount.value ? editForm.value : form.value)
-
-function closeModals() {
-  showCreateModal.value = false
-  editingAccount.value = null
-  form.value = { name: '', type: 'client', code: '', notes: '' }
-}
 
 function openEditModal(acc) {
   editingAccount.value = acc
@@ -371,6 +374,12 @@ async function fetchAccounts() {
   try {
     const { data } = await axios.get('/accounts')
     accounts.value = data.data || data
+    
+    // Also fetch branches if not loaded
+    if (branches.value.length === 0) {
+      const bRes = await axios.get('/branches')
+      branches.value = bRes.data
+    }
   } catch (e) { console.error(e) }
 }
 
@@ -380,7 +389,7 @@ async function submitAccount() {
     await axios.post('/accounts', form.value)
     await fetchAccounts()
     showCreateModal.value = false
-    form.value = { name: '', code: '', type: 'client', notes: '' }
+    form.value = { name: '', code: '', type: 'client', notes: '', branch_id: auth.user?.branch_id }
     
     Swal.fire({
       icon: 'success',
@@ -407,11 +416,19 @@ async function submitAccount() {
   }
 }
 
+function closeModals() {
+  showCreateModal.value = false
+  editingAccount.value = null
+  form.value = { name: '', type: 'client', code: '', notes: '', branch_id: auth.user?.branch_id }
+}
+
 function formatNum(val) {
   return new Intl.NumberFormat().format(val || 0)
 }
 
-onMounted(fetchAccounts)
+onMounted(() => {
+  fetchAccounts()
+})
 </script>
 
 <style scoped>

@@ -133,9 +133,10 @@ const saveRate = async () => {
 
   loading.value = true
   try {
+    const newRate = rateInput.value
     await axios.post('/currencies/update-rate', { 
       to: 'IQD', 
-      rate: rateInput.value 
+      rate: newRate 
     })
     
     await fetchRate() // Refresh the current rate display
@@ -144,7 +145,7 @@ const saveRate = async () => {
     Swal.fire({
       icon: 'success',
       title: 'نرخ جێگیرکرا',
-      text: `نرخی ١ دۆلار بە ${currentRate.value} دینار جێگیرکرا`,
+      text: `نرخی ١ دۆلار بە ${formatNum(newRate)} دینار جێگیرکرا`,
       background: '#0f172a',
       color: '#fff',
       confirmButtonColor: '#10b981'

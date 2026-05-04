@@ -21,7 +21,8 @@ class JournalService
         float $credit = 0,
         ?string $description = null,
         ?string $date = null,
-        ?float $rate = null
+        ?float $rate = null,
+        ?int $branchId = null
     ): JournalEntry {
         $date = $date ?? now()->format('Y-m-d');
         
@@ -31,7 +32,6 @@ class JournalService
             if ($currency && $currency->is_base) {
                 $rate = 1.0;
             } else {
-                // Try to find historical rate, otherwise use current currency rate
                 $rate = ExchangeRate::where('currency_id', $currencyId)
                     ->where('date', '<=', $date)
                     ->latest('date')
@@ -39,15 +39,15 @@ class JournalService
             }
         }
 
-        // 2. Calculate base amount (Value in primary currency)
-        $amount = $debit > 0 ? $debit : $credit;
-        $baseAmount = $amount * $rate;
-        // If credit, make base amount negative for net calculation? 
-        // Actually, journal_entries table has base_amount, we should store it as absolute or signed?
-        // Usually, it's the value of the line. We can store it as (debit - credit) * rate.
+        // 2. Calculate base amount
         $signedBaseAmount = ($debit - $credit) * $rate;
 
-        $entry = JournalEntry::create([
+        // 3. Determine Branch
+        if (!$branchId) {
+            $branchId = auth()->user()?->branch_id ?? \App\Models\Account::find($accountId)?->branch_id ?? 1;
+        }
+
+        return JournalEntry::create([
             'account_id' => $accountId,
             'currency_id' => $currencyId,
             'debit' => $debit,
@@ -57,10 +57,9 @@ class JournalService
             'entryable_id' => $entryable->id,
             'entryable_type' => get_class($entryable),
             'user_id' => auth()->id() ?? 1,
+            'branch_id' => $branchId,
             'date' => $date,
             'description' => $description
         ]);
-
-        return $entry;
     }
 }

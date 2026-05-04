@@ -36,26 +36,29 @@ class AccountController extends Controller
         
         // Fetch sums grouped by account and currency
         $balances = DB::table('journal_entries')
-            ->whereIn('account_id', $accountIds)
+            ->whereIn('account_id', $accountIds->merge(Account::whereIn('parent_id', $accountIds)->pluck('id')))
             ->whereNull('deleted_at')
             ->select('account_id', 'currency_id', DB::raw('SUM(debit - credit) as balance'))
             ->groupBy('account_id', 'currency_id')
-            ->get()
-            ->groupBy('account_id');
+            ->get();
 
         $accounts->getCollection()->transform(function ($account) use ($balances) {
-            $accountBalances = $balances->get($account->id) ?? collect();
+            // Get children IDs if any
+            $childIds = Account::where('parent_id', $account->id)->pluck('id');
+            $relevantIds = $childIds->push($account->id);
+
+            $accountBalances = $balances->whereIn('account_id', $relevantIds)
+                ->groupBy('currency_id')
+                ->map(function ($group, $currId) {
+                    $currency = \App\Models\Currency::find($currId);
+                    return [
+                        'currency_code' => $currency->code ?? '???',
+                        'symbol' => $currency->symbol ?? '',
+                        'amount' => (float)$group->sum('balance')
+                    ];
+                })->values();
             
-            // Map balances to currency symbols/codes
-            $account->balances = $accountBalances->map(function($b) {
-                $currency = \App\Models\Currency::find($b->currency_id);
-                return [
-                    'currency_code' => $currency->code ?? '???',
-                    'symbol' => $currency->symbol ?? '',
-                    'amount' => (float)$b->balance
-                ];
-            });
-            
+            $account->balances = $accountBalances;
             return $account;
         });
 
@@ -83,7 +86,25 @@ class AccountController extends Controller
 
     public function show(Account $account)
     {
-        return response()->json($account->load(['parent', 'children', 'summaries.currency']));
+        $account->load(['parent', 'children', 'summaries.currency']);
+        
+        // Scientific Consolidation: If it's a parent, sum up all children summaries
+        if ($account->children->isNotEmpty()) {
+            $childIds = $account->children->pluck('id');
+            $consolidated = \App\Models\AccountSummary::whereIn('account_id', $childIds->push($account->id))
+                ->select('currency_id', 
+                    DB::raw('SUM(total_debit) as total_debit'),
+                    DB::raw('SUM(total_credit) as total_credit')
+                )
+                ->groupBy('currency_id')
+                ->with('currency')
+                ->get();
+            
+            // Temporary replacement for the view
+            $account->setRelation('summaries', $consolidated);
+        }
+
+        return response()->json($account);
     }
 
     /**

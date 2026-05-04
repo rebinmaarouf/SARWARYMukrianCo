@@ -65,6 +65,12 @@ const routes = [
         component: () => import('../views/finance/AuditCenter.vue')
       },
       {
+        path: 'audit-advanced',
+        name: 'AuditAdvanced',
+        component: () => import('../views/finance/AuditAdvanced.vue'),
+        meta: { permission: 'view_advanced_reports' }
+      },
+      {
         path: 'forensics',
         name: 'ForensicLogs',
         component: () => import('../views/finance/ForensicLogs.vue'),

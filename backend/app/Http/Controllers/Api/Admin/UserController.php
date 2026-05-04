@@ -13,7 +13,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $query = User::with(['roles', 'permissions']);
+        $query = User::with(['roles', 'permissions', 'branch', 'branches']);
         
         // Hide Master User from anyone else
         if (auth()->user()->email !== 'rebin.maaruf@gmail.com') {
@@ -29,13 +29,16 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'roles' => 'required|array'
+            'roles' => 'required|array',
+            'branch_id' => 'required|exists:branches,id',
+            'allowed_branches' => 'array'
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'branch_id' => $request->branch_id,
         ]);
 
         if ($request->has('roles')) {
@@ -46,7 +49,11 @@ class UserController extends Controller
             $user->syncPermissions($request->permissions);
         }
 
-        return response()->json($user->load('roles', 'permissions'), 201);
+        if ($request->has('allowed_branches')) {
+            $user->branches()->sync($request->allowed_branches);
+        }
+
+        return response()->json($user->load('roles', 'permissions', 'branch', 'branches'), 201);
     }
 
     public function update(Request $request, User $user)
@@ -60,10 +67,12 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'roles' => 'array',
-            'permissions' => 'array'
+            'permissions' => 'array',
+            'branch_id' => 'nullable|exists:branches,id',
+            'allowed_branches' => 'array'
         ]);
 
-        $user->update($request->only('name', 'email'));
+        $user->update($request->only('name', 'email', 'branch_id'));
 
         if ($request->has('password') && !empty($request->password)) {
             $user->update(['password' => Hash::make($request->password)]);
@@ -77,7 +86,11 @@ class UserController extends Controller
             $user->syncPermissions($request->permissions);
         }
 
-        return response()->json($user->load('roles', 'permissions'));
+        if ($request->has('allowed_branches')) {
+            $user->branches()->sync($request->allowed_branches);
+        }
+
+        return response()->json($user->load('roles', 'permissions', 'branch', 'branches'));
     }
 
     public function destroy(User $user)

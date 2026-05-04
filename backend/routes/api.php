@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\BranchController;
 
 // Namespaces
 use App\Http\Controllers\Api\Auth\AuthController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Api\Finance\CurrencyController;
 use App\Http\Controllers\Api\Finance\TransferController;
 use App\Http\Controllers\Api\Finance\ExchangeController;
 use App\Http\Controllers\Api\Finance\RegistryController;
+use App\Http\Controllers\Api\Finance\AuditReportController;
 use App\Http\Controllers\Api\Finance\JournalController;
 use App\Http\Controllers\Api\Finance\ActivityLogController;
 
@@ -37,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Finance Domain
     Route::apiResource('registries', RegistryController::class);
+    Route::get('audit-advanced', [AuditReportController::class, 'getAdvancedAudit']);
     Route::get('accounts/recalculate', [AccountController::class, 'recalculateBalances']);
     Route::apiResource('accounts', AccountController::class);
     Route::apiResource('transfers', TransferController::class);
@@ -53,4 +56,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/profit', [ExchangeController::class, 'getProfitReport']);
     Route::get('reports/unified', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getUnifiedReport']);
     Route::get('reports/liquidity', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getVaultLiquidity']);
+    
+    // Multi-Branch Support
+    Route::get('branches', [BranchController::class, 'index']);
+    Route::post('branches/switch', [BranchController::class, 'switch']);
 });

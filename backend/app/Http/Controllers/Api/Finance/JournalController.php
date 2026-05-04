@@ -18,7 +18,14 @@ class JournalController extends Controller
             ->latest('id');
 
         if ($accountId = $request->input('account_id')) {
-            $query->where('account_id', $accountId);
+            // Check if this account has children
+            $childIds = \App\Models\Account::where('parent_id', $accountId)->pluck('id');
+            
+            if ($childIds->isNotEmpty()) {
+                $query->whereIn('account_id', $childIds->push($accountId));
+            } else {
+                $query->where('account_id', $accountId);
+            }
         }
 
         if ($currencyId = $request->input('currency_id')) {

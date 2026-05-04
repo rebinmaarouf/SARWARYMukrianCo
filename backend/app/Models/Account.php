@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasAudit;
+use App\Traits\BelongsToBranch;
 
 class Account extends Model
 {
-    use SoftDeletes, HasAudit;
+    use SoftDeletes, HasAudit, BelongsToBranch;
 
     protected $fillable = [
         'code',
@@ -20,6 +21,7 @@ class Account extends Model
         'type',
         'balance',
         'parent_id',
+        'branch_id',
     ];
 
     /**

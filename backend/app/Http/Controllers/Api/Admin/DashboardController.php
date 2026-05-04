@@ -23,8 +23,8 @@ class DashboardController extends Controller
         // 1. Core Financial Aggregates (Valued in IQD)
         // Revenue (IUAS Code 4)
         $revenueIQD = $this->calculateSumByCode('4%');
-        // Expenses (IUAS Code 3)
-        $expenseIQD = $this->calculateSumByCode('3%');
+        // Expenses (IUAS Code 3 and 5)
+        $expenseIQD = $this->calculateSumByCode(['3%', '5%']);
         $netProfitIQD = $revenueIQD - $expenseIQD;
 
         // 2. Real-time Vault Monitor
@@ -62,18 +62,31 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function calculateSumByCode($codePattern)
+    private function calculateSumByCode($codePatterns)
     {
-        // We sum across all currencies, converting each to base (IQD)
-        $entries = JournalEntry::whereHas('account', function($q) use ($codePattern) {
-            $q->where('code', 'LIKE', $codePattern);
-        })->get();
+        if (!is_array($codePatterns)) $codePatterns = [$codePatterns];
+
+        $entries = JournalEntry::whereHas('account', function($q) use ($codePatterns) {
+            $q->where(function($sub) use ($codePatterns) {
+                foreach($codePatterns as $pattern) {
+                    $sub->orWhere('code', 'LIKE', $pattern);
+                }
+            });
+        })->with('currency')->get();
 
         return $entries->reduce(function($acc, $entry) {
-            // In IUAS, Revenue/Expense balance = Credit - Debit
-            $net = $entry->credit - $entry->debit;
-            // Get rate for this specific currency
-            $rate = $entry->currency->current_rate ?? 1.0;
+            $code = $entry->account->code;
+            
+            // In IUAS:
+            // Revenue (4): Balance = Credit - Debit
+            // Expense (3/5): Balance = Debit - Credit
+            if (str_starts_with($code, '4')) {
+                $net = $entry->credit - $entry->debit;
+            } else {
+                $net = $entry->debit - $entry->credit;
+            }
+
+            $rate = $entry->rate_at_time ?? 1.0;
             return $acc + ($net * $rate);
         }, 0);
     }
@@ -87,18 +100,18 @@ class DashboardController extends Controller
         for ($i = $count - 1; $i >= 0; $i--) {
             $date = $period === '1y' ? Carbon::today()->subMonths($i) : Carbon::today()->subDays($i);
             
-            $query = JournalEntry::whereBetween('date', [
-                $period === '1y' ? $date->startOfMonth()->toDateString() : $date->toDateString(),
-                $period === '1y' ? $date->endOfMonth()->toDateString() : $date->toDateString()
-            ]);
+            $startDate = $period === '1y' ? $date->startOfMonth()->toDateString() : $date->toDateString();
+            $endDate = $period === '1y' ? $date->endOfMonth()->toDateString() : $date->toDateString();
 
-            $revenue = (clone $query)->whereHas('account', function($q) {
-                $q->where('code', 'LIKE', '4%');
-            })->sum(DB::raw('credit - debit'));
+            $revenue = JournalEntry::whereBetween('date', [$startDate, $endDate])
+                ->whereHas('account', function($q) { $q->where('code', 'LIKE', '4%'); })
+                ->sum(DB::raw('credit - debit'));
 
-            $expense = (clone $query)->whereHas('account', function($q) {
-                $q->where('code', 'LIKE', '3%');
-            })->sum(DB::raw('debit - credit'));
+            $expense = JournalEntry::whereBetween('date', [$startDate, $endDate])
+                ->whereHas('account', function($q) { 
+                    $q->where('code', 'LIKE', '3%')->orWhere('code', 'LIKE', '5%'); 
+                })
+                ->sum(DB::raw('debit - credit'));
 
             $data[] = [
                 'label' => $date->format($format),

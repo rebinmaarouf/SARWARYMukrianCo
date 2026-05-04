@@ -14,8 +14,8 @@ class ExchangeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaction::with(['account', 'user'])->latest();
-        
+        $query = Transaction::with(['account', 'user', 'vault_from', 'vault_to'])->latest();
+
         if ($request->has('from') && $request->has('to')) {
             $query->whereBetween('created_at', [$request->from, $request->to]);
         }
@@ -30,7 +30,7 @@ class ExchangeController extends Controller
                 'account_id' => 'required|exists:accounts,id',
                 'type' => 'required|in:buy,sell',
                 'pair' => 'required|string',
-                'primary_currency' => 'required|string', 
+                'primary_currency' => 'required|string',
                 'primary_amount' => 'required|numeric',
                 'secondary_currency' => 'required|string',
                 'secondary_amount' => 'required|numeric',
@@ -45,18 +45,20 @@ class ExchangeController extends Controller
             return DB::transaction(function () use ($request) {
                 // 1. Check if the Vault has enough balance to perform this operation (The "Scientific" Lock)
                 $vaultFrom = Account::find($request->vault_from_id);
-                $currencyToGive = $request->type === 'buy' ? $request->secondary_currency : $request->primary_currency;
+                $currencyToGiveCode = $request->type === 'buy' ? $request->secondary_currency : $request->primary_currency;
                 $amountToGive = $request->type === 'buy' ? $request->secondary_amount : $request->primary_amount;
-                
-                $currencyModel = Currency::where('code', $currencyToGive)->first();
+
+                $currencyModel = Currency::where('code', $currencyToGiveCode)->first();
                 $balance = \App\Models\AccountSummary::where('account_id', $vaultFrom->id)
                     ->where('currency_id', $currencyModel->id)
                     ->first();
 
                 $currentBalance = $balance ? ($balance->total_debit - $balance->total_credit) : 0;
 
-                if ($currentBalance < $amountToGive) {
-                    throw new \Exception("سندوقی دەستنیشانکراو بڕی پێویست ({$currencyToGive})ی تیا نییە. هاوسەنگی ئێستا: " . number_format($currentBalance));
+                // The Scientific Rule: Only Vaults (Cash) must be strictly checked for balance.
+                // Customer and other accounts can go negative (Liability/Credit).
+                if ($vaultFrom->type === 'vault' && $currentBalance < $amountToGive) {
+                    throw new \Exception("سندوقی دەستنیشانکراو بڕی پێویست ({$currencyToGiveCode})ی تیا نییە. هاوسەنگی ئێستا: " . number_format($currentBalance) . " {$currencyToGiveCode}");
                 }
 
                 // 2. Calculate Profit (if any)
@@ -75,7 +77,10 @@ class ExchangeController extends Controller
                     'rate' => $request->rate,
                     'profit' => $profit,
                     'client_name' => $request->client_name,
-                    'note' => $request->note
+                    'note' => $request->note,
+                    'vault_from_id' => $request->vault_from_id,
+                    'vault_to_id' => $request->vault_to_id,
+                    'branch_id' => auth()->user()->branch_id ?? 1
                 ]);
 
                 // 3. Journal Entries Logic (4-Leg Double Entry)
@@ -92,47 +97,54 @@ class ExchangeController extends Controller
     {
         $primaryCurrency = Currency::where('code', $request->primary_currency)->first();
         $secondaryCurrency = Currency::where('code', $request->secondary_currency)->first();
-        $customerAccount = Account::find($request->account_id);
         $vaultFrom = Account::find($request->vault_from_id);
         $vaultTo = Account::find($request->vault_to_id);
+        $customerAccount = Account::find($request->account_id);
         $today = now();
 
+        $profitAmount = (float) $transaction->profit;
+
         if ($request->type === 'buy') {
-            // WE BUY Primary (USD) from Customer using Secondary (IQD)
+            // WE BUY USD (Primary) / WE GIVE IQD (Secondary)
             
-            // 1. We receive Primary into our Vault (Debit Vault)
-            JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "کڕینی {$request->primary_currency} - وەرگیرا لە {$request->client_name}", $today);
+            // Leg 1: Debit the Destination (Where USD goes)
+            JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} (#{$transaction->id})", $today);
             
-            // 2. Customer gives Primary (Credit Customer)
-            JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "داپەنی {$request->primary_currency} بۆ ئاڵوگۆڕ", $today);
+            // Leg 2: Credit the Source (Where IQD comes from/stays)
+            // If vaultFrom is a customer, it increases our liability to them (Credit)
+            JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} بۆ ئاڵوگۆڕ", $today);
 
-            // 3. Customer receives Secondary (Debit Customer)
-            JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} لە ئاڵوگۆڕ", $today);
-
-            // 4. We give Secondary from our Vault (Credit Vault)
-            JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "فرۆشتنی {$request->secondary_currency} - درا بە {$request->client_name}", $today);
-
+            // Audit: Link to customer statement if they aren't the vaults
+            if ($customerAccount->id !== $vaultTo->id && $customerAccount->id !== $vaultFrom->id) {
+                // This creates the audit trail in the customer's ledger without moving cash twice
+                // In a Buy trade, the customer "Gives Primary" and "Receives Secondary"
+                JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "ڕادەستکردنی دۆلار", $today);
+                JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی دینار", $today);
+            }
         } else {
-            // WE SELL Primary (USD) to Customer receiving Secondary (IQD)
-            
-            // 1. We receive Secondary into our Vault (Debit Vault)
-            JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} لە {$request->client_name}", $today);
+            // WE SELL USD (Primary) / WE RECEIVE IQD (Secondary)
+            $netSecondary = $request->secondary_amount - $profitAmount;
 
-            // 2. Customer gives Secondary (Credit Customer)
-            JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} بۆ ئاڵوگۆڕ", $today);
+            // Leg 1: Debit the Destination (Where IQD goes)
+            JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} (#{$transaction->id})", $today);
 
-            // 3. Customer receives Primary (Debit Customer)
-            JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} لە ئاڵوگۆڕ", $today);
+            // Leg 2: Credit the Source (Where USD comes from)
+            JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} (#{$transaction->id})", $today);
 
-            // 4. We give Primary from our Vault (Credit Vault)
-            JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "فرۆشتنی {$request->primary_currency} - درا بە {$request->client_name}", $today);
-        }
+            // Leg 3: Move Profit from Destination to Profit Account
+            // This ensures the routing account (Natron/Vault) only keeps the principal
+            $profitAccount = Account::where('code', '02')->first() ?: Account::where('code', '401')->first();
+            if ($profitAccount && $profitAmount > 0) {
+                // Debit the VaultTo (take profit out)
+                JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, 0, $profitAmount, "گواستنەوەی قازانج بۆ حیسابی ٠٢", $today);
+                // Credit the Profit Account
+                JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
+            }
 
-        // 5. Record Profit if realized
-        if ($transaction->profit > 0) {
-            $profitAccount = Account::where('type', 'revenue')->orWhere('code', 'LIKE', '4%')->first();
-            if ($profitAccount) {
-                JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $transaction->profit, "قازانجی ئاڵوگۆڕی پسوڵەی #{$transaction->id}", $today);
+            // Audit for customer
+            if ($customerAccount->id !== $vaultTo->id && $customerAccount->id !== $vaultFrom->id) {
+                JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, 0, $netSecondary, "دانی دینار", $today);
+                JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی دۆلار", $today);
             }
         }
     }
@@ -144,7 +156,7 @@ class ExchangeController extends Controller
 
         // 1. Profit from Revenue Accounts
         $profitByCurrency = \App\Models\JournalEntry::whereBetween('date', [$startDate, $endDate])
-            ->whereHas('account', function($q) {
+            ->whereHas('account', function ($q) {
                 $q->where('code', 'LIKE', '4%')->orWhere('type', 'revenue');
             })
             ->select('currency_id', DB::raw('SUM(credit - debit) as total_profit'))
@@ -156,10 +168,10 @@ class ExchangeController extends Controller
         $assets = Account::where('type', 'vault')
             ->with('summaries.currency')
             ->get()
-            ->map(function($account) {
+            ->map(function ($account) {
                 return [
                     'name' => $account->name,
-                    'balances' => $account->summaries->map(function($s) {
+                    'balances' => $account->summaries->map(function ($s) {
                         return [
                             'currency' => $s->currency->code,
                             'balance' => $s->total_debit - $s->total_credit
@@ -196,8 +208,8 @@ class ExchangeController extends Controller
         $type = $request->type;
         $primary = $request->primary_currency;
         $secondary = $request->secondary_currency;
-        $rate = (float)$request->rate;
-        $amount = (float)$request->primary_amount;
+        $rate = (float) $request->rate;
+        $amount = (float) $request->primary_amount;
 
         if ($type === 'buy') {
             return 0;

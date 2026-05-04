@@ -32,9 +32,15 @@ class TransferController extends Controller
         return DB::transaction(function () use ($validated, $request) {
             $commissionAmount = $request->input('commission_amount', 0);
             $commissionCurrencyId = $request->input('commission_currency_id', $validated['currency_id']);
-            $commissionAccountId = 7; // Main Commission Revenue Account ID
+            
+            // Commission Revenue Account (IUAS 4x)
+            $commissionAccount = \App\Models\Account::where('type', 'revenue')
+                ->orWhere('code', 'LIKE', '4%')
+                ->first();
+            
+            $commissionAccountId = $commissionAccount ? $commissionAccount->id : 7; 
 
-            // 1. Record the Transfer
+            // 1. Record the Transfer object
             $transfer = Transfer::create([
                 'from_account_id' => $validated['from_account_id'],
                 'to_account_id' => $validated['to_account_id'],
@@ -47,75 +53,56 @@ class TransferController extends Controller
                 'user_id' => $request->user()->id,
             ]);
 
-            // 2. Journal Entry - FROM (Credit - Money leaving for principal)
-            JournalEntry::create([
-                'account_id' => $validated['from_account_id'],
-                'currency_id' => $validated['currency_id'],
-                'debit' => 0,
-                'credit' => $validated['amount'],
-                'type' => 'transfer',
-                'description' => 'Transfer To: ' . $transfer->toAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
-                'user_id' => $request->user()->id,
-                'reference_id' => $transfer->id,
-                'reference_type' => Transfer::class,
-                'date' => now(),
-            ]);
+            // 2. Journal Entry - FROM Account (Credit)
+            \App\Services\JournalService::record(
+                $transfer,
+                $validated['from_account_id'],
+                $validated['currency_id'],
+                0,
+                $validated['amount'],
+                'حەواڵە بۆ: ' . $transfer->toAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
+                now()->format('Y-m-d')
+            );
 
-            // 3. Journal Entry - TO (Debit - Money entering for principal)
-            JournalEntry::create([
-                'account_id' => $validated['to_account_id'],
-                'currency_id' => $validated['currency_id'],
-                'debit' => $validated['amount'],
-                'credit' => 0,
-                'type' => 'transfer',
-                'description' => 'Transfer From: ' . $transfer->fromAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
-                'user_id' => $request->user()->id,
-                'reference_id' => $transfer->id,
-                'reference_type' => Transfer::class,
-                'date' => now(),
-            ]);
+            // 3. Journal Entry - TO Account (Debit)
+            \App\Services\JournalService::record(
+                $transfer,
+                $validated['to_account_id'],
+                $validated['currency_id'],
+                $validated['amount'],
+                0,
+                'حەواڵە لە: ' . $transfer->fromAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
+                now()->format('Y-m-d')
+            );
 
             // 4. Handle Commission Journal Entries
             if ($commissionAmount > 0) {
                 // Deduct commission from Sender (Credit)
-                JournalEntry::create([
-                    'account_id' => $validated['from_account_id'],
-                    'currency_id' => $commissionCurrencyId,
-                    'debit' => 0,
-                    'credit' => $commissionAmount,
-                    'type' => 'commission',
-                    'description' => 'Commission Fee for Transfer #' . $transfer->id,
-                    'user_id' => $request->user()->id,
-                    'reference_id' => $transfer->id,
-                    'reference_type' => Transfer::class,
-                    'date' => now(),
-                ]);
+                \App\Services\JournalService::record(
+                    $transfer,
+                    $validated['from_account_id'],
+                    $commissionCurrencyId,
+                    0,
+                    $commissionAmount,
+                    'کۆمسیۆنی حەواڵەی #' . $transfer->id,
+                    now()->format('Y-m-d')
+                );
 
-                // Add to Revenue Account (Debit, since Balance = Debit - Credit)
-                JournalEntry::create([
-                    'account_id' => $commissionAccountId,
-                    'currency_id' => $commissionCurrencyId,
-                    'debit' => $commissionAmount,
-                    'credit' => 0,
-                    'type' => 'commission',
-                    'description' => 'Commission Revenue from Transfer #' . $transfer->id,
-                    'user_id' => $request->user()->id,
-                    'reference_id' => $transfer->id,
-                    'reference_type' => Transfer::class,
-                    'date' => now(),
-                ]);
-
-                // Update summaries for commission
-                $this->updateSummary($validated['from_account_id'], $commissionCurrencyId, -$commissionAmount);
-                $this->updateSummary($commissionAccountId, $commissionCurrencyId, $commissionAmount);
+                // Add to Revenue Account (Debit/Credit depending on revenue type, but we credit income)
+                // In accounting, Income is Credited.
+                \App\Services\JournalService::record(
+                    $transfer,
+                    $commissionAccountId,
+                    $commissionCurrencyId,
+                    0,
+                    $commissionAmount,
+                    'قازانجی حەواڵەی #' . $transfer->id,
+                    now()->format('Y-m-d')
+                );
             }
 
-            // 5. Update Summaries for principal
-            $this->updateSummary($validated['from_account_id'], $validated['currency_id'], -$validated['amount']);
-            $this->updateSummary($validated['to_account_id'], $validated['currency_id'], $validated['amount']);
-
             return response()->json([
-                'message' => 'Transfer completed successfully',
+                'message' => 'حەواڵەکە بە سەرکەوتوویی ئەنجامدرا',
                 'transfer' => $transfer->load(['fromAccount', 'toAccount'])
             ]);
         });
@@ -136,38 +123,15 @@ class TransferController extends Controller
                 'voided_by' => $user->id
             ]);
 
-            // 2. Reverse Balances in Summaries
-            // Reverse Principal
-            $this->updateSummary($transfer->from_account_id, $transfer->currency_id, $transfer->amount);
-            $this->updateSummary($transfer->to_account_id, $transfer->currency_id, -$transfer->amount);
-
-            // Reverse Commission if exists
-            if ($transfer->commission_amount > 0) {
-                $this->updateSummary($transfer->from_account_id, $transfer->commission_currency_id, $transfer->commission_amount);
-                $this->updateSummary($transfer->commission_account_id, $transfer->commission_currency_id, -$transfer->commission_amount);
-            }
-
-            // 3. Soft Delete associated Journal Entries
-            // This ensures they are excluded from balance calculations and lists
-            JournalEntry::where('reference_id', $transfer->id)
-                ->where('reference_type', Transfer::class)
+            // 2. Delete associated Journal Entries (This triggers balance recalculation)
+            JournalEntry::where('entryable_id', $transfer->id)
+                ->where('entryable_type', Transfer::class)
                 ->delete();
 
-            // 4. Soft Delete the Transfer itself
+            // 3. Soft Delete the Transfer itself
             $transfer->delete();
 
             return response()->json(['message' => 'حەواڵەکە بە سەرکەوتوویی پوچەڵ کرایەوە و باڵانسەکان ڕاستکرانەوە']);
         });
-    }
-
-    private function updateSummary($accountId, $currencyId, $amount)
-    {
-        $summary = \App\Models\AccountSummary::firstOrNew([
-            'account_id' => $accountId,
-            'currency_id' => $currencyId,
-        ]);
-        
-        $summary->balance = ($summary->balance ?? 0) + $amount;
-        $summary->save();
     }
 }

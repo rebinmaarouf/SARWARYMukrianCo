@@ -80,49 +80,57 @@
                    </div>
                  </div>
                </td>
-               <td class="px-2 py-4 relative">
-                 <div class="relative">
-                   <input v-model="debtorSearch" @input="searchAccounts('debtor')" @focus="showDebtorDropdown = true" @blur="onBlur('debtor')"
-                     class="w-full bg-slate-950 border border-emerald-500/20 text-white rounded-2xl py-4 pr-5 pl-14 text-sm font-bold focus:border-emerald-500 outline-none transition-all shadow-inner" 
-                     placeholder="بگەڕێ بۆ حیسابی مەدین..." dir="rtl" />
-                   <div v-if="newEntry.debtor_account_id" class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg font-black border border-emerald-500/30">
-                     {{ selectedDebtorCode }}
-                   </div>
-                   <div v-if="showDebtorDropdown && debtorResults.length > 0" class="absolute top-full left-0 right-0 mt-3 bg-[#020617] border border-emerald-500/30 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-[100] max-h-64 overflow-y-auto ring-1 ring-emerald-500/20 p-2 space-y-1 backdrop-blur-3xl">
-                     <button v-for="acc in debtorResults" :key="acc.id" @mousedown.prevent="selectAccount('debtor', acc)"
-                       class="w-full text-right px-5 py-4 hover:bg-emerald-500/10 rounded-xl transition-all flex items-center justify-between group/item">
-                       <div class="flex flex-col items-start">
-                          <span class="text-white font-black group-hover/item:text-emerald-400 text-sm">{{ acc.name }}</span>
-                          <span class="text-[9px] text-slate-500 font-bold uppercase">{{ acc.type }}</span>
-                       </div>
-                       <span class="font-mono text-xs bg-slate-900 text-emerald-500 px-3 py-1.5 rounded-xl font-black border border-white/5">{{ acc.code }}</span>
-                     </button>
-                   </div>
-                 </div>
-               </td>
-               <td class="px-2 py-4">
-                 <input v-model="newEntry.commission_1" type="number" class="w-full bg-slate-950 border border-white/5 rounded-xl px-2 py-4 text-sm text-amber-400 font-bold text-center outline-none focus:border-amber-500/30 shadow-inner" placeholder="0" />
-               </td>
-               <td class="px-2 py-4 relative">
-                 <div class="relative">
-                   <input v-model="creditorSearch" @input="searchAccounts('creditor')" @focus="showCreditorDropdown = true" @blur="onBlur('creditor')"
-                     class="w-full bg-slate-950 border border-blue-500/20 text-white rounded-2xl py-4 pr-5 pl-14 text-sm font-bold focus:border-blue-500 outline-none transition-all shadow-inner" 
-                     placeholder="بگەڕێ بۆ حیسابی داین..." dir="rtl" />
-                   <div v-if="newEntry.creditor_account_id" class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-lg font-black border border-blue-500/30">
-                     {{ selectedCreditorCode }}
-                   </div>
-                   <div v-if="showCreditorDropdown && creditorResults.length > 0" class="absolute top-full left-0 right-0 mt-3 bg-[#020617] border border-blue-500/30 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-[100] max-h-64 overflow-y-auto ring-1 ring-blue-500/20 p-2 space-y-1 backdrop-blur-3xl">
-                     <button v-for="acc in creditorResults" :key="acc.id" @mousedown.prevent="selectAccount('creditor', acc)"
-                       class="w-full text-right px-5 py-4 hover:bg-blue-500/10 rounded-xl transition-all flex items-center justify-between group/item">
-                       <div class="flex flex-col items-start">
-                          <span class="text-white font-black group-hover/item:text-blue-400 text-sm">{{ acc.name }}</span>
-                          <span class="text-[9px] text-slate-500 font-bold uppercase">{{ acc.type }}</span>
-                       </div>
-                       <span class="font-mono text-xs bg-slate-900 text-blue-400 px-3 py-1.5 rounded-xl font-black border border-white/5">{{ acc.code }}</span>
-                     </button>
-                   </div>
-                 </div>
-               </td>
+                <td class="px-2 py-4 relative group/debtor">
+                  <div class="relative">
+                    <input v-model="debtorSearch" @input="searchAccounts('debtor')" @focus="showDebtorDropdown = true" @blur="onBlur('debtor')"
+                      class="w-full min-w-[200px] bg-slate-950 border border-emerald-500/20 text-white rounded-2xl py-4 pr-5 pl-14 text-sm font-bold focus:border-emerald-500 outline-none transition-all shadow-inner" 
+                      placeholder="بگەڕێ بۆ حیسابی مەدین..." dir="rtl" />
+                    <div v-if="newEntry.debtor_account_id" class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg font-black border border-emerald-500/30">
+                      {{ selectedDebtorCode }}
+                    </div>
+                    <!-- Advanced Floating Dropdown -->
+                    <div v-if="showDebtorDropdown && debtorResults.length > 0" class="fixed mt-3 bg-[#020617]/95 border border-emerald-500/30 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-[9999] max-h-80 overflow-y-auto ring-1 ring-emerald-500/20 p-2 space-y-1 backdrop-blur-3xl min-w-[350px]">
+                      <div class="px-3 py-2 border-b border-white/5 mb-1">
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Select Debtor Account</span>
+                      </div>
+                      <button v-for="acc in debtorResults" :key="acc.id" @mousedown.prevent="selectAccount('debtor', acc)"
+                        class="w-full text-right px-5 py-4 hover:bg-emerald-500/10 rounded-xl transition-all flex items-center justify-between group/item">
+                        <div class="flex flex-col items-start text-right">
+                           <span class="text-white font-black group-hover/item:text-emerald-400 text-sm">{{ acc.name }}</span>
+                           <span class="text-[9px] text-slate-500 font-bold uppercase">{{ acc.type }}</span>
+                        </div>
+                        <span class="font-mono text-xs bg-slate-900 text-emerald-500 px-3 py-1.5 rounded-xl font-black border border-white/5">{{ acc.code }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-2 py-4">
+                  <input v-model="newEntry.commission_1" type="number" class="w-full bg-slate-950 border border-white/5 rounded-xl px-2 py-4 text-sm text-amber-400 font-bold text-center outline-none focus:border-amber-500/30 shadow-inner" placeholder="0" />
+                </td>
+                <td class="px-2 py-4 relative group/creditor">
+                  <div class="relative">
+                    <input v-model="creditorSearch" @input="searchAccounts('creditor')" @focus="showCreditorDropdown = true" @blur="onBlur('creditor')"
+                      class="w-full min-w-[200px] bg-slate-950 border border-blue-500/20 text-white rounded-2xl py-4 pr-5 pl-14 text-sm font-bold focus:border-blue-500 outline-none transition-all shadow-inner" 
+                      placeholder="بگەڕێ بۆ حیسابی داین..." dir="rtl" />
+                    <div v-if="newEntry.creditor_account_id" class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-lg font-black border border-blue-500/30">
+                      {{ selectedCreditorCode }}
+                    </div>
+                    <!-- Advanced Floating Dropdown -->
+                    <div v-if="showCreditorDropdown && creditorResults.length > 0" class="fixed mt-3 bg-[#020617]/95 border border-blue-500/30 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-[9999] max-h-80 overflow-y-auto ring-1 ring-blue-500/20 p-2 space-y-1 backdrop-blur-3xl min-w-[350px]">
+                      <div class="px-3 py-2 border-b border-white/5 mb-1">
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Select Creditor Account</span>
+                      </div>
+                      <button v-for="acc in creditorResults" :key="acc.id" @mousedown.prevent="selectAccount('creditor', acc)"
+                        class="w-full text-right px-5 py-4 hover:bg-blue-500/10 rounded-xl transition-all flex items-center justify-between group/item">
+                        <div class="flex flex-col items-start text-right">
+                           <span class="text-white font-black group-hover/item:text-blue-400 text-sm">{{ acc.name }}</span>
+                           <span class="text-[9px] text-slate-500 font-bold uppercase">{{ acc.type }}</span>
+                        </div>
+                        <span class="font-mono text-xs bg-slate-900 text-blue-400 px-3 py-1.5 rounded-xl font-black border border-white/5">{{ acc.code }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </td>
                <td class="px-2 py-4">
                  <input v-model="newEntry.commission_2" type="number" class="w-full bg-slate-950 border border-white/5 rounded-xl px-2 py-4 text-sm text-amber-400 font-bold text-center outline-none focus:border-amber-500/30 shadow-inner" placeholder="0" />
                </td>
@@ -453,16 +461,25 @@ async function fetchEntries() {
 
 async function searchAccounts(type) {
   const term = type === 'debtor' ? debtorSearch.value : creditorSearch.value
-  if (!term) return
+  if (!term) {
+    if (type === 'debtor') debtorResults.value = []
+    else creditorResults.value = []
+    return
+  }
   try {
     const { data } = await axios.get('/accounts', { params: { search: term, per_page: 20 } })
     let results = data.data || data
     
     // Protection: Filter out Equity accounts for non-admins/authorized users
     const isAuthorized = auth.isSuperAdmin || auth.user?.roles?.some(r => r === 'Manager' || r.name === 'Manager' || r === 'Admin' || r.name === 'Admin');
-    
     if (!isAuthorized && !auth.permissions.includes('manage_finances')) {
       results = results.filter(acc => acc.type !== 'equity')
+    }
+
+    // SMART AUTO-SELECT: If exact code match and only one result
+    if (results.length === 1 && results[0].code.toString() === term.toString()) {
+       selectAccount(type, results[0]);
+       return;
     }
     
     if (type === 'debtor') { debtorResults.value = results; showDebtorDropdown.value = true }

@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Traits\HasAudit;
 
+use App\Traits\BelongsToBranch;
+
 class JournalEntry extends Model
 {
-    use SoftDeletes, HasAudit;
+    use SoftDeletes, HasAudit, BelongsToBranch;
 
     protected $fillable = [
         'account_id',
@@ -26,7 +28,8 @@ class JournalEntry extends Model
         'description',
         'reference_id',
         'reference_type',
-        'type'
+        'type',
+        'branch_id'
     ];
 
     protected $casts = [

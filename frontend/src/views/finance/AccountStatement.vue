@@ -78,15 +78,15 @@
           <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
           <div class="flex items-center gap-4 mb-4">
              <div class="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-emerald-500 border border-white/5">{{ sum.currency?.code }}</div>
-             <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ sum.currency?.name }} Summary</h4>
+             <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">کورتەی حیسابی ({{ sum.currency?.name }})</h4>
           </div>
           <div class="space-y-3">
              <div class="flex justify-between items-center text-[10px]">
-                <span class="font-bold text-slate-600 uppercase">Debits (+)</span>
+                <span class="font-bold text-slate-600 uppercase">کۆی وەرگیراو (+)</span>
                 <span class="font-black text-emerald-400 font-mono">{{ formatNum(sum.total_debit) }}</span>
              </div>
              <div class="flex justify-between items-center text-[10px]">
-                <span class="font-bold text-slate-600 uppercase">Credits (-)</span>
+                <span class="font-bold text-slate-600 uppercase">کۆی دراو (-)</span>
                 <span class="font-black text-rose-400 font-mono">{{ formatNum(sum.total_credit) }}</span>
              </div>
              <div class="pt-2 border-t border-white/5 flex justify-between items-center">
@@ -114,6 +114,7 @@
               <th class="px-6 py-5 text-center text-emerald-400">Debit / مەدین (+)</th>
               <th class="px-6 py-5 text-center text-rose-400">Credit / داین (-)</th>
               <th class="px-6 py-5 text-center">Currency / دراو</th>
+              <th class="px-6 py-5 text-right">Account / حیساب</th>
               <th class="px-6 py-5 text-left">Internal Ref.</th>
             </tr>
           </thead>
@@ -139,9 +140,13 @@
                    {{ entry.currency?.code }}
                 </span>
               </td>
+              <td class="px-6 py-5 text-right">
+                <p class="text-[10px] font-black text-slate-400">{{ entry.account?.name }}</p>
+                <p class="text-[8px] text-slate-600 font-bold mt-0.5">{{ entry.account?.code }}</p>
+              </td>
               <td class="px-6 py-5 text-left">
                 <span class="text-[10px] font-black font-mono text-slate-600 uppercase tracking-tighter">
-                   {{ entry.transaction_id ? `TX-${entry.transaction_id}` : `REG-${entry.registry_id}` }}
+                   {{ entry.transaction_id ? `TX-${entry.transaction_id}` : (entry.registry_id ? `REG-${entry.registry_id}` : (entry.exchange_id ? `EX-${entry.exchange_id}` : 'N/A')) }}
                 </span>
               </td>
             </tr>
@@ -156,8 +161,9 @@
                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-               <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Valuation (Consolidated IQD)</span>
+               <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">سەرمایەی گشتی بە دینار (بە نرخی ڕۆژ)</span>
                <p class="text-3xl font-black text-white font-mono tracking-tighter print-text-black">{{ formatNum(totalIqdNet) }} <span class="text-sm text-slate-500">IQD</span></p>
+               <p class="text-[9px] text-slate-500 font-bold mt-1">ئەمە بەهای هەموو دراوەکانی ناو ئەم حیسابەیە ئەگەر هەمووی بکرێت بە دینار بە نرخی بازاڕی ئێستا.</p>
             </div>
          </div>
          <div class="bg-slate-900 border border-white/10 px-8 py-3 rounded-full no-print">

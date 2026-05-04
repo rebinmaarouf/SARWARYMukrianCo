@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Traits\HasAudit;
 
+use App\Traits\BelongsToBranch;
+
 class RegistryEntry extends Model
 {
-    use SoftDeletes, HasAudit;
+    use SoftDeletes, HasAudit, BelongsToBranch;
 
     protected $fillable = [
         'entry_date',
@@ -23,6 +25,7 @@ class RegistryEntry extends Model
         'receiver',
         'notes',
         'user_id',
+        'branch_id',
     ];
 
     protected $casts = [

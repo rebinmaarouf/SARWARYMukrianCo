@@ -49,6 +49,11 @@
           <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">ناوەندی وردبینی</span>
         </router-link>
 
+        <router-link v-if="auth.permissions.includes('view_advanced_reports') || auth.isSuperAdmin" to="/admin/audit-advanced" class="nav-link" :class="{ 'active': $route.path === '/admin/audit-advanced', 'collapsed': isCollapsed }" data-tip="Advanced Audit">
+          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">ڕاپۆرتی پێشکەوتوو</span>
+        </router-link>
+
         <router-link v-if="auth.permissions.includes('view_forensics') || auth.isSuperAdmin" to="/admin/forensics" class="nav-link" :class="{ 'active': $route.path === '/admin/forensics', 'collapsed': isCollapsed }" data-tip="Forensics">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">بەدواداچوونی ورد</span>
@@ -72,18 +77,21 @@
           <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">حسابەکان</span>
         </router-link>
 
-        <div v-if="!isCollapsed" class="pt-6 pb-1.5 px-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">Administration</div>
-        <div v-else class="h-px bg-white/5 my-4 mx-4"></div>
+        <!-- Administration Category (Conditional) -->
+        <template v-if="auth.isSuperAdmin || auth.permissions.includes('view_users') || auth.permissions.includes('view_roles')">
+          <div v-if="!isCollapsed" class="pt-6 pb-1.5 px-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">Administration</div>
+          <div v-else class="h-px bg-white/5 my-4 mx-4"></div>
 
-        <router-link v-if="auth.permissions.includes('view_users') || auth.isSuperAdmin" to="/admin/users" class="nav-link" :class="{ 'active': $route.path === '/admin/users', 'collapsed': isCollapsed }" data-tip="Users">
-          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">بەرێوەبەری یوسەرەکان</span>
-        </router-link>
+          <router-link v-if="auth.permissions.includes('view_users') || auth.isSuperAdmin" to="/admin/users" class="nav-link" :class="{ 'active': $route.path === '/admin/users', 'collapsed': isCollapsed }" data-tip="Users">
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">بەرێوەبەری یوسەرەکان</span>
+          </router-link>
 
-        <router-link v-if="auth.permissions.includes('view_roles') || auth.isSuperAdmin" to="/admin/roles" class="nav-link" :class="{ 'active': $route.path === '/admin/roles', 'collapsed': isCollapsed }" data-tip="Roles">
-          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">رۆڵ و پێرمیشنەکان</span>
-        </router-link>
+          <router-link v-if="auth.permissions.includes('view_roles') || auth.isSuperAdmin" to="/admin/roles" class="nav-link" :class="{ 'active': $route.path === '/admin/roles', 'collapsed': isCollapsed }" data-tip="Roles">
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">رۆڵ و پێرمیشنەکان</span>
+          </router-link>
+        </template>
 
         <div v-if="!isCollapsed" class="pt-6 pb-1.5 px-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">Configuration</div>
         <div v-else class="h-px bg-white/5 my-4 mx-4"></div>
@@ -118,12 +126,53 @@
              </button>
              <div class="hidden sm:flex items-center gap-4">
                 <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-full uppercase tracking-widest border border-emerald-500/20">Enterprise ERP v2.4</span>
-             </div>
+                
+                <div class="h-6 w-px bg-white/10 mx-1"></div>
+
+                <!-- Global Branch Switcher (Super Admin Only) -->
+                <div v-if="auth.user?.email === 'rebin.maaruf@gmail.com' || auth.isSuperAdmin" class="relative group/branch">
+                   <button class="flex items-center gap-2 px-4 py-2 bg-slate-900/40 hover:bg-slate-800/60 border border-white/5 rounded-xl transition-all group">
+                      <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_#3b82f6]"></div>
+                      <div class="flex flex-col items-start text-right">
+                         <span class="text-[8px] font-black text-slate-500 uppercase leading-none mb-0.5">Active Branch</span>
+                         <span class="text-[11px] font-bold text-white">{{ currentBranch?.name || 'Loading...' }}</span>
+                      </div>
+                      <svg class="w-4 h-4 text-slate-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                   </button>
+
+                   <!-- Dropdown Content -->
+                   <div class="absolute top-full right-0 mt-2 w-56 bg-slate-950 border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover/branch:opacity-100 group-hover/branch:visible transition-all z-[100] p-2 backdrop-blur-3xl">
+                      <div class="px-3 py-2 border-b border-white/5 mb-2">
+                         <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Select Location</span>
+                      </div>
+                      <button v-for="b in branches" :key="b.id" @click="handleBranchSwitch(b.id)"
+                        class="w-full text-right p-3 rounded-xl hover:bg-blue-600/10 flex items-center justify-between group/item transition-all mb-1 border border-transparent hover:border-blue-500/20">
+                        <div class="flex flex-col">
+                           <span class="text-xs font-black text-white group-hover/item:text-blue-400">{{ b.name }}</span>
+                           <span class="text-[9px] font-bold text-slate-500">{{ b.location }}</span>
+                        </div>
+                        <div v-if="currentBranch?.id === b.id" class="w-2 h-2 rounded-full bg-blue-500"></div>
+                      </button>
+
+                      <div class="h-px bg-white/5 my-1"></div>
+                      
+                      <!-- Global Consolidation Option -->
+                      <button @click="handleBranchSwitch(null)"
+                        class="w-full text-right p-3 rounded-xl hover:bg-emerald-600/10 flex items-center justify-between group/item transition-all border border-transparent hover:border-emerald-500/20">
+                        <div class="flex flex-col">
+                           <span class="text-xs font-black text-emerald-400">هەموو لقەکان (Consolidated)</span>
+                           <span class="text-[9px] font-bold text-slate-500">بینینی کۆی گشتی داتاکان</span>
+                        </div>
+                        <div v-if="!currentBranch" class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      </button>
+                   </div>
+                </div>
+              </div>
           </div>
 
           <div class="flex items-center gap-4">
              <div class="text-right hidden sm:block">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Authenticated Account</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{{ currentBranch?.name }} / Auth</p>
                 <p class="text-sm font-bold text-white">{{ auth.user?.name }}</p>
              </div>
              <div class="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center font-black text-emerald-500 border border-white/10 shadow-lg">
@@ -159,6 +208,27 @@ const isMobileMenuOpen = ref(false)
 const logoError = ref(false)
 const logoUrl = '/logo.png'
 
+const branches = ref([])
+const currentBranch = ref(null)
+
+const fetchBranches = async () => {
+  try {
+    const res = await axios.get('/branches')
+    branches.value = res.data
+    currentBranch.value = branches.value.find(b => b.id === auth.user?.branch_id)
+  } catch (e) { console.error(e) }
+}
+
+const handleBranchSwitch = async (branchId) => {
+  try {
+    await axios.post('/branches/switch', { branch_id: branchId })
+    // Hard refresh to reset all global scopes and state
+    window.location.reload()
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 // Close mobile menu on route change
 watch(() => route.path, () => {
   isMobileMenuOpen.value = false
@@ -172,6 +242,7 @@ const logout = async () => {
 onMounted(async () => {
   try { 
     await auth.fetchProfile()
+    await fetchBranches()
     await axios.get('/currencies') 
   } catch (e) {
   }
