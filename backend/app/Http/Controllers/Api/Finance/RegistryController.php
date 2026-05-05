@@ -78,23 +78,35 @@ class RegistryController extends Controller
             $validated['user_id'] = $request->user()->id;
             $entry = RegistryEntry::create($validated);
 
-            // 1. Debtor Leg (Customer pays principal + all commissions)
+            // 1. Debtor Leg (Customer pays principal + Commission 1)
             if ($entry->debtor_account_id) {
-                $totalToCollect = (float)$entry->amount + (float)$entry->commission_1 + (float)$entry->commission_2;
-                JournalService::record($entry, $entry->debtor_account_id, $entry->currency_id, $totalToCollect, 0, "پسوڵەی #{$entry->id} - مەدین (کۆی گشتی)", $entry->entry_date);
+                $totalToCollect = (float)$entry->amount + (float)$entry->commission_1;
+                JournalService::record($entry, $entry->debtor_account_id, $entry->currency_id, $totalToCollect, 0, "پسوڵەی #{$entry->id} - مەدین (ئەسڵ + عمولەی ١)", $entry->entry_date);
             }
 
-            // 2. Creditor Leg (We owe agent: Principal + Commission 2)
+            // 2. Creditor Leg (Agent gets principal + Commission 2)
             if ($entry->creditor_account_id) {
-                $totalWeOweAgent = (float)$entry->amount + (float)$entry->commission_2;
-                JournalService::record($entry, $entry->creditor_account_id, $entry->currency_id, 0, $totalWeOweAgent, "پسوڵەی #{$entry->id} - داین (ئەسڵ + عمولەی ٢)", $entry->entry_date);
+                $totalToAgent = (float)$entry->amount + (float)$entry->commission_2;
+                JournalService::record($entry, $entry->creditor_account_id, $entry->currency_id, 0, $totalToAgent, "پسوڵەی #{$entry->id} - داین (ئەسڵ + عمولەی ٢)", $entry->entry_date);
             }
 
-            // 3. Our Profit (Commission 1 -> Goes to Profit & Loss 02)
-            if ($entry->commission_1 > 0) {
-                $profitAccount = Account::where('code', '02')->first();
-                if ($profitAccount) {
-                    JournalService::record($entry, $profitAccount->id, $entry->currency_id, 0, (float)$entry->commission_1, "قازانجی حەواڵە (عمولەی ١) - پسوڵەی #{$entry->id}", $entry->entry_date);
+            // 3. Net Commission Income (Commission 1 - Commission 2 -> Goes to Commission Income in the current branch)
+            $netCommission = (float)$entry->commission_1 - (float)$entry->commission_2;
+            if ($netCommission != 0) {
+                // Find income account in the current branch
+                $incomeAccount = Account::withoutGlobalScopes()
+                    ->where('branch_id', $entry->branch_id)
+                    ->where(function($q) {
+                        $q->where('code', '401')
+                          ->orWhere('code', 'T03')
+                          ->orWhere('type', 'revenue');
+                    })
+                    ->first();
+
+                if ($incomeAccount) {
+                    $debit = $netCommission < 0 ? abs($netCommission) : 0;
+                    $credit = $netCommission > 0 ? $netCommission : 0;
+                    JournalService::record($entry, $incomeAccount->id, $entry->currency_id, $debit, $credit, "قازانجی سافی حەواڵە - پسوڵەی #{$entry->id}", $entry->entry_date);
                 }
             }
 

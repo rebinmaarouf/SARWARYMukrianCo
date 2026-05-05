@@ -27,19 +27,25 @@ class DashboardController extends Controller
         $expenseIQD = $this->calculateSumByCode(['3%', '5%']);
         $netProfitIQD = $revenueIQD - $expenseIQD;
 
-        // 2. Real-time Vault Monitor
-        $vaultBalances = DB::table('journal_entries')
-            ->join('accounts', 'journal_entries.account_id', '=', 'accounts.id')
-            ->join('currencies', 'journal_entries.currency_id', '=', 'currencies.id')
-            ->where('accounts.type', 'vault')
-            ->whereNull('journal_entries.deleted_at')
+        // 2. Real-time Vault Monitor (Branch-Aware)
+        $vaultBalances = JournalEntry::with(['account', 'currency'])
+            ->whereHas('account', function($q) {
+                $q->where('type', 'vault');
+            })
             ->select(
-                'accounts.name as account_name',
-                'currencies.code as currency_code',
+                'account_id',
+                'currency_id',
                 DB::raw('SUM(debit - credit) as balance')
             )
-            ->groupBy('accounts.id', 'accounts.name', 'currencies.id', 'currencies.code')
-            ->get();
+            ->groupBy('account_id', 'currency_id')
+            ->get()
+            ->map(function($entry) {
+                return [
+                    'account_name' => $entry->account->name,
+                    'currency_code' => $entry->currency->code,
+                    'balance' => $entry->balance
+                ];
+            });
 
         // 3. Time-Series Analytics (Revenue vs Expense)
         $chartData = $this->getChartData($period, $latestRate);

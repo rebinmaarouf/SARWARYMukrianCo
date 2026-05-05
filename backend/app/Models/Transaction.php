@@ -57,4 +57,11 @@ class Transaction extends Model
     {
         return $this->morphMany(JournalEntry::class, 'entryable');
     }
+
+    protected static function booted()
+    {
+        static::deleted(function ($transaction) {
+            $transaction->journalEntries()->delete();
+        });
+    }
 }

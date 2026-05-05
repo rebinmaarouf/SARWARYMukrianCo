@@ -73,16 +73,26 @@ class JournalEntry extends Model
 
     public static function recalculateFor($accountId, $currencyId)
     {
-        $totals = static::where('account_id', $accountId)
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) return;
+
+        $totals = static::withoutGlobalScopes()
+            ->where('account_id', $accountId)
             ->where('currency_id', $currencyId)
             ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
             ->first();
 
-        AccountSummary::updateOrCreate(
-            ['account_id' => $accountId, 'currency_id' => $currencyId],
+        // ONLY use truly unique fields in the lookup (first array)
+        // Move branch_id to the update/create values (second array)
+        AccountSummary::withoutGlobalScopes()->updateOrCreate(
+            [
+                'account_id' => $accountId, 
+                'currency_id' => $currencyId
+            ],
             [
                 'total_debit' => $totals->total_debit ?? 0,
-                'total_credit' => $totals->total_credit ?? 0
+                'total_credit' => $totals->total_credit ?? 0,
+                'branch_id' => $account->branch_id // Update the branch_id to the correct one
             ]
         );
     }

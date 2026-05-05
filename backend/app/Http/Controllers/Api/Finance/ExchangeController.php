@@ -35,7 +35,6 @@ class ExchangeController extends Controller
                 'secondary_currency' => 'required|string',
                 'secondary_amount' => 'required|numeric',
                 'rate' => 'required|numeric',
-                // New: Flexible Vault selection
                 'vault_from_id' => 'required|exists:accounts,id',
                 'vault_to_id' => 'required|exists:accounts,id',
                 'note' => 'nullable|string',
@@ -43,26 +42,28 @@ class ExchangeController extends Controller
             ]);
 
             return DB::transaction(function () use ($request) {
-                // 1. Check if the Vault has enough balance to perform this operation (The "Scientific" Lock)
                 $vaultFrom = Account::find($request->vault_from_id);
-                $currencyToGiveCode = $request->type === 'buy' ? $request->secondary_currency : $request->primary_currency;
-                $amountToGive = $request->type === 'buy' ? $request->secondary_amount : $request->primary_amount;
+                $vaultTo = Account::find($request->vault_to_id);
+                
+                $primaryCurrency = Currency::where('code', $request->primary_currency)->first();
+                $secondaryCurrency = Currency::where('code', $request->secondary_currency)->first();
 
-                $currencyModel = Currency::where('code', $currencyToGiveCode)->first();
-                $balance = \App\Models\AccountSummary::where('account_id', $vaultFrom->id)
-                    ->where('currency_id', $currencyModel->id)
-                    ->first();
+                // 1. Calculate Real Value vs Transaction Price (Profit Recognition)
+                // System Price in Secondary Currency = (Primary System Rate / Secondary System Rate) * Amount
+                $systemRateForPrimary = $primaryCurrency->current_rate;
+                $systemRateForSecondary = $secondaryCurrency->current_rate;
+                $systemValueInSecondary = ($request->primary_amount * $systemRateForPrimary) / $systemRateForSecondary;
 
-                $currentBalance = $balance ? ($balance->total_debit - $balance->total_credit) : 0;
-
-                // The Scientific Rule: Only Vaults (Cash) must be strictly checked for balance.
-                // Customer and other accounts can go negative (Liability/Credit).
-                if ($vaultFrom->type === 'vault' && $currentBalance < $amountToGive) {
-                    throw new \Exception("سندوقی دەستنیشانکراو بڕی پێویست ({$currencyToGiveCode})ی تیا نییە. هاوسەنگی ئێستا: " . number_format($currentBalance) . " {$currencyToGiveCode}");
+                $transactionValueInSecondary = $request->secondary_amount;
+                
+                // Profit calculation: 
+                // If BUY: Profit = SystemValue - PaidPrice (Buy low = Profit)
+                // If SELL: Profit = ReceivedPrice - SystemValue (Sell high = Profit)
+                if ($request->type === 'buy') {
+                    $profitAmount = $systemValueInSecondary - $transactionValueInSecondary;
+                } else {
+                    $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
                 }
-
-                // 2. Calculate Profit (if any)
-                $profit = $this->calculateProfit($request);
 
                 // 2. Create Transaction record
                 $transaction = Transaction::create([
@@ -75,7 +76,7 @@ class ExchangeController extends Controller
                     'secondary_currency' => $request->secondary_currency,
                     'secondary_amount' => $request->secondary_amount,
                     'rate' => $request->rate,
-                    'profit' => $profit,
+                    'profit' => $profitAmount,
                     'client_name' => $request->client_name,
                     'note' => $request->note,
                     'vault_from_id' => $request->vault_from_id,
@@ -83,8 +84,36 @@ class ExchangeController extends Controller
                     'branch_id' => auth()->user()->branch_id ?? 1
                 ]);
 
-                // 3. Journal Entries Logic (4-Leg Double Entry)
-                $this->recordJournalEntries($transaction, $request);
+                // 3. Journal Entries Logic (Scientific IUAS Multi-Leg)
+                $today = now();
+                
+                // Leg 1: Give money (From Vault)
+                JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} بۆ کڕینی {$request->primary_currency}", $today);
+                
+                // Leg 2: Receive money (To Vault)
+                JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} (#{$transaction->id})", $today);
+
+                // Leg 3: Book Profit to IUAS 484 (Exchange Revenue)
+                if ($profitAmount != 0) {
+                    $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
+                    if ($profitAccount) {
+                        // Profit is always recorded in the secondary currency (the common denominator)
+                        if ($profitAmount > 0) {
+                            JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕی دراو #{$transaction->id}", $today);
+                        } else {
+                            // Loss (recorded as Debit in revenue or specific loss account)
+                            JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕی دراو #{$transaction->id}", $today);
+                        }
+                    }
+                }
+
+                // Leg 4: Audit trail for Customer/Account if separate from vaults
+                if ($request->account_id != $vaultFrom->id && $request->account_id != $vaultTo->id) {
+                    $customerAccount = Account::find($request->account_id);
+                    // In the customer's statement, show the swap
+                    JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنەوەی {$request->secondary_currency}", $today);
+                    JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "ڕادەستکردنی {$request->primary_currency}", $today);
+                }
 
                 return response()->json($transaction->load('account'), 201);
             });

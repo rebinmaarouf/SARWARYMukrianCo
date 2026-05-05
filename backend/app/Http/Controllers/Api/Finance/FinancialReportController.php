@@ -54,6 +54,8 @@ class FinancialReportController extends Controller
         ];
 
         foreach ($data as $entry) {
+            if (!$entry->account) continue; // Skip orphaned entries
+            
             $code = $entry->account->code;
             $category = 'other';
 

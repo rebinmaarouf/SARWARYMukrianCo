@@ -62,4 +62,12 @@ class RegistryEntry extends Model
     {
         return $this->morphMany(JournalEntry::class, 'entryable');
     }
+
+    protected static function booted()
+    {
+        static::deleted(function ($entry) {
+            // Cascade delete journal entries
+            $entry->journalEntries()->delete();
+        });
+    }
 }

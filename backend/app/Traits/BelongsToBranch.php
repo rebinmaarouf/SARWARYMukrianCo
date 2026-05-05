@@ -10,10 +10,9 @@ use Illuminate\Support\Facades\Auth;
 trait BelongsToBranch
 {
     /**
-     * The "booted" method of the model.
      * Automatically applies the Branch Scope.
      */
-    protected static function booted()
+    protected static function bootBelongsToBranch()
     {
         static::addGlobalScope('branch', function (Builder $builder) {
             // Only apply if user is authenticated
@@ -24,7 +23,14 @@ trait BelongsToBranch
                 // but usually we want to see the ACTIVE branch context.
                 // We will use the branch_id stored on the user session/model.
                 if ($user->branch_id) {
-                    $builder->where($builder->getModel()->getTable() . '.branch_id', $user->branch_id);
+                    $builder->where(function($q) use ($builder, $user) {
+                        $q->where($builder->getModel()->getTable() . '.branch_id', $user->branch_id);
+                        
+                        // Handle Global Accounts via is_global flag
+                        if ($builder->getModel() instanceof \App\Models\Account) {
+                            $q->orWhere('is_global', true);
+                        }
+                    });
                 } else {
                     // If branch_id is null, it means "All Branches" (Consolidated View)
                     // Only allowed for Super Admin/Owner. 

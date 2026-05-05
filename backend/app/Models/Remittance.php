@@ -24,4 +24,11 @@ class Remittance extends Model
     {
         return $this->morphMany(JournalEntry::class, 'entryable');
     }
+
+    protected static function booted()
+    {
+        static::deleted(function ($remittance) {
+            $remittance->journalEntries()->delete();
+        });
+    }
 }
