@@ -49,4 +49,27 @@ class JournalController extends Controller
 
         return response()->json($query->paginate($request->input('per_page', 50)));
     }
+
+    /**
+     * Delete a journal entry (and its parent source)
+     */
+    public function destroy($id)
+    {
+        if (!auth()->user()->can('delete journals')) {
+            abort(403, 'Unauthorized action. You do not have permission to delete journals.');
+        }
+
+        $entry = JournalEntry::findOrFail($id);
+        
+        // Delete the parent source which will cascade to all related journal entries
+        // This ensures the double-entry accounting principle is maintained
+        if ($entry->entryable) {
+            $entry->entryable->delete();
+        } else {
+            // Fallback for standalone entries
+            $entry->delete();
+        }
+
+        return response()->json(['message' => 'Journal entry and its associated transactions deleted successfully']);
+    }
 }

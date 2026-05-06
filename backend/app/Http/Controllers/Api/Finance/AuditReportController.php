@@ -55,6 +55,7 @@ class AuditReportController extends Controller
         $forensicsQuery = DB::table('journal_entries')
             ->join('accounts', 'journal_entries.account_id', '=', 'accounts.id')
             ->join('currencies', 'journal_entries.currency_id', '=', 'currencies.id')
+            ->whereNull('journal_entries.deleted_at')
             ->where('accounts.type', 'vault')
             ->whereBetween('journal_entries.date', [$fromDate, $toDate]);
 
@@ -120,7 +121,8 @@ class AuditReportController extends Controller
             $isPL = str_starts_with($account->code, '3') || str_starts_with($account->code, '4') || str_starts_with($account->code, '5');
 
             $query = DB::table('journal_entries')
-                ->where('account_id', $account->id);
+                ->where('account_id', $account->id)
+                ->whereNull('deleted_at');
 
             if ($isPL) {
                 $query->whereBetween('date', [$from, $to]);

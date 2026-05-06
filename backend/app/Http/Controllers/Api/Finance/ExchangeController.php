@@ -23,11 +23,22 @@ class ExchangeController extends Controller
         return response()->json($query->paginate(50));
     }
 
+    private function getMultiplier($currencyCode)
+    {
+        if ($currencyCode === 'IQD') {
+            return 1.0;
+        }
+        if ($currencyCode === 'IRR') {
+            return 0.0000001; // Toman multiplier (10,000,000 unit block)
+        }
+        return 0.01; // Block multiplier (100 unit block for USD, GBP, EUR, TRY, etc.)
+    }
+
     public function store(Request $request)
     {
         try {
             $request->validate([
-                'account_id' => 'required|exists:accounts,id',
+                'account_id' => 'nullable|exists:accounts,id',
                 'type' => 'required|in:buy,sell',
                 'pair' => 'required|string',
                 'primary_currency' => 'required|string',
@@ -48,12 +59,40 @@ class ExchangeController extends Controller
                 $primaryCurrency = Currency::where('code', $request->primary_currency)->first();
                 $secondaryCurrency = Currency::where('code', $request->secondary_currency)->first();
 
-                // 1. Calculate Real Value vs Transaction Price (Profit Recognition)
-                // System Price in Secondary Currency = (Primary System Rate / Secondary System Rate) * Amount
+                // 1. Convert block transaction rate into a single unit rate (e.g., rate of 100 GBP converted to 1 GBP rate)
+                $primaryMultiplier = $this->getMultiplier($request->primary_currency);
+                $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
+
+                // 2. Determine System Unit Rates
                 $systemRateForPrimary = $primaryCurrency->current_rate;
                 $systemRateForSecondary = $secondaryCurrency->current_rate;
-                $systemValueInSecondary = ($request->primary_amount * $systemRateForPrimary) / $systemRateForSecondary;
 
+                // Safe Fallback: If a non-base currency doesn't have an active system exchange rate configured (meaning it defaults to 1.0),
+                // we fall back to the transaction's own unit rate for BUYs (0 profit on buy), and the 'Last Buy Rate' as the cost basis for SELLs
+                // so that we can accurately capture real trade profits (Buy Low, Sell High) even if no system rate is set.
+                if (!$primaryCurrency->is_base && $systemRateForPrimary == 1.0) {
+                    if ($request->type === 'sell') {
+                        $lastBuy = Transaction::where('primary_currency', $request->primary_currency)
+                            ->where('type', 'buy')
+                            ->whereNull('deleted_at')
+                            ->latest()
+                            ->first();
+
+                        if ($lastBuy) {
+                            $systemRateForPrimary = (float)$lastBuy->rate * $this->getMultiplier($lastBuy->primary_currency);
+                        } else {
+                            $systemRateForPrimary = $unitTransactionRate;
+                        }
+                    } else {
+                        $systemRateForPrimary = $unitTransactionRate;
+                    }
+                }
+                if (!$secondaryCurrency->is_base && $systemRateForSecondary == 1.0) {
+                    $systemRateForSecondary = $unitTransactionRate;
+                }
+
+                // 3. Calculate Real Value in Secondary Currency using UNIT system rates
+                $systemValueInSecondary = ($request->primary_amount * $systemRateForPrimary) / $systemRateForSecondary;
                 $transactionValueInSecondary = $request->secondary_amount;
                 
                 // Profit calculation: 
@@ -65,7 +104,7 @@ class ExchangeController extends Controller
                     $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
                 }
 
-                // 2. Create Transaction record
+                // 4. Create Transaction record
                 $transaction = Transaction::create([
                     'user_id' => auth()->id(),
                     'account_id' => $request->account_id,
@@ -84,36 +123,8 @@ class ExchangeController extends Controller
                     'branch_id' => auth()->user()->branch_id ?? 1
                 ]);
 
-                // 3. Journal Entries Logic (Scientific IUAS Multi-Leg)
-                $today = now();
-                
-                // Leg 1: Give money (From Vault)
-                JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} بۆ کڕینی {$request->primary_currency}", $today);
-                
-                // Leg 2: Receive money (To Vault)
-                JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} (#{$transaction->id})", $today);
-
-                // Leg 3: Book Profit to IUAS 484 (Exchange Revenue)
-                if ($profitAmount != 0) {
-                    $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
-                    if ($profitAccount) {
-                        // Profit is always recorded in the secondary currency (the common denominator)
-                        if ($profitAmount > 0) {
-                            JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕی دراو #{$transaction->id}", $today);
-                        } else {
-                            // Loss (recorded as Debit in revenue or specific loss account)
-                            JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕی دراو #{$transaction->id}", $today);
-                        }
-                    }
-                }
-
-                // Leg 4: Audit trail for Customer/Account if separate from vaults
-                if ($request->account_id != $vaultFrom->id && $request->account_id != $vaultTo->id) {
-                    $customerAccount = Account::find($request->account_id);
-                    // In the customer's statement, show the swap
-                    JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنەوەی {$request->secondary_currency}", $today);
-                    JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "ڕادەستکردنی {$request->primary_currency}", $today);
-                }
+                // 5. Delegate to comprehensive Journal Service Method
+                $this->recordJournalEntries($transaction, $request);
 
                 return response()->json($transaction->load('account'), 201);
             });
@@ -128,52 +139,67 @@ class ExchangeController extends Controller
         $secondaryCurrency = Currency::where('code', $request->secondary_currency)->first();
         $vaultFrom = Account::find($request->vault_from_id);
         $vaultTo = Account::find($request->vault_to_id);
-        $customerAccount = Account::find($request->account_id);
         $today = now();
+
+        $primaryMultiplier = $this->getMultiplier($request->primary_currency);
+        $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
+
+        // Determine System Unit Rate for primary currency valuation in ledger
+        $systemRateForPrimary = $primaryCurrency->current_rate;
+        if (!$primaryCurrency->is_base && $systemRateForPrimary == 1.0) {
+            if ($request->type === 'sell') {
+                $lastBuy = Transaction::where('primary_currency', $request->primary_currency)
+                    ->where('type', 'buy')
+                    ->whereNull('deleted_at')
+                    ->latest()
+                    ->first();
+
+                if ($lastBuy) {
+                    $systemRateForPrimary = (float)$lastBuy->rate * $this->getMultiplier($lastBuy->primary_currency);
+                } else {
+                    $systemRateForPrimary = $unitTransactionRate;
+                }
+            } else {
+                $systemRateForPrimary = $unitTransactionRate;
+            }
+        }
 
         $profitAmount = (float) $transaction->profit;
 
         if ($request->type === 'buy') {
-            // WE BUY USD (Primary) / WE GIVE IQD (Secondary)
+            // WE BUY Primary / WE GIVE Secondary
             
-            // Leg 1: Debit the Destination (Where USD goes)
-            JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} (#{$transaction->id})", $today);
+            // Leg 1: Debit the Destination Vault (Primary currency comes IN)
+            // We pass $systemRateForPrimary to ensure correct base currency valuation in the ledger
+            JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
             
-            // Leg 2: Credit the Source (Where IQD comes from/stays)
-            // If vaultFrom is a customer, it increases our liability to them (Credit)
-            JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} بۆ ئاڵوگۆڕ", $today);
+            // Leg 2: Credit the Source Vault (Secondary currency goes OUT)
+            JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
 
-            // Audit: Link to customer statement if they aren't the vaults
-            if ($customerAccount->id !== $vaultTo->id && $customerAccount->id !== $vaultFrom->id) {
-                // This creates the audit trail in the customer's ledger without moving cash twice
-                // In a Buy trade, the customer "Gives Primary" and "Receives Secondary"
-                JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "ڕادەستکردنی دۆلار", $today);
-                JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی دینار", $today);
-            }
         } else {
-            // WE SELL USD (Primary) / WE RECEIVE IQD (Secondary)
-            $netSecondary = $request->secondary_amount - $profitAmount;
+            // WE SELL Primary / WE RECEIVE Secondary
+            
+            // Leg 1: Debit the Destination Vault (Secondary currency comes IN)
+            JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
 
-            // Leg 1: Debit the Destination (Where IQD goes)
-            JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} (#{$transaction->id})", $today);
+            // Leg 2: Credit the Source Vault (Primary currency goes OUT)
+            // We pass $systemRateForPrimary to ensure correct base currency valuation in the ledger
+            JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
 
-            // Leg 2: Credit the Source (Where USD comes from)
-            JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} (#{$transaction->id})", $today);
+        }
 
-            // Leg 3: Move Profit from Destination to Profit Account
-            // This ensures the routing account (Natron/Vault) only keeps the principal
-            $profitAccount = Account::where('code', '02')->first() ?: Account::where('code', '401')->first();
-            if ($profitAccount && $profitAmount > 0) {
-                // Debit the VaultTo (take profit out)
-                JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, 0, $profitAmount, "گواستنەوەی قازانج بۆ حیسابی ٠٢", $today);
-                // Credit the Profit Account
-                JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
-            }
-
-            // Audit for customer
-            if ($customerAccount->id !== $vaultTo->id && $customerAccount->id !== $vaultFrom->id) {
-                JournalService::record($transaction, $customerAccount->id, $secondaryCurrency->id, 0, $netSecondary, "دانی دینار", $today);
-                JournalService::record($transaction, $customerAccount->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی دۆلار", $today);
+        // Leg 3: Book Profit to IUAS 484 (Exchange Revenue)
+        if ($profitAmount != 0) {
+            $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
+            
+            if ($profitAccount) {
+                if ($profitAmount > 0) {
+                    // Credit the Profit Account (Revenue increases)
+                    JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
+                } else {
+                    // Loss (Debit)
+                    JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
+                }
             }
         }
     }
@@ -224,6 +250,10 @@ class ExchangeController extends Controller
 
     public function destroy($id)
     {
+        if (!auth()->user()->can('delete journals')) {
+            abort(403, 'Unauthorized action. You do not have permission to delete journals.');
+        }
+
         return DB::transaction(function () use ($id) {
             $transaction = Transaction::findOrFail($id);
             $transaction->journalEntries->each->delete();

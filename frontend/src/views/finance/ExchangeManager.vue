@@ -52,14 +52,16 @@
                 <svg v-if="tradeType === 'buy'" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
                 <svg v-else class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"/></svg>
              </div>
-             <div>
-                <h2 class="text-2xl font-black text-white tracking-tight uppercase">{{ tradeType === 'buy' ? 'کڕینی' : 'فرۆشتنی' }} {{ activePair.primary }}</h2>
-                <span :class="['text-[10px] font-black uppercase tracking-widest block mt-1', tradeType === 'buy' ? 'text-emerald-500/60' : 'text-rose-500/60']">تۆمارکردنی مامەڵەی بازاڕ</span>
+              <div>
+                <h2 class="text-2xl font-black text-white tracking-tight uppercase">{{ tradeType === 'buy' ? 'وەرگرتنی دراو لە مشتەری' : 'پێدانی دراو بە مشتەری' }}</h2>
+                <span :class="['text-[10px] font-black uppercase tracking-widest block mt-1', tradeType === 'buy' ? 'text-emerald-500/60' : 'text-rose-500/60']">
+                   مشتەری {{ activePair.primary }} {{ tradeType === 'buy' ? 'دەدات بە ئێمە' : 'لێمان وەردەگرێت' }}
+                </span>
              </div>
           </div>
           <div class="text-left">
              <span class="text-[9px] font-black text-slate-500 uppercase block">نرخی فەرمی سیستم</span>
-             <span class="text-lg font-black text-slate-300">{{ formatNum(getSystemRate()) }}</span>
+             <span class="text-lg font-black text-slate-300" :class="getSystemRateDisplay() === 'دیاری نەکراوە' ? 'text-rose-500 text-sm' : ''">{{ getSystemRateDisplay() }}</span>
           </div>
         </div>
 
@@ -69,7 +71,7 @@
             <div class="space-y-2">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بڕی {{ activePair.primary }}</label>
               <div class="relative">
-                <input v-model="forms[tradeType].primary_text" @input="calculate(tradeType, 'primary')" type="text" placeholder="بڕەکە بنوسە..."
+                <input v-model="forms[tradeType].primary_text" @input="calculate(tradeType, 'primary')" type="text" placeholder="0.00"
                   class="w-full bg-slate-950/80 border border-white/5 rounded-3xl p-5 text-3xl font-black text-white focus:border-blue-500 outline-none transition-all shadow-inner" />
                 <span class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 font-black text-sm uppercase">{{ activePair.primary }}</span>
               </div>
@@ -87,9 +89,9 @@
               <!-- Smart Cross-Rate Input -->
               <div v-if="activePair.primary !== 'USD'" class="bg-blue-600/5 border border-blue-500/20 rounded-2xl p-3 flex items-center justify-between">
                 <div class="text-right">
-                  <span class="text-[8px] font-black text-blue-500 uppercase block">بەرامبەر دۆلار (بۆ هەر ١ {{ activePair.primary }})</span>
+                  <span class="text-[8px] font-black text-blue-500 uppercase block">هەر {{ formatNum(1 / activePair.multiplier) }} {{ activePair.primary }} چەند دۆلار دەکات؟</span>
                   <input v-model="forms[tradeType].rate_vs_usd" @input="calculateFromUsd(tradeType)" type="text" placeholder="0.00"
-                    class="bg-transparent border-none text-white font-black text-sm outline-none w-24 p-0" />
+                    class="bg-transparent border-none text-white font-black text-sm outline-none w-32 p-0 mt-1" />
                 </div>
                 <div class="text-blue-500">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
@@ -216,6 +218,9 @@
                  <button @click="printInvoice(t)" class="p-2 hover:bg-white/10 rounded-xl text-slate-600 hover:text-white transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                  </button>
+                 <button v-if="authStore.isSuperAdmin || authStore?.permissions?.includes('delete journals')" @click="deleteTransaction(t)" class="p-2 hover:bg-rose-500/10 rounded-xl text-slate-600 hover:text-rose-500 transition-all" title="سڕینەوەی مامەڵە">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                 </button>
               </td>
             </tr>
           </tbody>
@@ -269,10 +274,13 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
+import { useAuthStore } from '../../stores/auth'
 
+const authStore = useAuthStore()
 const pairs = ref([])
 const activePair = ref({ id: 0, primary: 'USD', secondary: 'IQD', label: 'دۆلار', multiplier: 1, rateLabel: 'نرخ' })
 const usdRate = ref(1500)
+const liveRates = ref({})
 const loading = ref(false)
 const showResults = ref(null)
 const tableFilter = ref('all')
@@ -286,6 +294,13 @@ const forms = ref({
   buy: { primary_text: '', rate_text: '', secondary_text: '', rate_vs_usd: '', profit: 0, vault_from_id: null, vault_to_id: null, account_id: null, account_search: '', client_name: '' },
   sell: { primary_text: '', rate_text: '', secondary_text: '', rate_vs_usd: '', profit: 0, vault_from_id: null, vault_to_id: null, account_id: null, account_search: '', client_name: '' }
 })
+
+function getSystemRateDisplay() {
+  const pRate = pairs.value.find(p => p.id === activePair.value.id)?.official_rate || 1
+  if (pRate <= 1 && activePair.value.primary !== 'IQD') return 'دیاری نەکراوە'
+  let multiplier = activePair.value.multiplier || 1
+  return formatWithCommas(pRate * (1/multiplier))
+}
 
 function getSystemRate() {
   const pRate = pairs.value.find(p => p.id === activePair.value.id)?.official_rate || 1
@@ -302,16 +317,21 @@ function calculate(type, source) {
 
   if (source === 'primary' || source === 'rate') {
     f.secondary_text = formatWithCommas(Math.round(p * m * r))
-    // Update rate_vs_usd if rate_text changes manually
     if (activePair.value.primary !== 'USD' && r > 0) {
-      f.rate_vs_usd = (r / (usdRate.value * 10)).toFixed(4) // Just a visual hint
+      f.rate_vs_usd = (r / usdRate.value).toFixed(2)
     }
   }
 
-  const systemValue = p * m * sysR
-  const transactionValue = p * m * r
-  if (type === 'buy') f.profit = Math.round(systemValue - transactionValue)
-  else f.profit = Math.round(transactionValue - systemValue)
+  // Only calculate estimated profit if system rate is properly configured in DB
+  const pRate = pairs.value.find(pair => pair.id === activePair.value.id)?.official_rate || 1
+  if (pRate > 1 || activePair.value.primary === 'IQD') {
+    const systemValue = p * m * sysR
+    const transactionValue = p * m * r
+    if (type === 'buy') f.profit = Math.round(systemValue - transactionValue)
+    else f.profit = Math.round(transactionValue - systemValue)
+  } else {
+    f.profit = 0
+  }
 }
 
 // Smart Cross-Rate Logic: Calculate IQD Rate from USD Rate
@@ -319,19 +339,10 @@ function calculateFromUsd(type) {
   const f = forms.value[type]
   const vsUsd = parseFloat(f.rate_vs_usd) || 0
   if (vsUsd > 0) {
-    // Logic: 1 Unit of Currency = [vsUsd] Dollars
-    // So [1/multiplier] Units = [vsUsd * (1/multiplier)] Dollars
-    // And Dollars to IQD = Dollars * (usdRate / 100)
-    // Result: Rate in IQD for the input field
-    const iqdRate = vsUsd * (usdRate.value * 10) // Since our rateLabel is per 100 or 1M units
-    
-    // Adjustment for our specific multipliers (100 for USD/GBP/EUR)
-    let finalRate = iqdRate
-    if (activePair.value.multiplier === 0.01) {
-       finalRate = vsUsd * (usdRate.value * 10) * 10 // e.g., 1.25 * 1510 * 100 / 10 = 188,750
-    } else if (activePair.value.multiplier === 0.0000001) {
-       finalRate = vsUsd * (usdRate.value / 100) * 1000000 // For Tomans
-    }
+    // Math: If 100 GBP = 125 USD, and 1 USD = 1500 IQD.
+    // Then 100 GBP = 125 * 1500 = 187,500 IQD.
+    // This perfectly matches the needed transaction rate.
+    const finalRate = vsUsd * usdRate.value
 
     f.rate_text = formatWithCommas(Math.round(finalRate))
     calculate(type, 'rate')
@@ -352,6 +363,15 @@ async function fetchData() {
       axios.get('/exchanges')
     ])
     
+    // Fetch live global rates
+    try {
+      const liveRes = await fetch('https://api.exchangerate-api.com/v4/latest/USD')
+      const liveData = await liveRes.json()
+      liveRates.value = liveData.rates
+    } catch (e) {
+      console.warn('Failed to fetch live FX rates', e)
+    }
+
     const curData = curRes.data.data || curRes.data
     usdRate.value = curData.find(c => c.code === 'USD')?.current_rate || 1500
     
@@ -369,7 +389,9 @@ async function fetchData() {
       }
     })
     
-    if (pairs.value.length > 0 && activePair.value.id === 0) activePair.value = pairs.value[0]
+    if (pairs.value.length > 0 && activePair.value.id === 0) {
+      selectPair(pairs.value[0])
+    }
     
     accounts.value = accRes.data.data || accRes.data
     transactions.value = transRes.data.data || transRes.data
@@ -394,9 +416,38 @@ function searchAccounts(type) {
 
 function selectPair(p) { 
   activePair.value = p 
-  forms.value.buy.rate_text = formatWithCommas(Math.round(getSystemRate() - 500))
-  forms.value.sell.rate_text = formatWithCommas(Math.round(getSystemRate() + 500))
-  forms.value.buy.rate_vs_usd = ''; forms.value.sell.rate_vs_usd = ''
+  
+  // Reset amounts
+  forms.value.buy.primary_text = ''
+  forms.value.sell.primary_text = ''
+  forms.value.buy.secondary_text = ''
+  forms.value.sell.secondary_text = ''
+
+  if (p.primary === 'USD') {
+    const sysRate = getSystemRate()
+    forms.value.buy.rate_text = formatWithCommas(Math.round(sysRate - 500))
+    forms.value.sell.rate_text = formatWithCommas(Math.round(sysRate + 500))
+    forms.value.buy.rate_vs_usd = ''; forms.value.sell.rate_vs_usd = ''
+  } else if (p.primary === 'IRR') {
+    // Toman is manual because global API rate is inaccurate for black market
+    forms.value.buy.rate_text = ''
+    forms.value.sell.rate_text = ''
+    forms.value.buy.rate_vs_usd = ''; forms.value.sell.rate_vs_usd = ''
+  } else if (liveRates.value[p.primary]) {
+    // Magic: Auto calculate based on live global rate + local USD rate
+    const usdPerOneUnit = 1 / liveRates.value[p.primary]
+    const vsUsdAmount = usdPerOneUnit * (1 / p.multiplier)
+    
+    forms.value.buy.rate_vs_usd = vsUsdAmount.toFixed(2)
+    forms.value.sell.rate_vs_usd = vsUsdAmount.toFixed(2)
+    
+    calculateFromUsd('buy')
+    calculateFromUsd('sell')
+  } else {
+    forms.value.buy.rate_text = ''
+    forms.value.sell.rate_text = ''
+    forms.value.buy.rate_vs_usd = ''; forms.value.sell.rate_vs_usd = ''
+  }
 }
 
 const filteredAccounts = computed(() => {
@@ -418,7 +469,6 @@ function selectAccount(acc, type) {
 
 async function submitTrade(type) {
   const f = forms.value[type]
-  if (!f.account_id) return Swal.fire({ icon: 'warning', title: 'حیساب هەڵبژێرە', background: '#0f172a', color: '#fff' })
   
   loading.value = true
   try {
@@ -442,6 +492,50 @@ async function submitTrade(type) {
   } catch (e) {
     Swal.fire({ icon: 'error', title: 'هەڵە', text: e.response?.data?.error || 'تۆمار نەکرا', background: '#0f172a', color: '#fff' })
   } finally { loading.value = false }
+}
+
+async function deleteTransaction(tx) {
+  const result = await Swal.fire({
+    title: 'سڕینەوەی مامەڵەی ئاڵوگۆڕ',
+    html: `ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ <br><span class="text-xs text-rose-500">ئەم کارە تەواوی پارەکە دەگێڕێتەوە بۆ سندوقەکان بەشێوەیەکی یەکجاری!</span>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#1e293b',
+    confirmButtonText: 'بەڵێ، بیسڕەوە',
+    cancelButtonText: 'پەشیمان بوونەوە',
+    background: '#0f172a',
+    color: '#fff'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.delete(`/exchanges/${tx.id}`)
+      
+      Swal.fire({
+        title: 'سڕایەوە!',
+        text: 'مامەڵەکە بە سەرکەوتوویی سڕایەوە و حیسابات گەڕایەوە باری پێشوو.',
+        icon: 'success',
+        background: '#0f172a',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6',
+        confirmButtonText: 'باشە، داخستن'
+      })
+      
+      fetchData()
+    } catch (e) {
+      console.error('Error deleting transaction:', e)
+      Swal.fire({
+        title: 'هەڵە!',
+        text: e.response?.data?.message || 'کێشەیەک ڕوویدا لە کاتی سڕینەوە',
+        icon: 'error',
+        background: '#0f172a',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6',
+        confirmButtonText: 'داخستن'
+      })
+    }
+  }
 }
 
 function printInvoice(tx) {

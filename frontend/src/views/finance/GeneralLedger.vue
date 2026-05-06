@@ -40,6 +40,7 @@
               <th class="px-8 py-6">دراو</th>
               <th class="px-8 py-6">وەسف</th>
               <th class="px-8 py-6">بەکارھێنەر</th>
+              <th v-if="authStore.isSuperAdmin || authStore?.permissions?.includes('delete journals')" class="px-8 py-6 text-center">کردارەکان</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/30">
@@ -78,6 +79,11 @@
               <td class="px-8 py-5">
                 <span class="text-xs font-bold text-slate-500">{{ entry.user?.name }}</span>
               </td>
+              <td v-if="authStore.isSuperAdmin || authStore?.permissions?.includes('delete journals')" class="px-8 py-5 text-center">
+                <button @click="deleteEntry(entry)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors" title="سڕینەوەی مامەڵە">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -104,7 +110,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from '../../plugins/axios'
+import Swal from 'sweetalert2'
+import { useAuthStore } from '../../stores/auth'
 
+const authStore = useAuthStore()
 const entries = ref([])
 const loading = ref(false)
 const filters = ref({
@@ -126,6 +135,50 @@ async function fetchEntries(page = 1) {
     console.error('Error fetching journal entries:', e)
   } finally {
     loading.value = false
+  }
+}
+
+async function deleteEntry(entry) {
+  const result = await Swal.fire({
+    title: 'سڕینەوەی مامەڵە',
+    html: `ئایا دڵنیایت لە سڕینەوەی ئەم جوڵەیە؟ <br><span class="text-xs text-rose-500">ئەم کارە تەواوی مامەڵەکە لە هەموو سندوقەکان دەسڕێتەوە بەشێوەیەکی یەکجاری!</span>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#1e293b',
+    confirmButtonText: 'بەڵێ، بیسڕەوە',
+    cancelButtonText: 'پەشیمان بوونەوە',
+    background: '#0f172a',
+    color: '#fff'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.delete(`/journals/${entry.id}`)
+      
+      Swal.fire({
+        title: 'سڕایەوە!',
+        text: 'مامەڵەکە بە سەرکەوتوویی سڕایەوە و حیسابات گەڕایەوە باری پێشوو.',
+        icon: 'success',
+        background: '#0f172a',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6',
+        confirmButtonText: 'باشە، داخستن'
+      })
+      
+      fetchEntries(pagination.value.current_page)
+    } catch (e) {
+      console.error('Error deleting entry:', e)
+      Swal.fire({
+        title: 'هەڵە!',
+        text: e.response?.data?.message || 'کێشەیەک ڕوویدا لە کاتی سڕینەوە',
+        icon: 'error',
+        background: '#0f172a',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6',
+        confirmButtonText: 'داخستن'
+      })
+    }
   }
 }
 

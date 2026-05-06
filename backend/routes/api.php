@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('currencies', CurrencyController::class);
     Route::apiResource('exchanges', ExchangeController::class);
     Route::get('journals', [JournalController::class, 'index']);
+    Route::delete('journals/{id}', [JournalController::class, 'destroy']);
     
     // Reports & Audit
     Route::middleware('can:view_forensics')->group(function () {
