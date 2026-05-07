@@ -76,7 +76,9 @@ class AccountController extends Controller
             'mobile' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
             'type' => 'required|string|in:vault,customer,expense,equity,revenue,general',
-            'parent_id' => 'nullable|exists:accounts,id'
+            'parent_id' => 'nullable|exists:accounts,id',
+            'branch_id' => 'nullable|integer',
+            'is_global' => 'nullable|boolean'
         ]);
 
         $account = Account::create($validated);
@@ -117,6 +119,8 @@ class AccountController extends Controller
             'type' => 'nullable|in:vault,client,revenue,expense,equity',
             'code' => 'nullable|unique:accounts,code,' . $account->id,
             'notes' => 'nullable|string',
+            'branch_id' => 'nullable|integer',
+            'is_global' => 'nullable|boolean'
         ]);
 
         $account->update(array_filter($validated));
@@ -152,7 +156,7 @@ class AccountController extends Controller
 
     public function recalculateBalances()
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () {
+        return DB::transaction(function () {
             // Clear current summaries
             \App\Models\AccountSummary::truncate();
 
@@ -160,8 +164,8 @@ class AccountController extends Controller
             $balances = \App\Models\JournalEntry::select(
                     'account_id', 
                     'currency_id', 
-                    \Illuminate\Support\Facades\DB::raw('SUM(debit) as sum_debit'),
-                    \Illuminate\Support\Facades\DB::raw('SUM(credit) as sum_credit')
+                    DB::raw('SUM(debit) as sum_debit'),
+                    DB::raw('SUM(credit) as sum_credit')
                 )
                 ->groupBy('account_id', 'currency_id')
                 ->get();

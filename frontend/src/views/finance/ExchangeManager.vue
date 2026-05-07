@@ -87,7 +87,7 @@
               </div>
               
               <!-- Smart Cross-Rate Input -->
-              <div v-if="activePair.primary !== 'USD'" class="bg-blue-600/5 border border-blue-500/20 rounded-2xl p-3 flex items-center justify-between">
+              <div v-if="activePair.primary !== 'USD' && activePair.primary !== 'IQD'" class="bg-blue-600/5 border border-blue-500/20 rounded-2xl p-3 flex items-center justify-between">
                 <div class="text-right">
                   <span class="text-[8px] font-black text-blue-500 uppercase block">هەر {{ formatNum(1 / activePair.multiplier) }} {{ activePair.primary }} چەند دۆلار دەکات؟</span>
                   <input v-model="forms[tradeType].rate_vs_usd" @input="calculateFromUsd(tradeType)" type="text" placeholder="0.00"
@@ -103,7 +103,7 @@
           <!-- Total Result Panel -->
           <div class="bg-slate-950/60 p-10 rounded-[3rem] border border-white/5 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden group/total">
              <div class="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover/total:opacity-100 transition-all"></div>
-             <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 z-10">کۆی گشتی بە {{ activePair.secondary }} (دینار)</label>
+             <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 z-10">کۆی گشتی بە {{ activePair.secondary }} {{ activePair.secondary === 'USD' ? '(دۆلار)' : '(دینار)' }}</label>
              <div class="flex items-baseline gap-3 z-10">
                 <span class="text-5xl md:text-7xl font-black text-white tracking-tighter">{{ forms[tradeType].secondary_text || '0' }}</span>
                 <span class="text-xl font-black text-slate-500">{{ activePair.secondary }}</span>
@@ -112,7 +112,7 @@
              <div v-if="forms[tradeType].profit != 0" class="mt-4 px-6 py-2 rounded-full text-[11px] font-black flex items-center gap-2 z-10 animate-pulse"
                 :class="forms[tradeType].profit > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                قازانجی مەزەندەکراو: {{ formatNum(forms[tradeType].profit) }} {{ activePair.secondary }}
+                قازانجی مەزەندەکراو: {{ formatNum(forms[tradeType].profit) }} {{ activePair.secondary === 'USD' ? '$' : 'دینار' }}
              </div>
           </div>
 
@@ -315,22 +315,43 @@ function calculate(type, source) {
   const r = parseFloat(f.rate_text.replace(/,/g, '')) || 0
   const sysR = getSystemRate()
 
-  if (source === 'primary' || source === 'rate') {
-    f.secondary_text = formatWithCommas(Math.round(p * m * r))
-    if (activePair.value.primary !== 'USD' && r > 0) {
-      f.rate_vs_usd = (r / usdRate.value).toFixed(2)
+  if (activePair.value.primary === 'IQD') {
+    // Special IQD/USD Pair calculation
+    if (source === 'primary' || source === 'rate') {
+      const calculatedSecondary = r > 0 ? (p / (r * 0.01)) : 0
+      f.secondary_text = formatWithCommas(calculatedSecondary.toFixed(2))
     }
-  }
 
-  // Only calculate estimated profit if system rate is properly configured in DB
-  const pRate = pairs.value.find(pair => pair.id === activePair.value.id)?.official_rate || 1
-  if (pRate > 1 || activePair.value.primary === 'IQD') {
-    const systemValue = p * m * sysR
-    const transactionValue = p * m * r
-    if (type === 'buy') f.profit = Math.round(systemValue - transactionValue)
-    else f.profit = Math.round(transactionValue - systemValue)
+    // Profit calculation for IQD/USD pair
+    const usdPairRate = pairs.value.find(pair => pair.primary === 'USD')?.official_rate || usdRate.value
+    const sysUnitRate = usdPairRate * 0.01 // e.g., 1500
+    const systemValueInSecondary = p / sysUnitRate
+    const transactionValueInSecondary = r > 0 ? (p / (r * 0.01)) : 0
+
+    if (type === 'buy') {
+      f.profit = Math.round(systemValueInSecondary - transactionValueInSecondary)
+    } else {
+      f.profit = Math.round(transactionValueInSecondary - systemValueInSecondary)
+    }
   } else {
-    f.profit = 0
+    // Standard currency pairs
+    if (source === 'primary' || source === 'rate') {
+      f.secondary_text = formatWithCommas(Math.round(p * m * r))
+      if (activePair.value.primary !== 'USD' && r > 0) {
+        f.rate_vs_usd = (r / usdRate.value).toFixed(2)
+      }
+    }
+
+    // Only calculate estimated profit if system rate is properly configured in DB
+    const pRate = pairs.value.find(pair => pair.id === activePair.value.id)?.official_rate || 1
+    if (pRate > 1) {
+      const systemValue = p * m * sysR
+      const transactionValue = p * m * r
+      if (type === 'buy') f.profit = Math.round(systemValue - transactionValue)
+      else f.profit = Math.round(transactionValue - systemValue)
+    } else {
+      f.profit = 0
+    }
   }
 }
 
@@ -388,6 +409,17 @@ async function fetchData() {
         rateLabel: `نرخی هەر ${1/multiplier} ${c.code} بە دینار`
       }
     })
+
+    // Append virtual IQD/USD inverse pair
+    pairs.value.push({
+      id: -1,
+      primary: 'IQD',
+      secondary: 'USD',
+      label: 'IQD',
+      official_rate: usdRate.value,
+      multiplier: 0.01,
+      rateLabel: 'نرخی ١٠٠ دۆلار بە دینار (ڕێژە)'
+    })
     
     if (pairs.value.length > 0 && activePair.value.id === 0) {
       selectPair(pairs.value[0])
@@ -423,7 +455,12 @@ function selectPair(p) {
   forms.value.buy.secondary_text = ''
   forms.value.sell.secondary_text = ''
 
-  if (p.primary === 'USD') {
+  if (p.primary === 'IQD') {
+    const standardRate = usdRate.value * 100
+    forms.value.buy.rate_text = formatWithCommas(Math.round(standardRate))
+    forms.value.sell.rate_text = formatWithCommas(Math.round(standardRate))
+    forms.value.buy.rate_vs_usd = ''; forms.value.sell.rate_vs_usd = ''
+  } else if (p.primary === 'USD') {
     const sysRate = getSystemRate()
     forms.value.buy.rate_text = formatWithCommas(Math.round(sysRate - 500))
     forms.value.sell.rate_text = formatWithCommas(Math.round(sysRate + 500))

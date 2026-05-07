@@ -44,6 +44,10 @@ trait BelongsToBranch
          */
         static::creating(function (Model $model) {
             if (Auth::check() && !$model->branch_id) {
+                // If it is a global account, keep branch_id null
+                if ($model instanceof \App\Models\Account && $model->is_global) {
+                    return;
+                }
                 $model->branch_id = Auth::user()->branch_id;
             }
         });

@@ -22,6 +22,7 @@ class Account extends Model
         'balance',
         'parent_id',
         'branch_id',
+        'is_global',
     ];
 
     /**

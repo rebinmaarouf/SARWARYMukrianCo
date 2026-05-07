@@ -98,43 +98,50 @@ class ExchangeController extends Controller
                 $primaryCurrency = Currency::where('code', $request->primary_currency)->first();
                 $secondaryCurrency = Currency::where('code', $request->secondary_currency)->first();
 
-                // 1. Convert block transaction rate into a single unit rate (e.g., rate of 100 GBP converted to 1 GBP rate)
-                $primaryMultiplier = $this->getMultiplier($request->primary_currency);
-                $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
+                if ($request->primary_currency === 'IQD' && $request->secondary_currency === 'USD') {
+                    // Special case: IQD/USD inverse pair
+                    $systemRateOfUsd = $secondaryCurrency->current_rate; // e.g., 1500
+                    $systemValueInSecondary = $request->primary_amount / $systemRateOfUsd;
+                    $transactionValueInSecondary = $request->secondary_amount;
 
-                // 2. Determine System Unit Rates based on pure Realized Profit / Cost-Basis Model
-                // For any non-base currency (USD, GBP, EUR, TRY, IRR):
-                // - On BUY: we use the transaction rate itself (so profit is always exactly 0 on buy)
-                // - On SELL: we find the cost basis from the Last Buy transaction of this currency.
-                $systemRateForPrimary = $primaryCurrency->current_rate;
-                $systemRateForSecondary = $secondaryCurrency->current_rate;
-
-                if (!$primaryCurrency->is_base) {
                     if ($request->type === 'buy') {
-                        $systemRateForPrimary = $unitTransactionRate;
-                    } else { // sell
-                        $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency);
-                        if ($systemRateForPrimary <= 0) {
+                        // WE BUY IQD / WE GIVE USD (Profit = System value in USD - actual USD we gave)
+                        $profitAmount = $systemValueInSecondary - $transactionValueInSecondary;
+                    } else {
+                        // WE SELL IQD / WE RECEIVE USD (Profit = actual USD we received - System value in USD)
+                        $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
+                    }
+                } else {
+                    // Standard currency pairs
+                    $primaryMultiplier = $this->getMultiplier($request->primary_currency);
+                    $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
+
+                    $systemRateForPrimary = $primaryCurrency->current_rate;
+                    $systemRateForSecondary = $secondaryCurrency->current_rate;
+
+                    if (!$primaryCurrency->is_base) {
+                        if ($request->type === 'buy') {
                             $systemRateForPrimary = $unitTransactionRate;
+                        } else { // sell
+                            $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency);
+                            if ($systemRateForPrimary <= 0) {
+                                $systemRateForPrimary = $unitTransactionRate;
+                            }
                         }
                     }
-                }
 
-                if (!$secondaryCurrency->is_base) {
-                    $systemRateForSecondary = $unitTransactionRate;
-                }
+                    if (!$secondaryCurrency->is_base) {
+                        $systemRateForSecondary = $unitTransactionRate;
+                    }
 
-                // 3. Calculate Real Value in Secondary Currency using UNIT system rates
-                $systemValueInSecondary = ($request->primary_amount * $systemRateForPrimary) / $systemRateForSecondary;
-                $transactionValueInSecondary = $request->secondary_amount;
-                
-                // Profit calculation: 
-                // If BUY: Profit = SystemValue - PaidPrice (Buy low = Profit)
-                // If SELL: Profit = ReceivedPrice - SystemValue (Sell high = Profit)
-                if ($request->type === 'buy') {
-                    $profitAmount = $systemValueInSecondary - $transactionValueInSecondary;
-                } else {
-                    $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
+                    $systemValueInSecondary = ($request->primary_amount * $systemRateForPrimary) / $systemRateForSecondary;
+                    $transactionValueInSecondary = $request->secondary_amount;
+                    
+                    if ($request->type === 'buy') {
+                        $profitAmount = $systemValueInSecondary - $transactionValueInSecondary;
+                    } else {
+                        $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
+                    }
                 }
 
                 // 4. Create Transaction record
@@ -174,44 +181,54 @@ class ExchangeController extends Controller
         $vaultTo = Account::find($request->vault_to_id);
         $today = now();
 
-        $primaryMultiplier = $this->getMultiplier($request->primary_currency);
-        $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
-
-        // Determine System Unit Rate for primary currency valuation in ledger
-        $systemRateForPrimary = $primaryCurrency->current_rate;
-        if (!$primaryCurrency->is_base) {
-            if ($request->type === 'buy') {
-                $systemRateForPrimary = $unitTransactionRate;
-            } else { // sell
-                $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency, $transaction->id);
-                if ($systemRateForPrimary <= 0) {
-                    $systemRateForPrimary = $unitTransactionRate;
-                }
-            }
-        }
-
         $profitAmount = (float) $transaction->profit;
 
-        if ($request->type === 'buy') {
-            // WE BUY Primary / WE GIVE Secondary
-            
-            // Leg 1: Debit the Destination Vault (Primary currency comes IN)
-            // We pass $systemRateForPrimary to ensure correct base currency valuation in the ledger
-            JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
-            
-            // Leg 2: Credit the Source Vault (Secondary currency goes OUT)
-            JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
+        if ($request->primary_currency === 'IQD' && $request->secondary_currency === 'USD') {
+            // Special Case: IQD/USD inverse pair
+            $systemRateOfUsd = $secondaryCurrency->current_rate; // e.g., 1500
 
+            if ($request->type === 'buy') {
+                // WE BUY IQD / WE GIVE USD
+                // Leg 1: Debit Destination Vault (IQD comes IN)
+                JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, 1.0);
+                
+                // Leg 2: Credit Source Vault (USD goes OUT)
+                JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateOfUsd);
+            } else {
+                // WE SELL IQD / WE RECEIVE USD
+                // Leg 1: Debit Destination Vault (USD comes IN)
+                JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateOfUsd);
+
+                // Leg 2: Credit Source Vault (IQD goes OUT)
+                JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, 1.0);
+            }
         } else {
-            // WE SELL Primary / WE RECEIVE Secondary
-            
-            // Leg 1: Debit the Destination Vault (Secondary currency comes IN)
-            JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
+            // Standard currency pairs
+            $primaryMultiplier = $this->getMultiplier($request->primary_currency);
+            $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
 
-            // Leg 2: Credit the Source Vault (Primary currency goes OUT)
-            // We pass $systemRateForPrimary to ensure correct base currency valuation in the ledger
-            JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
+            // Determine System Unit Rate for primary currency valuation in ledger
+            $systemRateForPrimary = $primaryCurrency->current_rate;
+            if (!$primaryCurrency->is_base) {
+                if ($request->type === 'buy') {
+                    $systemRateForPrimary = $unitTransactionRate;
+                } else { // sell
+                    $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency, $transaction->id);
+                    if ($systemRateForPrimary <= 0) {
+                        $systemRateForPrimary = $unitTransactionRate;
+                    }
+                }
+            }
 
+            if ($request->type === 'buy') {
+                // WE BUY Primary / WE GIVE Secondary
+                JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
+                JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
+            } else {
+                // WE SELL Primary / WE RECEIVE Secondary
+                JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
+                JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
+            }
         }
 
         // Leg 3: Book Profit to IUAS 484 (Revenue) or 384 (Expense/Loss)

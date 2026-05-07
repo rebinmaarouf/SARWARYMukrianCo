@@ -59,7 +59,12 @@
               </td>
               <td class="px-8 py-5">
                 <div class="flex flex-col">
-                  <span class="text-white font-black text-lg group-hover:text-emerald-400 transition-colors">{{ account.name }}</span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-white font-black text-lg group-hover:text-emerald-400 transition-colors">{{ account.name }}</span>
+                    <span v-if="account.is_global" class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[8px] font-black tracking-widest uppercase">
+                      گشتی / Global
+                    </span>
+                  </div>
                   <span class="text-[10px] text-slate-600 font-bold tracking-widest">{{ account.address || 'بێ ناونیشان' }}</span>
                 </div>
               </td>
@@ -147,9 +152,17 @@
                 </select>
               </div>
 
-              <div class="space-y-2">
+              <!-- Global account toggle -->
+              <div v-if="['expense', 'revenue', 'equity'].includes(activeForm.type)" class="flex items-center gap-3 bg-slate-950/40 p-5 rounded-2xl border border-white/5">
+                <input v-model="activeForm.is_global" id="is_global_checkbox" type="checkbox" class="w-5 h-5 text-emerald-500 bg-slate-950 border-white/10 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" />
+                <label for="is_global_checkbox" class="text-xs font-black text-slate-300 cursor-pointer select-none">
+                  ئەمە وەک حسابی گشتی (Global) بۆ هەموو لقەکان دیاری بکە
+                </label>
+              </div>
+
+              <div v-if="!activeForm.is_global" class="space-y-2">
                 <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">بۆ کام لق (Branch)</label>
-                <select v-model="activeForm.branch_id" required class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                <select v-model="activeForm.branch_id" :required="!activeForm.is_global" class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-blue-500 outline-none appearance-none cursor-pointer">
                   <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }} ({{ b.location }})</option>
                 </select>
               </div>
@@ -216,7 +229,8 @@ const form = ref({
   code: '',
   type: 'client',
   notes: '',
-  branch_id: null
+  branch_id: null,
+  is_global: false
 })
 
 const typeLabels = {
@@ -271,19 +285,23 @@ const getTypeStyle = (type) => {
 }
 
 const editingAccount = ref(null)
-const editForm = ref({ name: '', type: '', code: '', notes: '' })
+const editForm = ref({ name: '', type: '', code: '', notes: '', branch_id: null, is_global: false })
 
 const activeForm = computed(() => editingAccount.value ? editForm.value : form.value)
 
 function openEditModal(acc) {
   editingAccount.value = acc
-  editForm.value = { ...acc }
+  editForm.value = { ...acc, is_global: !!acc.is_global }
 }
 
 async function updateAccount() {
   loading.value = true
   try {
-    const { data } = await axios.put(`/accounts/${editingAccount.value.id}`, editForm.value)
+    const payload = { ...editForm.value }
+    if (payload.is_global) {
+      payload.branch_id = null
+    }
+    const { data } = await axios.put(`/accounts/${editingAccount.value.id}`, payload)
     const index = accounts.value.findIndex(a => a.id === data.id)
     accounts.value[index] = data
     editingAccount.value = null
@@ -386,10 +404,14 @@ async function fetchAccounts() {
 async function submitAccount() {
   loading.value = true
   try {
-    await axios.post('/accounts', form.value)
+    const payload = { ...form.value }
+    if (payload.is_global) {
+      payload.branch_id = null
+    }
+    await axios.post('/accounts', payload)
     await fetchAccounts()
     showCreateModal.value = false
-    form.value = { name: '', code: '', type: 'client', notes: '', branch_id: auth.user?.branch_id }
+    form.value = { name: '', code: '', type: 'client', notes: '', branch_id: auth.user?.branch_id, is_global: false }
     
     Swal.fire({
       icon: 'success',
@@ -419,7 +441,7 @@ async function submitAccount() {
 function closeModals() {
   showCreateModal.value = false
   editingAccount.value = null
-  form.value = { name: '', type: 'client', code: '', notes: '', branch_id: auth.user?.branch_id }
+  form.value = { name: '', type: 'client', code: '', notes: '', branch_id: auth.user?.branch_id, is_global: false }
 }
 
 function formatNum(val) {

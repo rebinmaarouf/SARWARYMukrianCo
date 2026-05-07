@@ -173,34 +173,43 @@
           </table>
         </section>
 
-        <!-- Final Validation Section - Very Compact -->
-        <div class="pt-6 border-t border-slate-100 flex justify-between items-center print:pt-2">
-           <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white print:w-8 print:h-8">
-                 <svg class="w-6 h-6 print:w-5 print:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <!-- Keep Final Validation & Signatures strictly together to avoid break separation -->
+        <div class="print-avoid-break border-t border-slate-100 pt-6 print:pt-4">
+           <!-- Final Validation Section - Very Compact -->
+           <div class="flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                 <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white print:w-8 print:h-8">
+                    <svg class="w-6 h-6 print:w-5 print:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                 </div>
+                 <div>
+                    <p class="text-sm font-black text-slate-900 print:text-[10px]">بەهای پوختەی هەڵسەنگاندن</p>
+                    <p class="text-[8px] font-bold text-slate-400">Audit Engine v2.4</p>
+                 </div>
               </div>
-              <div>
-                 <p class="text-sm font-black text-slate-900 print:text-[10px]">بەهای پوختەی هەڵسەنگاندن</p>
-                 <p class="text-[8px] font-bold text-slate-400">Audit Engine v2.4</p>
+              <div class="text-right">
+                 <p class="text-2xl font-black text-emerald-600 print:text-lg">{{ formatNum(data.financials?.net_profit / data.exchange_rate) }} <span class="text-xs font-bold opacity-50">$ USD</span></p>
+                 <p class="text-[8px] font-black text-slate-400 uppercase mt-0.5 print:text-[7px]">TOTAL NET VALUATION</p>
               </div>
            </div>
-           <div class="text-right">
-              <p class="text-2xl font-black text-emerald-600 print:text-lg">{{ formatNum(data.financials?.net_profit / data.exchange_rate) }} <span class="text-xs font-bold opacity-50">$ USD</span></p>
-              <p class="text-[8px] font-black text-slate-400 uppercase mt-0.5 print:text-[7px]">TOTAL NET VALUATION</p>
+
+           <!-- Signature Space - Moved up to fit in one page -->
+           <div class="mt-12 flex justify-between px-8 print:mt-8 print:px-4">
+              <div class="text-center w-32 border-t border-slate-900 pt-1.5">
+                 <p class="text-[7px] font-black uppercase">ووردبین (Accountant)</p>
+              </div>
+              <div class="text-center w-32 border-t border-slate-900 pt-1.5">
+                 <p class="text-[7px] font-black uppercase">بەڕێوەبەر (Manager)</p>
+              </div>
+              <div class="text-center w-32 border-t border-slate-900 pt-1.5">
+                 <p class="text-[7px] font-black uppercase">مۆر (Stamp)</p>
+              </div>
            </div>
         </div>
 
-        <!-- Signature Space - Moved up to fit in one page -->
-        <div class="mt-12 flex justify-between px-8 print:mt-4 print:px-4">
-           <div class="text-center w-32 border-t border-slate-900 pt-1.5">
-              <p class="text-[7px] font-black uppercase">ووردبین (Accountant)</p>
-           </div>
-           <div class="text-center w-32 border-t border-slate-900 pt-1.5">
-              <p class="text-[7px] font-black uppercase">بەڕێوەبەر (Manager)</p>
-           </div>
-           <div class="text-center w-32 border-t border-slate-900 pt-1.5">
-              <p class="text-[7px] font-black uppercase">مۆر (Stamp)</p>
-           </div>
+        <!-- Dynamic Running Print Footer -->
+        <div class="hidden print:flex fixed bottom-0 left-0 right-0 justify-between items-center border-t border-slate-200 pt-1 text-[8px] font-bold text-slate-400" style="position: fixed; bottom: -0.2cm; left: 0; right: 0; direction: rtl;">
+           <span>کۆمپانیای سەروەری موکریان - وەسڵنامەی ووردبینی دارایی</span>
+           <span class="print-page-number">پەڕەی </span>
         </div>
 
       </div>
@@ -262,7 +271,10 @@ onMounted(() => {
 
 <style scoped>
 @media print {
-  @page { size: A4; margin: 0.5cm; }
+  @page { 
+    size: A4; 
+    margin: 1.2cm 1cm 1.2cm 1cm; 
+  }
   body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
   .no-print { display: none !important; }
   #printable-report { 
@@ -271,12 +283,18 @@ onMounted(() => {
     width: 100% !important; 
     border: none !important;
     height: auto !important;
+    padding-bottom: 0.5cm !important;
   }
-  .page-break { page-break-inside: avoid; }
+  .page-break { page-break-inside: avoid; break-inside: avoid; }
+  .print-avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
   table { width: 100% !important; }
-  tr { page-break-inside: avoid; }
-  /* Force everything to fit on one page if possible */
-  * { line-height: 1.1 !important; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  /* Running print footer */
+  .print-page-number::after {
+    content: counter(page);
+  }
+  /* Force clean line-heights in print */
+  * { line-height: 1.2 !important; }
 }
 
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
