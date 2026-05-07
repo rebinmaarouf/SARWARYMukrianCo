@@ -79,6 +79,7 @@ class JournalEntry extends Model
         $totals = static::withoutGlobalScopes()
             ->where('account_id', $accountId)
             ->where('currency_id', $currencyId)
+            ->whereNull('deleted_at')
             ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
             ->first();
 
