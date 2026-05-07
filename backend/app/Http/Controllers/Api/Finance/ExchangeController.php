@@ -74,14 +74,19 @@ class ExchangeController extends Controller
                     if ($request->type === 'buy') {
                         $systemRateForPrimary = $unitTransactionRate;
                     } else { // sell
-                        $lastBuy = Transaction::where('primary_currency', $request->primary_currency)
+                        // Calculate Weighted Average Cost (WAC) of active purchases for pristine compliance with IUAS!
+                        $totalPrimaryBought = Transaction::where('primary_currency', $request->primary_currency)
                             ->where('type', 'buy')
                             ->whereNull('deleted_at')
-                            ->latest()
-                            ->first();
+                            ->sum('primary_amount');
 
-                        if ($lastBuy) {
-                            $systemRateForPrimary = (float)$lastBuy->rate * $this->getMultiplier($lastBuy->primary_currency);
+                        $totalSecondarySpent = Transaction::where('primary_currency', $request->primary_currency)
+                            ->where('type', 'buy')
+                            ->whereNull('deleted_at')
+                            ->sum('secondary_amount');
+
+                        if ($totalPrimaryBought > 0) {
+                            $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought) * $primaryMultiplier;
                         } else {
                             $systemRateForPrimary = $unitTransactionRate;
                         }
@@ -151,14 +156,19 @@ class ExchangeController extends Controller
             if ($request->type === 'buy') {
                 $systemRateForPrimary = $unitTransactionRate;
             } else { // sell
-                $lastBuy = Transaction::where('primary_currency', $request->primary_currency)
+                // Calculate Weighted Average Cost (WAC) of active purchases for pristine compliance with IUAS!
+                $totalPrimaryBought = Transaction::where('primary_currency', $request->primary_currency)
                     ->where('type', 'buy')
                     ->whereNull('deleted_at')
-                    ->latest()
-                    ->first();
+                    ->sum('primary_amount');
 
-                if ($lastBuy) {
-                    $systemRateForPrimary = (float)$lastBuy->rate * $this->getMultiplier($lastBuy->primary_currency);
+                $totalSecondarySpent = Transaction::where('primary_currency', $request->primary_currency)
+                    ->where('type', 'buy')
+                    ->whereNull('deleted_at')
+                    ->sum('secondary_amount');
+
+                if ($totalPrimaryBought > 0) {
+                    $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought) * $primaryMultiplier;
                 } else {
                     $systemRateForPrimary = $unitTransactionRate;
                 }
