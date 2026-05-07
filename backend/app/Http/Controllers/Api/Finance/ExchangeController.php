@@ -63,15 +63,17 @@ class ExchangeController extends Controller
                 $primaryMultiplier = $this->getMultiplier($request->primary_currency);
                 $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
 
-                // 2. Determine System Unit Rates
+                // 2. Determine System Unit Rates based on pure Realized Profit / Cost-Basis Model
+                // For any non-base currency (USD, GBP, EUR, TRY, IRR):
+                // - On BUY: we use the transaction rate itself (so profit is always exactly 0 on buy)
+                // - On SELL: we find the cost basis from the Last Buy transaction of this currency.
                 $systemRateForPrimary = $primaryCurrency->current_rate;
                 $systemRateForSecondary = $secondaryCurrency->current_rate;
 
-                // Safe Fallback: If a non-base currency doesn't have an active system exchange rate configured (meaning it defaults to 1.0),
-                // we fall back to the transaction's own unit rate for BUYs (0 profit on buy), and the 'Last Buy Rate' as the cost basis for SELLs
-                // so that we can accurately capture real trade profits (Buy Low, Sell High) even if no system rate is set.
-                if (!$primaryCurrency->is_base && $systemRateForPrimary == 1.0) {
-                    if ($request->type === 'sell') {
+                if (!$primaryCurrency->is_base) {
+                    if ($request->type === 'buy') {
+                        $systemRateForPrimary = $unitTransactionRate;
+                    } else { // sell
                         $lastBuy = Transaction::where('primary_currency', $request->primary_currency)
                             ->where('type', 'buy')
                             ->whereNull('deleted_at')
@@ -83,11 +85,10 @@ class ExchangeController extends Controller
                         } else {
                             $systemRateForPrimary = $unitTransactionRate;
                         }
-                    } else {
-                        $systemRateForPrimary = $unitTransactionRate;
                     }
                 }
-                if (!$secondaryCurrency->is_base && $systemRateForSecondary == 1.0) {
+
+                if (!$secondaryCurrency->is_base) {
                     $systemRateForSecondary = $unitTransactionRate;
                 }
 
@@ -146,8 +147,10 @@ class ExchangeController extends Controller
 
         // Determine System Unit Rate for primary currency valuation in ledger
         $systemRateForPrimary = $primaryCurrency->current_rate;
-        if (!$primaryCurrency->is_base && $systemRateForPrimary == 1.0) {
-            if ($request->type === 'sell') {
+        if (!$primaryCurrency->is_base) {
+            if ($request->type === 'buy') {
+                $systemRateForPrimary = $unitTransactionRate;
+            } else { // sell
                 $lastBuy = Transaction::where('primary_currency', $request->primary_currency)
                     ->where('type', 'buy')
                     ->whereNull('deleted_at')
@@ -159,8 +162,6 @@ class ExchangeController extends Controller
                 } else {
                     $systemRateForPrimary = $unitTransactionRate;
                 }
-            } else {
-                $systemRateForPrimary = $unitTransactionRate;
             }
         }
 
@@ -188,18 +189,27 @@ class ExchangeController extends Controller
 
         }
 
-        // Leg 3: Book Profit to IUAS 484 (Exchange Revenue)
+        // Leg 3: Book Profit to IUAS 484 (Revenue) or 384 (Expense/Loss)
         if ($profitAmount != 0) {
-            $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
-            
-            if ($profitAccount) {
-                if ($profitAmount > 0) {
-                    // Credit the Profit Account (Revenue increases)
+            if ($profitAmount > 0) {
+                // Gain goes to 484 (Revenue)
+                $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
+                if ($profitAccount) {
                     JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
-                } else {
-                    // Loss (Debit)
-                    JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
                 }
+            } else {
+                // Loss goes to 384 (Expense/Loss)
+                // Proactively find or create 384 according to Iraqi Unified Accounting System!
+                $lossAccount = Account::where('code', '384')->first();
+                if (!$lossAccount) {
+                    $lossAccount = Account::create([
+                        'code' => '384',
+                        'name' => 'زیانی ئاڵوگۆڕی دراو',
+                        'type' => 'expense',
+                        'branch_id' => $transaction->branch_id ?? 1
+                    ]);
+                }
+                JournalService::record($transaction, $lossAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
             }
         }
     }
@@ -209,10 +219,13 @@ class ExchangeController extends Controller
         $startDate = $request->input('start_date', now()->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
 
-        // 1. Profit from Revenue Accounts
+        // 1. Profit from Revenue Accounts (484/4xx) and Loss from Expense Accounts (384/3xx)
         $profitByCurrency = \App\Models\JournalEntry::whereBetween('date', [$startDate, $endDate])
             ->whereHas('account', function ($q) {
-                $q->where('code', 'LIKE', '4%')->orWhere('type', 'revenue');
+                $q->where('code', '484')
+                  ->orWhere('code', '384')
+                  ->orWhere('code', 'LIKE', '4%')
+                  ->orWhere('type', 'revenue');
             })
             ->select('currency_id', DB::raw('SUM(credit - debit) as total_profit'))
             ->groupBy('currency_id')
