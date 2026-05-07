@@ -86,7 +86,7 @@ class ExchangeController extends Controller
                             ->sum('secondary_amount');
 
                         if ($totalPrimaryBought > 0) {
-                            $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought) * $primaryMultiplier;
+                            $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought);
                         } else {
                             $systemRateForPrimary = $unitTransactionRate;
                         }
@@ -168,7 +168,7 @@ class ExchangeController extends Controller
                     ->sum('secondary_amount');
 
                 if ($totalPrimaryBought > 0) {
-                    $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought) * $primaryMultiplier;
+                    $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought);
                 } else {
                     $systemRateForPrimary = $unitTransactionRate;
                 }
