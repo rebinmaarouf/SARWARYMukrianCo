@@ -34,6 +34,45 @@ class ExchangeController extends Controller
         return 0.01; // Block multiplier (100 unit block for USD, GBP, EUR, TRY, etc.)
     }
 
+    private function getMovingAverageCost($primaryCurrency, $limitToId = null)
+    {
+        $query = Transaction::where('primary_currency', $primaryCurrency)
+            ->whereNull('deleted_at')
+            ->orderBy('id', 'asc');
+
+        if ($limitToId) {
+            $query->where('id', '<', $limitToId);
+        }
+
+        $txs = $query->get();
+
+        $runningQty = 0.0;
+        $runningCost = 0.0;
+        $currentWac = 0.0;
+
+        foreach ($txs as $tx) {
+            if ($tx->type === 'buy') {
+                $runningQty += (float)$tx->primary_amount;
+                $runningCost += (float)$tx->secondary_amount;
+                if ($runningQty > 0) {
+                    $currentWac = $runningCost / $runningQty;
+                }
+            } else { // sell
+                $soldQty = (float)$tx->primary_amount;
+                $costOfSold = $soldQty * $currentWac;
+                $runningQty -= $soldQty;
+                $runningCost -= $costOfSold;
+                if ($runningQty <= 0) {
+                    $runningQty = 0.0;
+                    $runningCost = 0.0;
+                    $currentWac = 0.0;
+                }
+            }
+        }
+
+        return $currentWac;
+    }
+
     public function store(Request $request)
     {
         try {
@@ -74,20 +113,8 @@ class ExchangeController extends Controller
                     if ($request->type === 'buy') {
                         $systemRateForPrimary = $unitTransactionRate;
                     } else { // sell
-                        // Calculate Weighted Average Cost (WAC) of active purchases for pristine compliance with IUAS!
-                        $totalPrimaryBought = Transaction::where('primary_currency', $request->primary_currency)
-                            ->where('type', 'buy')
-                            ->whereNull('deleted_at')
-                            ->sum('primary_amount');
-
-                        $totalSecondarySpent = Transaction::where('primary_currency', $request->primary_currency)
-                            ->where('type', 'buy')
-                            ->whereNull('deleted_at')
-                            ->sum('secondary_amount');
-
-                        if ($totalPrimaryBought > 0) {
-                            $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought);
-                        } else {
+                        $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency);
+                        if ($systemRateForPrimary <= 0) {
                             $systemRateForPrimary = $unitTransactionRate;
                         }
                     }
@@ -156,20 +183,8 @@ class ExchangeController extends Controller
             if ($request->type === 'buy') {
                 $systemRateForPrimary = $unitTransactionRate;
             } else { // sell
-                // Calculate Weighted Average Cost (WAC) of active purchases for pristine compliance with IUAS!
-                $totalPrimaryBought = Transaction::where('primary_currency', $request->primary_currency)
-                    ->where('type', 'buy')
-                    ->whereNull('deleted_at')
-                    ->sum('primary_amount');
-
-                $totalSecondarySpent = Transaction::where('primary_currency', $request->primary_currency)
-                    ->where('type', 'buy')
-                    ->whereNull('deleted_at')
-                    ->sum('secondary_amount');
-
-                if ($totalPrimaryBought > 0) {
-                    $systemRateForPrimary = ($totalSecondarySpent / $totalPrimaryBought);
-                } else {
+                $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency, $transaction->id);
+                if ($systemRateForPrimary <= 0) {
                     $systemRateForPrimary = $unitTransactionRate;
                 }
             }

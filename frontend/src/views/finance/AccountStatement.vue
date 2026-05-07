@@ -115,7 +115,6 @@
               <th class="px-6 py-5 text-center text-rose-400">Credit / داین (-)</th>
               <th class="px-6 py-5 text-center">Currency / دراو</th>
               <th class="px-6 py-5 text-right">Account / حیساب</th>
-              <th class="px-6 py-5 text-left">Internal Ref.</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/[0.03] print-divide-slate">
@@ -136,18 +135,13 @@
                  <span v-else class="text-slate-900 opacity-10 print-opacity-0">—</span>
               </td>
               <td class="px-6 py-5 text-center">
-                <span class="px-3 py-1 bg-slate-950 border border-white/5 rounded-lg text-[9px] font-black text-slate-400 uppercase print-border-black">
-                   {{ entry.currency?.code }}
-                </span>
+                 <span class="px-3 py-1 bg-slate-950 border border-white/5 rounded-lg text-[9px] font-black text-slate-400 uppercase print-border-black">
+                    {{ entry.currency?.code }}
+                 </span>
               </td>
               <td class="px-6 py-5 text-right">
                 <p class="text-[10px] font-black text-slate-400">{{ entry.account?.name }}</p>
                 <p class="text-[8px] text-slate-600 font-bold mt-0.5">{{ entry.account?.code }}</p>
-              </td>
-              <td class="px-6 py-5 text-left">
-                <span class="text-[10px] font-black font-mono text-slate-600 uppercase tracking-tighter">
-                   {{ entry.transaction_id ? `TX-${entry.transaction_id}` : (entry.registry_id ? `REG-${entry.registry_id}` : (entry.exchange_id ? `EX-${entry.exchange_id}` : 'N/A')) }}
-                </span>
               </td>
             </tr>
           </tbody>
@@ -173,23 +167,23 @@
     </div>
 
     <!-- OFFICIAL SEAL & SIGNATURE (Task 3 Requirement) -->
-    <div class="hidden print-only-block mt-12 pt-8 border-t-2 border-slate-900">
+    <div class="hidden print-only-block print-seal-section mt-12 pt-8">
        <div class="flex justify-between items-start">
           <div class="space-y-6">
              <div class="flex flex-col gap-2">
-                <span class="text-[10px] font-black text-slate-400 uppercase">Legal Disclaimer:</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase">Legal Disclaimer / مەرجی یاسایی:</span>
                 <p class="text-[10px] font-bold text-slate-800 leading-tight max-w-sm">
                    ئەم ڕاپۆرتە بە شێوەیەکی فەرمی لەلایەن سیستەمی کۆمپانیای سەروەری موکریانەوە دەرچووە. تکایە لە کاتی هەر هەڵەیەکدا پەیوەندی بە بەشی وردبینی بکەن.
                 </p>
              </div>
              <div class="flex items-center gap-4">
-                <span class="text-[10px] font-black text-slate-500 uppercase">Official Signature:</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase">Official Signature / واژۆی فەرمی:</span>
                 <div class="w-48 h-10 border-b border-slate-300"></div>
              </div>
           </div>
           <div class="text-center space-y-2">
-             <div class="w-24 h-24 rounded-full border-4 border-double border-slate-200 mx-auto flex items-center justify-center">
-                <span class="text-[8px] font-black text-slate-300 uppercase rotate-12">Official Seal</span>
+             <div class="print-seal-circle w-24 h-24 rounded-full border-4 border-double border-slate-300 mx-auto flex items-center justify-center">
+                <span class="text-[8px] font-black text-slate-400 uppercase rotate-12">Official Seal</span>
              </div>
              <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ new Date().toLocaleString('ku-IQ') }}</p>
           </div>
@@ -245,70 +239,351 @@ function printReport() { window.print() }
 onMounted(() => fetchAccounts())
 </script>
 
-<style scoped>
+<style>
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 @media print {
-  @page { size: A4; margin: 0.3cm 0.8cm 0.8cm 0.8cm; }
-  .no-print { display: none !important; }
-  .print-only-block { display: block !important; }
+  /* 
+     CRITICAL SPA LAYOUT UNCLOGGER:
+     These selectors target the exact layout parents of AdminLayout and router-view.
+     We strip away the fixed viewport limits (h-screen, overflow-hidden) and flex constraints
+     so that the browser can flow and paginate the content naturally over multiple A4 sheets.
+  */
+  html, body, #app {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+    background-color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Target root AdminLayout grid/flex wrappers */
+  div.flex.h-screen.overflow-hidden,
+  .admin-layout,
+  #app > div,
+  body > div {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Target main container wrapper */
+  main.flex-1.flex.flex-col,
+  main.overflow-hidden {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Target router-view scrolling viewport wrapper */
+  div.flex-1.overflow-y-auto,
+  div.custom-scrollbar {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    padding: 0 !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Hide navigation sidebar and header completely */
+  aside, header, .no-print {
+    display: none !important;
+  }
+
+  @page { 
+    size: A4 portrait; 
+    margin: 1.5cm 1.2cm 1.5cm 1.2cm; 
+  }
   
-  /* CRITICAL: Remove all shadows, blurs and backgrounds for print */
+  .print-only-block { 
+    display: block !important; 
+  }
+  
   * { 
     box-shadow: none !important; 
     filter: none !important; 
     text-shadow: none !important;
   }
   
-  body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; font-size: 8pt !important; }
-  .max-w-\[1700px\] { max-width: 100% !important; margin: 0 !important; }
+  body { 
+    color: #0f172a !important; 
+    font-family: 'Geeza Pro', 'Segoe UI', Arial, sans-serif !important;
+    padding: 0 !important; 
+    margin: 0 !important; 
+  }
   
-  .print-table-a4 { table-layout: fixed !important; width: 100% !important; }
-  .print-col-date { width: 10% !important; }
-  .print-col-desc { width: 32% !important; }
-  .print-col-amount { width: 15% !important; }
-  .print-col-cur { width: 8% !important; }
-  .print-col-net { width: 20% !important; }
-
-  th, td { padding: 3px !important; word-wrap: break-word !important; }
-  
-  /* Explicitly make headers transparent */
-  .bg-slate-900\/60, .bg-slate-950\/80, .bg-slate-950\/40, .backdrop-blur-3xl { 
-    background: transparent !important; 
-    color: black !important; 
-    border: none !important; 
-    backdrop-filter: none !important;
+  .max-w-\[1700px\] { 
+    max-width: 100% !important; 
+    margin: 0 !important; 
+    padding: 0 !important;
   }
   
   .print-header-container { 
-    border-bottom: 2px solid black !important; 
-    padding: 0 !important; 
-    padding-bottom: 0.3rem !important; 
-    margin-bottom: 0.5rem !important; 
+    background: transparent !important; 
+    border: none !important;
+    border-bottom: 2.5px solid #0f172a !important;
     border-radius: 0 !important; 
-    box-shadow: none !important;
+    padding: 0 0 1.25rem 0 !important;
+    margin-bottom: 2rem !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .print-logo-box {
+    border: 1.5px solid #0f172a !important;
+    border-radius: 1rem !important;
+    padding: 0.5rem !important;
+    background-color: #ffffff !important;
+    width: 75px !important;
+    height: 75px !important;
+  }
+
+  .print-text-black { 
+    color: #0f172a !important; 
+  }
+
+  .print-text-slate {
+    color: #475569 !important;
   }
   
-  .print-logo-box { 
-    border: 1px solid black !important; 
-    border-radius: 0.8rem !important; 
-    width: 60px !important; 
-    height: 60px !important; 
-    background: white !important;
-    box-shadow: none !important;
+  .print-meta-box {
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 1rem !important;
+    padding: 1rem 1.25rem !important;
+    min-width: 280px !important;
   }
-  
-  .print-text-black { color: black !important; }
-  .print-text-slate { color: #555 !important; }
-  .print-bg-slate { background: #f8fafc !important; }
-  .print-border-black { border: 1px solid black !important; }
-  .print-border-slate { border: 1px solid #eee !important; }
-  .print-divide-slate > :not([hidden]) ~ :not([hidden]) { border-color: #eee !important; }
-  .print-status-badge { border: 1px solid black !important; color: black !important; background: #eee !important; }
-  .print-overflow-visible { overflow: visible !important; }
-  .print-ledger-container { border: 1px solid #eee !important; border-radius: 1rem !important; box-shadow: none !important; }
+
+  /* 
+     2-COLUMN SUMMARY GRID:
+     This is highly spacious (each card gets ~9cm horizontal space), completely preventing 
+     Kurdish and numeric overlaps, providing a clean, table-like layout on A4.
+  */
+  .print-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-summary-grid > div {
+    background-color: #f8fafc !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 1.25rem !important;
+    box-shadow: none !important;
+    position: relative !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-summary-grid .w-10 {
+    width: 2rem !important;
+    height: 2rem !important;
+    border-radius: 0.5rem !important;
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+  }
+
+  .print-summary-grid h4 {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+  }
+
+  .print-summary-grid span {
+    color: #475569 !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+  }
+
+  .print-summary-grid .font-mono {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+  }
+
+  .print-summary-grid .text-emerald-400,
+  .print-summary-grid .text-emerald-500 {
+    color: #15803d !important; /* Rich print green */
+  }
+
+  .print-summary-grid .text-rose-400,
+  .print-summary-grid .text-rose-500 {
+    color: #b91c1c !important; /* Rich print red */
+  }
+
+  .print-summary-grid .text-xl {
+    font-size: 15px !important;
+  }
+
+  /* Table / Ledger Container */
+  .print-ledger-container {
+    background: transparent !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    margin-top: 2rem !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .print-ledger-container h3 {
+    color: #0f172a !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+  }
+
+  .print-ledger-container span {
+    color: #475569 !important;
+  }
+
+  .print-overflow-visible {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  /* 
+     REPEATING TABLE HEADER:
+     Forces the browser's printing engine to duplicate the table headers (thead) 
+     on top of page 2, 3, etc. for extreme professional clarity.
+  */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tbody {
+    display: table-row-group !important;
+  }
+
+  thead tr {
+    background-color: #f1f5f9 !important;
+    border-bottom: 2.5px solid #94a3b8 !important;
+  }
+
+  th {
+    color: #0f172a !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    padding: 0.85rem 1rem !important;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e2e8f0 !important;
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  tbody td {
+    padding: 0.85rem 1rem !important;
+    color: #0f172a !important;
+    font-size: 11px !important;
+  }
+
+  /* STRICT COLUMN WIDTH ALIGNMENT */
+  th:nth-child(1), td:nth-child(1) { width: 14% !important; text-align: right !important; } /* Date */
+  th:nth-child(2), td:nth-child(2) { width: 36% !important; text-align: right !important; } /* Description */
+  th:nth-child(3), td:nth-child(3) { width: 14% !important; text-align: center !important; } /* Debit */
+  th:nth-child(4), td:nth-child(4) { width: 14% !important; text-align: center !important; } /* Credit */
+  th:nth-child(5), td:nth-child(5) { width: 8% !important; text-align: center !important; } /* Currency */
+  th:nth-child(6), td:nth-child(6) { width: 14% !important; text-align: right !important; } /* Account */
+
+  tbody td p {
+    color: #0f172a !important;
+  }
+
+  tbody td span {
+    color: #0f172a !important;
+  }
+
+  tbody td .text-emerald-400 {
+    color: #15803d !important;
+    font-weight: 900 !important;
+  }
+
+  tbody td .text-rose-400 {
+    color: #b91c1c !important;
+    font-weight: 900 !important;
+  }
+
+  tbody td .bg-slate-950 {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+    border-radius: 4px !important;
+    padding: 0.15rem 0.4rem !important;
+    font-weight: 800 !important;
+  }
+
+  /* Professional Audit Footer */
+  .print-ledger-container > div:last-child {
+    background-color: #f8fafc !important;
+    border-top: 2.5px solid #cbd5e1 !important;
+    padding: 1.5rem !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-ledger-container .text-3xl {
+    color: #0f172a !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+  }
+
+  .print-ledger-container .text-emerald-500 {
+    color: #15803d !important;
+  }
+
+  /* Official Seal & Signature Section */
+  .print-seal-section {
+    margin-top: 4rem !important;
+    padding-top: 1.5rem !important;
+    border-top: 2.5px solid #94a3b8 !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-seal-section span {
+    color: #475569 !important;
+  }
+
+  .print-seal-section p {
+    color: #0f172a !important;
+  }
+
+  .print-seal-circle {
+    border: 3px double #94a3b8 !important;
+    background: transparent !important;
+    width: 95px !important;
+    height: 95px !important;
+  }
+
+  .print-seal-circle span {
+    color: #64748b !important;
+    font-weight: 900 !important;
+    font-size: 9px !important;
+  }
 }
 </style>
