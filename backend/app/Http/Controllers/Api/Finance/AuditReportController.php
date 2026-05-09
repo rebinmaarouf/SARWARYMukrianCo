@@ -74,6 +74,33 @@ class AuditReportController extends Controller
             ->groupBy('accounts.id', 'accounts.name', 'accounts.code', 'currencies.code')
             ->get();
 
+        // 7. Vault Forensic Details (Raw list of entries that make up the In and Out totals)
+        $forensicsDetailsQuery = DB::table('journal_entries')
+            ->join('accounts', 'journal_entries.account_id', '=', 'accounts.id')
+            ->join('currencies', 'journal_entries.currency_id', '=', 'currencies.id')
+            ->leftJoin('users', 'journal_entries.user_id', '=', 'users.id')
+            ->whereNull('journal_entries.deleted_at')
+            ->where('accounts.type', 'vault')
+            ->whereBetween('journal_entries.date', [$fromDate, $toDate]);
+
+        if ($branchId && $branchId !== 'all') {
+            $forensicsDetailsQuery->where('accounts.branch_id', $branchId);
+        }
+
+        $vaultDetails = $forensicsDetailsQuery->select(
+                'journal_entries.id',
+                'accounts.code as vault_code',
+                'currencies.code as currency_code',
+                'journal_entries.date',
+                'journal_entries.debit as total_in',
+                'journal_entries.credit as total_out',
+                'journal_entries.description',
+                'users.name as user_name',
+                'journal_entries.created_at'
+            )
+            ->orderBy('journal_entries.created_at', 'desc')
+            ->get();
+
         return response()->json([
             'period' => [
                 'from' => $fromDate,
@@ -88,6 +115,7 @@ class AuditReportController extends Controller
             ],
             'vaults' => $vaults,
             'vault_forensics' => $vaultForensics,
+            'vault_details' => $vaultDetails,
             'exchange_rate' => $latestRate
         ]);
     }

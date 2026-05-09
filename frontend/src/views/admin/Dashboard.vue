@@ -98,6 +98,19 @@
 
           <!-- Chart Area -->
           <div class="h-80 w-full relative z-10">
+             <!-- Premium Glassmorphic Empty State Overlay -->
+             <div v-if="isChartEmpty" class="absolute inset-0 bg-slate-950/60 backdrop-blur-md flex flex-col items-center justify-center rounded-[2rem] border border-white/5 z-20 animate-fade-in text-center p-6">
+                <div class="w-16 h-16 bg-gradient-to-tr from-emerald-500/10 to-emerald-500/30 rounded-2xl flex items-center justify-center border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-4">
+                   <svg class="w-8 h-8 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                   </svg>
+                </div>
+                <h4 class="text-base font-black text-white tracking-tight">ئامارەکان لە چاوەڕوانی جووڵەی دارایی دان</h4>
+                <p class="text-slate-400 text-[10px] font-semibold max-w-sm mt-1 leading-relaxed">
+                   هێشتا هیچ کڕین و فرۆشتن، مەسروفات یان گواستنەوەیەک بۆ ئەم لقی کارایە تۆمار نەکراوە.
+                </p>
+             </div>
+
              <svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 400">
                 <defs>
                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -243,6 +256,11 @@ const filters = reactive({ period: '7d' })
 
 const currentTime = ref('')
 const currentDate = ref('')
+
+const isChartEmpty = computed(() => {
+  if (!stats.value.chart_data || stats.value.chart_data.length === 0) return true;
+  return stats.value.chart_data.every(d => Number(d.revenue || 0) === 0 && Number(d.expense || 0) === 0);
+});
 
 const revenuePath = computed(() => generatePath(stats.value.chart_data, 'revenue', true))
 const revenuePathLine = computed(() => generatePath(stats.value.chart_data, 'revenue', false))

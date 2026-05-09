@@ -33,9 +33,14 @@ class TransferController extends Controller
             $commissionAmount = $request->input('commission_amount', 0);
             $commissionCurrencyId = $request->input('commission_currency_id', $validated['currency_id']);
             
-            // Commission Revenue Account (IUAS 4x)
-            $commissionAccount = \App\Models\Account::where('type', 'revenue')
-                ->orWhere('code', 'LIKE', '4%')
+            // Commission Revenue Account (IUAS 4x) scoped strictly to the active user's branch
+            $userBranchId = auth()->user()?->branch_id ?? 1;
+            $commissionAccount = \App\Models\Account::withoutGlobalScopes()
+                ->where('branch_id', $userBranchId)
+                ->where(function($q) {
+                    $q->where('type', 'revenue')
+                      ->orWhere('code', 'LIKE', '4%');
+                })
                 ->first();
             
             $commissionAccountId = $commissionAccount ? $commissionAccount->id : 7; 

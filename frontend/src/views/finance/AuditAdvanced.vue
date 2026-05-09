@@ -100,15 +100,65 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <tr v-for="f in data.vault_forensics" :key="f.vault_code + f.currency_code">
-                <td class="px-4 py-2 font-black text-slate-800 print:py-1">{{ f.vault_name }}</td>
-                <td class="px-4 py-2 font-black text-slate-500 print:py-1">{{ f.currency_code }}</td>
-                <td class="px-4 py-2 font-black text-emerald-600 print:py-1">{{ formatNum(f.total_in) }}</td>
-                <td class="px-4 py-2 font-black text-rose-600 print:py-1">{{ formatNum(f.total_out) }}</td>
-                <td class="px-4 py-2 font-black text-left print:py-1" :class="f.net_change >= 0 ? 'text-emerald-700' : 'text-rose-700'">
-                  {{ formatNum(f.net_change) }}
-                </td>
-              </tr>
+              <template v-for="f in data.vault_forensics" :key="f.vault_code + f.currency_code">
+                <!-- Main Row (Clickable) -->
+                <tr @click="toggleRow(f)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
+                  <td class="px-4 py-2.5 font-black text-slate-800 print:py-1 flex items-center gap-2">
+                    <span class="no-print text-slate-400 transition-transform duration-300 group-hover:text-blue-500" :class="{ 'rotate-180 text-blue-600': isExpanded(f) }">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                    </span>
+                    {{ f.vault_name }}
+                  </td>
+                  <td class="px-4 py-2.5 font-black text-slate-500 print:py-1">{{ f.currency_code }}</td>
+                  <td class="px-4 py-2.5 font-black text-emerald-600 print:py-1">{{ formatNum(f.total_in) }}</td>
+                  <td class="px-4 py-2.5 font-black text-rose-600 print:py-1">{{ formatNum(f.total_out) }}</td>
+                  <td class="px-4 py-2.5 font-black text-left print:py-1" :class="f.net_change >= 0 ? 'text-emerald-700' : 'text-rose-700'">
+                    {{ formatNum(f.net_change) }}
+                  </td>
+                </tr>
+
+                <!-- Collapsible Detail Sub-Table (Hidden in Print) -->
+                <tr v-if="isExpanded(f)" class="bg-slate-50/60 no-print transition-all duration-300">
+                  <td colspan="5" class="px-6 py-4">
+                    <div class="bg-slate-950 text-slate-100 rounded-3xl p-6 shadow-2xl border border-white/5 space-y-4">
+                      <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                        <span class="text-xs font-black text-blue-400 tracking-tight flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span>
+                          وردەکاری جوڵە داراییەکان: {{ f.vault_name }} ({{ f.currency_code }})
+                        </span>
+                        <span class="text-[9px] bg-slate-900 text-slate-400 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
+                          کۆی جوڵەکان: {{ getRowDetails(f).length }}
+                        </span>
+                      </div>
+                      
+                      <div v-if="getRowDetails(f).length === 0" class="text-center py-6 text-xs text-slate-500 font-bold">
+                        هیچ جوڵەیەکی حیسابی بەردەست نییە بۆ ئەم سندوق و دراوە لەم بەروارەدا.
+                      </div>
+                      
+                      <table v-else class="w-full text-right text-[10px] border-collapse">
+                        <thead>
+                          <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
+                            <th class="pb-3 text-right">ڕێکەوت و کات</th>
+                            <th class="pb-3 text-right">ناو / جۆری مامەڵە</th>
+                            <th class="pb-3 text-right text-emerald-400">هاتوو (+)</th>
+                            <th class="pb-3 text-right text-rose-400">ڕۆیشتوو (-)</th>
+                            <th class="pb-3 text-left">ئەنجامدەر</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 font-semibold">
+                          <tr v-for="d in getRowDetails(f)" :key="d.id" class="hover:bg-white/[0.02] transition-colors">
+                            <td class="py-3 text-slate-400 font-bold">{{ d.date }}</td>
+                            <td class="py-3 font-bold text-slate-200">{{ d.description }}</td>
+                            <td class="py-3 text-emerald-400 font-black">{{ d.total_in > 0 ? formatNum(d.total_in) : '-' }}</td>
+                            <td class="py-3 text-rose-400 font-black">{{ d.total_out > 0 ? formatNum(d.total_out) : '-' }}</td>
+                            <td class="py-3 text-left text-slate-400 font-bold">{{ d.user_name || 'سیستەم' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </section>
@@ -225,6 +275,23 @@ import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
 const data = ref({})
 const branches = ref([])
 const loading = ref(false)
+
+const expandedRows = ref({})
+
+function toggleRow(f) {
+  const key = f.vault_code + '_' + f.currency_code
+  expandedRows.value[key] = !expandedRows.value[key]
+}
+
+function isExpanded(f) {
+  const key = f.vault_code + '_' + f.currency_code
+  return !!expandedRows.value[key]
+}
+
+function getRowDetails(f) {
+  if (!data.value.vault_details) return []
+  return data.value.vault_details.filter(d => d.vault_code === f.vault_code && d.currency_code === f.currency_code)
+}
 const filters = ref({
   from_date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
   to_date: new Date().toISOString().split('T')[0],

@@ -387,6 +387,101 @@
           </div>
        </div>
     </div>
+
+    <!-- PREMIUM INVOICE PREVIEW MODAL -->
+    <div v-if="showPreviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[99999] flex items-center justify-center p-4 md:p-8 overflow-y-auto no-print animate-fade-in text-right">
+       <div class="bg-slate-900 border border-white/10 w-full max-w-3xl rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden relative">
+          <!-- Modal Header -->
+          <div class="px-8 py-6 bg-slate-950/50 border-b border-white/5 flex items-center justify-between">
+             <div class="flex items-center gap-3">
+                <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                <h3 class="text-base font-black text-white">پێشداڕشتنی پسوڵە (Invoice Preview)</h3>
+             </div>
+             <button @click="showPreviewModal = false" class="w-10 h-10 bg-slate-950 hover:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+             </button>
+          </div>
+
+          <!-- Preview Content (Scrollable) -->
+          <div class="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar bg-slate-950/30">
+             <!-- Embedded Print-ready Layout for Preview -->
+             <div class="bg-white text-black p-8 rounded-3xl border border-white/10 font-sans shadow-2xl relative" dir="rtl">
+                <!-- Header -->
+                <div class="flex justify-between items-center border-b-2 border-black pb-4 mb-4">
+                   <div class="flex items-center gap-3">
+                      <img src="/logo.png" class="h-12 w-12 object-contain grayscale" />
+                      <div>
+                         <h1 class="text-base font-black text-black leading-none">کۆمپانیای سەروەری موکریان</h1>
+                         <p class="text-[8px] font-bold text-black uppercase mt-1">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
+                      </div>
+                   </div>
+                   <div class="text-left" dir="ltr">
+                      <h2 class="text-base font-black text-black leading-none">TRANSACTION VOUCHER</h2>
+                      <p class="text-[8px] font-black mt-1">REF: #REG-{{ previewingEntry.id }}</p>
+                   </div>
+                </div>
+
+                <!-- Basic Info Grid -->
+                <div class="grid grid-cols-2 gap-3 mb-4 text-[9px]">
+                   <div class="border border-black p-2 rounded">
+                      <span class="font-black block text-slate-500">بەروار / Date</span>
+                      <span class="text-xs font-black">{{ formatDate(previewingEntry.entry_date) }}</span>
+                   </div>
+                   <div class="border border-black p-2 rounded text-left" dir="ltr">
+                      <span class="font-black block text-slate-500">Operation Status</span>
+                      <span class="text-xs font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
+                   </div>
+                </div>
+
+                <!-- Transaction Detail Table -->
+                <div class="border-2 border-black mb-4">
+                   <div class="bg-black text-white px-3 py-1.5 flex justify-between text-[9px] font-black uppercase">
+                      <span>حیسابەکان / Accounts Details</span>
+                      <span>بڕی پارە / Amount</span>
+                   </div>
+                   <div class="flex">
+                      <!-- Account Info -->
+                      <div class="flex-1 p-3 border-l-2 border-black flex flex-col gap-3 text-right">
+                         <div>
+                            <span class="text-[7px] font-black text-slate-400 uppercase block font-sans">حیسابی قەرزار / DEBTOR (FROM)</span>
+                            <p class="text-sm font-black leading-tight">{{ previewingEntry.debtor_account?.name }}</p>
+                            <p class="text-[8px] font-bold text-slate-600">Code: {{ previewingEntry.debtor_account?.code }}</p>
+                         </div>
+                         <div class="border-t border-slate-200 pt-2">
+                            <span class="text-[7px] font-black text-slate-400 uppercase block font-sans">حیسابی داین / CREDITOR (TO)</span>
+                            <p class="text-sm font-black leading-tight">{{ previewingEntry.creditor_account?.name }}</p>
+                            <p class="text-[8px] font-bold text-slate-600">Code: {{ previewingEntry.creditor_account?.code }}</p>
+                         </div>
+                      </div>
+                      <!-- Big Amount -->
+                      <div class="w-1/3 p-3 flex flex-col items-center justify-center bg-slate-50">
+                         <span class="text-[7px] font-black text-slate-400 uppercase block mb-1">TOTAL AMOUNT</span>
+                         <p class="text-2xl font-black font-mono tracking-tighter">{{ formatNum(previewingEntry.amount) }}</p>
+                         <p class="text-xs font-black text-slate-600 uppercase">{{ previewingEntry.currency?.code }}</p>
+                      </div>
+                   </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div v-if="previewingEntry.notes" class="border border-black p-2 rounded mb-3 text-[9px] text-right">
+                   <span class="font-black block text-slate-500">تێبینی / Notes</span>
+                   <p class="font-bold text-xs">{{ previewingEntry.notes }}</p>
+                </div>
+             </div>
+          </div>
+
+          <!-- Modal Footer (Action Buttons) -->
+          <div class="px-8 py-6 bg-slate-950/80 border-t border-white/5 flex gap-4 justify-end">
+             <button @click="showPreviewModal = false" class="px-6 py-4 bg-slate-900 border border-white/5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all">
+                پەشیمانبوونەوە
+             </button>
+             <button @click="executePrint" class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                دڵنیابوونەوە و پرینتکردن
+             </button>
+          </div>
+       </div>
+    </div>
   </div>
 </template>
 
@@ -406,13 +501,21 @@ const toDate = ref('')
 const loading = ref(false)
 const currentFilterId = ref(null)
 const printingEntry = ref(null)
+const previewingEntry = ref(null)
+const showPreviewModal = ref(false)
 
 async function printInvoice(entry) {
-  printingEntry.value = entry
+  previewingEntry.value = entry
+  showPreviewModal.value = true
+}
+
+async function executePrint() {
+  printingEntry.value = previewingEntry.value
+  showPreviewModal.value = false
   setTimeout(() => {
     window.print()
     printingEntry.value = null
-  }, 100)
+  }, 150)
 }
 const currencyId = computed(() => currentFilterId.value || Number(route.params.currencyId) || (currencies.value.length ? currencies.value[0].id : 1))
 const activeCurrency = computed(() => currencies.value.find(c => c.id === (newEntry.value.currency_id || currencyId.value)) || {})

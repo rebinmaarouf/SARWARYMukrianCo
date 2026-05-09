@@ -154,10 +154,10 @@ class RegistryController extends Controller
 
             $registry->update($validated);
 
-            // 1. Debtor Leg (Customer pays principal + all commissions)
+            // 1. Debtor Leg (Customer pays principal + Commission 1)
             if ($registry->debtor_account_id) {
-                $totalToCollect = (float)$registry->amount + (float)$registry->commission_1 + (float)$registry->commission_2;
-                JournalService::record($registry, $registry->debtor_account_id, $registry->currency_id, $totalToCollect, 0, "پسوڵەی #{$registry->id} (نوێکراوە) - مەدین (کۆی گشتی)", $registry->entry_date);
+                $totalToCollect = (float)$registry->amount + (float)$registry->commission_1;
+                JournalService::record($registry, $registry->debtor_account_id, $registry->currency_id, $totalToCollect, 0, "پسوڵەی #{$registry->id} (نوێکراوە) - مەدین (ئەسڵ + عمولەی ١)", $registry->entry_date);
             }
 
             // 2. Creditor Leg (We owe agent: Principal + Commission 2)
@@ -166,11 +166,23 @@ class RegistryController extends Controller
                 JournalService::record($registry, $registry->creditor_account_id, $registry->currency_id, 0, $totalWeOweAgent, "پسوڵەی #{$registry->id} (نوێکراوە) - داین (ئەسڵ + عمولەی ٢)", $registry->entry_date);
             }
 
-            // 3. Our Profit (Commission 1 -> Goes to Profit & Loss 02)
-            if ($registry->commission_1 > 0) {
-                $profitAccount = Account::where('code', '02')->first();
-                if ($profitAccount) {
-                    JournalService::record($registry, $profitAccount->id, $registry->currency_id, 0, (float)$registry->commission_1, "قازانجی حەواڵە (عمولەی ١) - پسوڵەی #{$registry->id} (نوێکراوە)", $registry->entry_date);
+            // 3. Net Commission Income (Commission 1 - Commission 2 -> Goes to Commission Income in the registry's branch)
+            $netCommission = (float)$registry->commission_1 - (float)$registry->commission_2;
+            if ($netCommission != 0) {
+                // Find income account in the registry's branch
+                $incomeAccount = Account::withoutGlobalScopes()
+                    ->where('branch_id', $registry->branch_id)
+                    ->where(function($q) {
+                        $q->where('code', '401')
+                          ->orWhere('code', 'T03')
+                          ->orWhere('type', 'revenue');
+                    })
+                    ->first();
+
+                if ($incomeAccount) {
+                    $debit = $netCommission < 0 ? abs($netCommission) : 0;
+                    $credit = $netCommission > 0 ? $netCommission : 0;
+                    JournalService::record($registry, $incomeAccount->id, $registry->currency_id, $debit, $credit, "قازانجی سافی حەواڵە - پسوڵەی #{$registry->id} (نوێکراوە)", $registry->entry_date);
                 }
             }
 
