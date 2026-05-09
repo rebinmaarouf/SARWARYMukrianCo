@@ -15,24 +15,31 @@
   }
 
   /* ---------------------------------------------------- */
-  /* Visibility-based Print Isolation (Masterclass Engine) */
+  /* Classic Display-Based Print Isolation (Bulletproof) */
   /* ---------------------------------------------------- */
   
-  /* Hide everything under the body by default */
-  html, body {
+  /* Hide all screen-only navigation, header, sidebar, buttons, and custom classes */
+  aside,
+  header,
+  nav,
+  .no-print,
+  button,
+  .modal,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Clean print layout reset for core wrapping trees */
+  html, body, #app, main {
     background: white !important;
     color: black !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    visibility: hidden !important;
-  }
-
-  /* Make ONLY the active print container and its contents visible */
-  .print-only-container,
-  .print-only-container * {
-    visibility: visible !important;
+    overflow: visible !important;
+    box-shadow: none !important;
   }
 
   /* ---------------------------------------------------- */
