@@ -197,4 +197,10 @@ class AuditReportController extends Controller
             'accounts' => $details
         ];
     }
+
+    public function verifyIntegrity()
+    {
+        $result = \App\Services\IntegrityService::verifyChain();
+        return response()->json($result);
+    }
 }

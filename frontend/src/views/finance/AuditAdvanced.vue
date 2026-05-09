@@ -40,6 +40,72 @@
       </div>
     </div>
 
+    <!-- Cryptographic Database Integrity Shield (No Print) -->
+    <div class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl mb-10 no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div class="flex items-center gap-4">
+        <!-- Shield Icon with Pulsing Glow -->
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-2xl"
+             :class="{
+               'bg-blue-500/10 text-blue-400 shadow-blue-500/10': integrityStatus === null,
+               'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/20 border border-emerald-500/20 animate-pulse': integrityStatus === 'secure',
+               'bg-rose-500/10 text-rose-400 shadow-rose-500/20 border border-rose-500/20 animate-bounce': integrityStatus === 'tampered'
+             }">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-black tracking-tight mb-1">سیستەمی پاراستنی کریپتۆگرافی داتابەیس (Database Integrity Shield)</h2>
+          <p class="text-xs text-slate-400 font-semibold">
+            پشکنینی چڕی داتاکان بە شێوازی زنجیرەیی کریپتۆگرافی (Cryptographic Hash Chain) بۆ دۆزینەوەی گۆڕانکاری یان سڕینەوەی دەرەکی.
+          </p>
+          <div class="mt-2 flex flex-wrap gap-2 text-[10px] font-bold">
+            <span v-if="integrityStatus === null" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-full">سیستەم ئامادەیە بۆ پشکنین</span>
+            <span v-else-if="integrityStatus === 'secure'" class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+              سەرجەم جوڵەکان پارێزراون (Scanned {{ scannedRows }} entries - Hash Chain Intact)
+            </span>
+            <span v-else-if="integrityStatus === 'tampered'" class="px-3 py-1 bg-rose-500/10 text-rose-400 rounded-full border border-rose-500/20">
+              ئاگاداری: دەستکاری دەرەکی دۆزرایەوە! (Chain Breached)
+            </span>
+          </div>
+        </div>
+      </div>
+      <button @click="runIntegrityCheck" :disabled="integrityLoading" 
+              class="px-6 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50">
+        {{ integrityLoading ? 'پشکنینی داتابەیس...' : 'دەستپێکردنی پشکنینی هاوسەنگی' }}
+      </button>
+    </div>
+
+    <!-- Integrity Breach Details List (Only shown if Tampered, No Print) -->
+    <div v-if="integrityStatus === 'tampered'" class="bg-rose-950/20 border border-rose-500/20 p-8 rounded-[3rem] backdrop-blur-3xl mb-10 no-print space-y-4">
+      <div class="flex items-center gap-2 border-b border-rose-500/10 pb-3">
+        <span class="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping"></span>
+        <h3 class="text-md font-black text-rose-400">لیستی مامەڵە دەستکاری کراوە دۆزراوەکان (Tampered Rows Found)</h3>
+      </div>
+      <table class="w-full text-right text-xs">
+        <thead>
+          <tr class="text-slate-400 border-b border-white/5">
+            <th class="pb-2">کۆدی دێڕ (ID)</th>
+            <th class="pb-2">ڕێکەوت</th>
+            <th class="pb-2">وەسف</th>
+            <th class="pb-2 text-emerald-400">هاتوو (+)</th>
+            <th class="pb-2 text-rose-400">ڕۆیشتوو (-)</th>
+            <th class="pb-2">هۆکاری کێشەکە</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5 font-semibold text-slate-300">
+          <tr v-for="v in integrityViolations" :key="v.id" class="hover:bg-rose-500/5 transition-colors">
+            <td class="py-3 text-rose-400 font-bold">#{{ v.id }}</td>
+            <td class="py-3">{{ v.date }}</td>
+            <td class="py-3 font-bold text-white">{{ v.description }}</td>
+            <td class="py-3 text-emerald-400">{{ v.debit > 0 ? formatNum(v.debit) : '-' }}</td>
+            <td class="py-3 text-rose-400">{{ v.credit > 0 ? formatNum(v.credit) : '-' }}</td>
+            <td class="py-3 text-rose-400 italic">{{ v.reason }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Main Report Content (Printable) -->
     <div id="printable-report" class="bg-white text-slate-950 md:rounded-[3rem] overflow-hidden shadow-2xl relative print:m-0 print:rounded-none" dir="rtl">
       
@@ -275,6 +341,46 @@ import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
 const data = ref({})
 const branches = ref([])
 const loading = ref(false)
+
+const integrityLoading = ref(false)
+const integrityStatus = ref(null)
+const integrityViolations = ref([])
+const scannedRows = ref(0)
+
+async function runIntegrityCheck() {
+  integrityLoading.value = true
+  integrityStatus.value = null
+  integrityViolations.value = []
+  try {
+    const { data: res } = await axios.get('/audit-advanced/verify')
+    integrityStatus.value = res.status
+    integrityViolations.value = res.violations || []
+    scannedRows.value = res.scanned_rows || 0
+    
+    if (res.status === 'secure') {
+      Swal.fire({
+        icon: 'success',
+        title: 'داتابەیس تەواو سەلامەتە!',
+        text: `سەرجەم ${res.scanned_rows} جوڵەی حیسابی زنجیرەیی پشکنینیان بۆ کرا و هیچ گۆڕانکاری دەرەکی نەدۆزرایەوە.`,
+        confirmButtonText: 'زۆر باشە',
+        confirmButtonColor: '#10b981'
+      })
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'ئاگاداری: گۆڕانکاری نەخوازراو!',
+        text: `کێشە لە هاوسەنگی کریپتۆگرافی دۆزرایەوە! ${res.violations.length} جوڵەی حیسابی دەستکاری کراون یان سڕدراونەتەوە!`,
+        confirmButtonText: 'بینینی وردەکاری',
+        confirmButtonColor: '#ef4444'
+      })
+    }
+  } catch (e) {
+    console.error(e)
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'شکستی هێنا لە ئەنجامدانی پشکنین.' })
+  } finally {
+    integrityLoading.value = false
+  }
+}
 
 const expandedRows = ref({})
 

@@ -62,6 +62,23 @@ class JournalEntry extends Model
 
     protected static function booted()
     {
+        static::creating(function ($entry) {
+            $previous = static::withoutGlobalScopes()
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            $previousHash = $previous ? $previous->hash : "0000000000000000000000000000000000000000000000000000000000000000";
+            
+            $entry->previous_hash = $previousHash;
+            $entry->hash = static::calculateHashFor($entry, $previousHash);
+        });
+
+        static::updating(function ($entry) {
+            if ($entry->isDirty(['account_id', 'currency_id', 'debit', 'credit', 'date'])) {
+                $entry->hash = static::calculateHashFor($entry, $entry->previous_hash);
+            }
+        });
+
         static::saved(function ($entry) {
             static::recalculateFor($entry->account_id, $entry->currency_id);
         });
@@ -69,6 +86,22 @@ class JournalEntry extends Model
         static::deleted(function ($entry) {
             static::recalculateFor($entry->account_id, $entry->currency_id);
         });
+    }
+
+    public static function calculateHashFor($entry, $previousHash)
+    {
+        $dateStr = $entry->date instanceof \Carbon\Carbon 
+            ? $entry->date->toDateString() 
+            : (is_string($entry->date) ? explode(' ', $entry->date)[0] : (string)$entry->date);
+
+        $data = $entry->account_id . '|' . 
+                $entry->currency_id . '|' . 
+                (float)$entry->debit . '|' . 
+                (float)$entry->credit . '|' . 
+                $dateStr . '|' . 
+                $previousHash;
+                
+        return hash('sha256', $data);
     }
 
     public static function recalculateFor($accountId, $currencyId)

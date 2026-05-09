@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Finance Domain
     Route::apiResource('registries', RegistryController::class);
     Route::get('audit-advanced', [AuditReportController::class, 'getAdvancedAudit']);
+    Route::get('audit-advanced/verify', [AuditReportController::class, 'verifyIntegrity']);
     Route::get('accounts/recalculate', [AccountController::class, 'recalculateBalances']);
     Route::apiResource('accounts', AccountController::class);
     Route::apiResource('transfers', TransferController::class);
