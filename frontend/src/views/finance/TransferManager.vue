@@ -368,7 +368,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
 
@@ -386,7 +386,7 @@ async function printReceipt(t) {
   showPrintOptions.value = true
 }
 
-function executePrint(mode) {
+async function executePrint(mode) {
   printMode.value = mode
   printingTransfer.value = selectedTransferToPrint.value
   showPrintOptions.value = false
@@ -394,11 +394,13 @@ function executePrint(mode) {
   // Apply body print class
   document.body.classList.add(`print-${mode}`)
   
+  await nextTick()
+  
   setTimeout(() => {
     window.print()
     printingTransfer.value = null
     document.body.classList.remove(`print-${mode}`)
-  }, 150)
+  }, 350)
 }
 
 async function deleteTransfer(id) {

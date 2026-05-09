@@ -459,7 +459,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
 import { useAuthStore } from '../../stores/auth'
@@ -787,7 +787,7 @@ function printInvoice(tx) {
   showPrintOptions.value = true
 }
 
-function executePrint(mode) {
+async function executePrint(mode) {
   printMode.value = mode
   printingTx.value = selectedTxToPrint.value
   showPrintOptions.value = false
@@ -795,11 +795,13 @@ function executePrint(mode) {
   // Apply body print class
   document.body.classList.add(`print-${mode}`)
   
+  await nextTick()
+  
   setTimeout(() => {
     window.print()
     printingTx.value = null
     document.body.classList.remove(`print-${mode}`)
-  }, 150)
+  }, 350)
 }
 
 const formatNum = (n) => new Intl.NumberFormat().format(n || 0)

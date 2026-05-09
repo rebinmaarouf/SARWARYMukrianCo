@@ -585,7 +585,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
@@ -617,11 +617,13 @@ async function executePrint(mode) {
   // Apply body print class
   document.body.classList.add(`print-${mode}`)
   
+  await nextTick()
+  
   setTimeout(() => {
     window.print()
     printingEntry.value = null
     document.body.classList.remove(`print-${mode}`)
-  }, 150)
+  }, 350)
 }
 const currencyId = computed(() => currentFilterId.value || Number(route.params.currencyId) || (currencies.value.length ? currencies.value[0].id : 1))
 const activeCurrency = computed(() => currencies.value.find(c => c.id === (newEntry.value.currency_id || currencyId.value)) || {})
