@@ -8,45 +8,41 @@
 }
 
 @media print {
-  /* Set page margin to 0 for maximum area and to eliminate browser header/footer */
+  /* Set page size and eliminate browser headers/footers */
   @page {
-    size: auto;
+    size: A4 portrait;
     margin: 0mm !important;
   }
 
-  /* Hide screen-only interactive elements */
-  .no-print, nav, header, aside, .sidebar, .navbar, .top-bar, button, .modal, [role="dialog"], .btn, .alert {
-    display: none !important;
-  }
+  /* ---------------------------------------------------- */
+  /* Visibility-based Print Isolation (Masterclass Engine) */
+  /* ---------------------------------------------------- */
   
-  /* Set html and body to clean printable defaults */
+  /* Hide everything under the body by default */
   html, body {
     background: white !important;
     color: black !important;
     width: 100% !important;
     height: auto !important;
-    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
+    visibility: hidden !important;
   }
 
-  /* Keep #app and main wrappers visible during print */
-  #app, .min-h-screen, .flex, .flex-1, main {
-    background: transparent !important;
-    background-color: white !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  /* Make ONLY the active print container and its contents visible */
+  .print-only-container,
+  .print-only-container * {
+    visibility: visible !important;
   }
 
   /* ---------------------------------------------------- */
-  /* 80mm Thermal Printer Mode Isolation */
+  /* 80mm Thermal Printer Mode Setup */
   /* ---------------------------------------------------- */
   body.print-80mm .print-only-container#print-area,
   body.print-80mm .print-only-container#receipt-print-area,
   body.print-80mm .print-only-container#print-area-registry-thermal {
     display: block !important;
-    position: fixed !important;
+    position: absolute !important;
     top: 0 !important;
     left: 0 !important;
     width: 80mm !important;
@@ -59,30 +55,25 @@
     box-sizing: border-box !important;
   }
 
-  /* Make sure children are shown correctly in 80mm */
-  body.print-80mm .print-only-container#print-area *,
-  body.print-80mm .print-only-container#receipt-print-area *,
-  body.print-80mm .print-only-container#print-area-registry-thermal * {
-    display: unset !important;
-    visibility: visible !important;
+  /* Correct flex/grid display for visible children */
+  body.print-80mm .print-only-container .flex { display: flex !important; }
+  body.print-80mm .print-only-container .grid { display: grid !important; }
+  body.print-80mm .print-only-container table { display: table !important; }
+  body.print-80mm .print-only-container thead { display: table-header-group !important; }
+  body.print-80mm .print-only-container tr { display: table-row !important; }
+  body.print-80mm .print-only-container th, 
+  body.print-80mm .print-only-container td { 
+    display: table-cell !important; 
   }
 
-  /* Reset tables & flex grids for 80mm */
-  body.print-80mm .flex { display: flex !important; }
-  body.print-80mm .grid { display: grid !important; }
-  body.print-80mm table { display: table !important; }
-  body.print-80mm thead { display: table-header-group !important; }
-  body.print-80mm tr { display: table-row !important; }
-  body.print-80mm th, body.print-80mm td { display: table-cell !important; }
-
   /* ---------------------------------------------------- */
-  /* A4/A5 Laser Printer Mode Isolation */
+  /* A4 Laser Printer Mode Setup (Single Page fit) */
   /* ---------------------------------------------------- */
   body.print-a4 .print-only-container#print-area-a4,
   body.print-a4 .print-only-container#receipt-print-area-a4,
   body.print-a4 .print-only-container#print-area-registry-a4 {
     display: block !important;
-    position: fixed !important;
+    position: absolute !important;
     top: 0 !important;
     left: 0 !important;
     width: 210mm !important;
@@ -93,28 +84,21 @@
     z-index: 99999999 !important;
     padding: 8mm !important;
     box-sizing: border-box !important;
-    overflow: hidden !important; /* Strictly limit to 1 page */
-    page-break-inside: avoid !important;
-    page-break-after: avoid !important;
+    overflow: hidden !important; /* Ensure it never spills into Page 2 */
   }
 
-  /* Make sure children are shown correctly in A4 */
-  body.print-a4 .print-only-container#print-area-a4 *,
-  body.print-a4 .print-only-container#receipt-print-area-a4 *,
-  body.print-a4 .print-only-container#print-area-registry-a4 * {
-    display: unset !important;
-    visibility: visible !important;
+  /* Correct flex/grid display for visible children */
+  body.print-a4 .print-only-container .flex { display: flex !important; }
+  body.print-a4 .print-only-container .grid { display: grid !important; }
+  body.print-a4 .print-only-container table { display: table !important; }
+  body.print-a4 .print-only-container thead { display: table-header-group !important; }
+  body.print-a4 .print-only-container tr { display: table-row !important; }
+  body.print-a4 .print-only-container th, 
+  body.print-a4 .print-only-container td { 
+    display: table-cell !important; 
   }
 
-  /* Reset layout grids and tables for A4 */
-  body.print-a4 .flex { display: flex !important; }
-  body.print-a4 .grid { display: grid !important; }
-  body.print-a4 table { display: table !important; }
-  body.print-a4 thead { display: table-header-group !important; }
-  body.print-a4 tr { display: table-row !important; }
-  body.print-a4 th, body.print-a4 td { display: table-cell !important; }
-
-  /* Ensure the A4 page doesn't break into 2 pages */
+  /* Strict budget constraints for A4 vouchers to avoid page-break */
   .a4-voucher, .print-voucher {
     page-break-inside: avoid !important;
     max-height: 135mm !important;
