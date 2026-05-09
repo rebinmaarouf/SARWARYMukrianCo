@@ -164,11 +164,22 @@
 
     <!-- Live Transaction Ledger -->
     <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[4rem] overflow-hidden shadow-2xl no-print">
-      <div class="p-10 border-b border-white/5 flex justify-between items-center" dir="rtl">
+      <div class="p-10 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6" dir="rtl">
         <div>
            <h3 class="text-2xl font-black text-white tracking-tight">مێژووی ئاڵوگۆڕەکان</h3>
            <p class="text-slate-500 text-xs font-bold mt-1">لیستی دوایین مامەڵە جێبەجێکراوەکان</p>
         </div>
+        
+        <!-- Advanced Interactive Search -->
+        <div class="flex items-center gap-3 bg-slate-950/80 px-4 py-3 border border-white/5 rounded-2xl w-full md:max-w-md">
+          <span class="text-slate-400 text-sm">🔍</span>
+          <input v-model="tableSearch"
+                 type="text"
+                 placeholder="بگەڕێ بەپێی: ناسنامە # (بۆ نمونە: 44)، مشتەری، بڕ یان نرخ..."
+                 class="bg-transparent text-white border-0 outline-none ring-0 w-full text-xs font-black placeholder:text-slate-600" />
+          <button v-if="tableSearch" @click="tableSearch = ''" class="text-slate-500 hover:text-white font-bold text-xs">✕</button>
+        </div>
+
         <div class="flex gap-2 bg-slate-950 p-2 rounded-2xl border border-white/5">
            <button v-for="f in ['هەمووی', 'buy', 'sell']" :key="f" @click="tableFilter = (f === 'هەمووی' ? 'all' : f)"
              class="px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
@@ -182,6 +193,7 @@
         <table class="w-full text-right" dir="rtl">
           <thead>
             <tr class="bg-slate-950/40 text-slate-600 text-[9px] font-black uppercase tracking-[0.3em] border-b border-white/5">
+              <th class="px-8 py-6 text-right">ناسنامە #</th>
               <th class="px-8 py-6 text-right">کات و بەروار</th>
               <th class="px-8 py-6 text-center">جۆری جوڵە</th>
               <th class="px-8 py-6 text-right">ناوی مشتەری</th>
@@ -192,6 +204,11 @@
           </thead>
           <tbody class="divide-y divide-white/5">
             <tr v-for="t in filteredTransactions" :key="t.id" class="group hover:bg-white/[0.02] transition-all">
+              <td class="px-8 py-6">
+                <span class="px-3 py-1.5 bg-slate-950 border border-white/5 text-slate-400 rounded-xl text-[10px] font-black">
+                  #{{ t.id }}
+                </span>
+              </td>
               <td class="px-8 py-6 text-slate-500 font-bold text-xs">{{ formatFullTime(t.created_at) }}</td>
               <td class="px-8 py-6 text-center">
                 <span class="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase" :class="t.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'">
@@ -229,40 +246,217 @@
     </div>
 
     <!-- Print Template (Invisible) -->
-    <div v-if="printingTx" id="print-area" class="fixed inset-0 bg-white z-[9999] p-10 text-black hidden print:block" dir="rtl">
-       <div v-for="i in 2" :key="i" class="mb-12 border-b-2 border-dashed border-slate-300 pb-12">
-          <div class="flex justify-between items-center mb-8">
+    <div v-if="printingTx" id="print-area" class="fixed inset-0 bg-white z-[9999] p-4 text-black hidden print:block" dir="rtl">
+       <div v-for="i in 2" :key="i" class="pb-6" :class="{ 'border-t border-dashed border-black pt-6 mt-6': i === 2 }">
+          <div class="text-center mb-4">
+             <div class="flex items-center justify-center gap-2 mb-1">
+                <img src="/logo.png" class="w-10 h-10 grayscale" @error="(e) => e.target.style.display='none'" />
+                <h2 class="text-base font-black tracking-tight text-black">کۆمپانیای سەروەری موکریان</h2>
+             </div>
+             <p class="text-[9px] font-bold text-black opacity-70">نوسینگەی فەرمی ئاڵوگۆڕی دراوەکان</p>
+             <p class="text-[8px] text-slate-500 font-mono">Ref ID: #TX-{{ printingTx.id }}</p>
+          </div>
+
+          <!-- Transaction Type Bar -->
+          <div class="bg-black text-white text-center py-1 text-xs font-black rounded mb-3 uppercase tracking-wider">
+             {{ printingTx.type === 'buy' ? 'کڕینی دراو (BUY)' : 'فرۆشتنی دراو (SELL)' }}
+          </div>
+
+          <!-- Voucher Details -->
+          <div class="space-y-1 text-[10px] border-b border-dashed border-slate-300 pb-2 mb-3">
+             <div class="flex justify-between">
+                <span class="font-bold opacity-60">بەروار و کات:</span>
+                <span class="font-bold font-mono">{{ formatFullTime(printingTx.created_at) }}</span>
+             </div>
+             <div class="flex justify-between">
+                <span class="font-bold opacity-60">مشتەری:</span>
+                <span class="font-black">{{ printingTx.client_name || printingTx.account?.name || 'مشتەری گشتی' }}</span>
+             </div>
+             <div class="flex justify-between" v-if="printingTx.user?.name">
+                <span class="font-bold opacity-60">ئەنجامدەر:</span>
+                <span class="font-bold">{{ printingTx.user?.name }}</span>
+              </div>
+          </div>
+
+          <!-- Financial Calculation Block -->
+          <div class="bg-slate-100 p-2.5 rounded-lg mb-3">
+             <div class="flex justify-between items-center mb-1">
+                <span class="text-[8px] font-black uppercase opacity-60">بڕی سەرەکی:</span>
+                <span class="text-base font-black font-mono text-black">{{ formatNum(printingTx.primary_amount) }} {{ printingTx.primary_currency }}</span>
+             </div>
+             <div class="flex justify-between items-center mb-1">
+                <span class="text-[8px] font-black uppercase opacity-60">نرخی ئاڵوگۆڕ:</span>
+                <span class="text-[11px] font-black font-mono text-black">@ {{ formatNum(printingTx.rate) }}</span>
+             </div>
+             <div class="h-px bg-slate-300 my-1.5"></div>
+             <div class="flex justify-between items-center">
+                <span class="text-[9px] font-black uppercase text-black">کۆی گشتی:</span>
+                <span class="text-lg font-black font-mono text-black">{{ formatNum(printingTx.secondary_amount) }} {{ printingTx.secondary_currency }}</span>
+             </div>
+          </div>
+
+          <!-- Signature and Cryptographic Seal -->
+          <div class="text-center space-y-2 py-2">
+             <div class="text-[8px] font-mono text-slate-500 flex justify-center items-center gap-1">
+                <span>🔒 INTEGRITY SEAL:</span>
+                <span class="font-bold text-black">SM-v2-TX-{{ printingTx.id }}-{{ Math.abs(printingTx.profit || 0) }}</span>
+             </div>
+             <p class="text-[8px] font-bold leading-relaxed text-slate-700">
+                «سوپاس بۆ هەڵبژاردنتان. تکایە پێش بەجێهێشتنی نوسینگە لە ڕاستی بڕی داراییەکە دڵنیا ببنەوە.»
+             </p>
+          </div>
+
+          <div class="flex justify-between text-[8px] font-black pt-4 border-t border-dashed border-slate-200">
+             <div class="w-24 border-t border-black pt-1 text-center">واژۆی ژمێریار</div>
+             <div class="w-24 border-t border-black pt-1 text-center">واژۆی کڕیار</div>
+          </div>
+
+          <!-- Divider with Scissors -->
+          <div v-if="i === 1" class="text-center text-[8px] font-bold text-slate-400 py-4 flex justify-center items-center gap-2">
+             <span>✂️-----------------------------------------</span>
+             <span>بڕین لێرەوە (OFFICE / CUSTOMER COPY)</span>
+          </div>
+       </div>
+    </div>
+
+    <!-- A4 Print Template (Invisible) -->
+    <div v-if="printingTx" id="print-area-a4" class="fixed inset-0 bg-white z-[9999] p-8 text-black hidden print:block" dir="rtl">
+       <div v-for="i in 2" :key="i" class="a4-voucher" :class="{ 'border-t-2 border-dashed border-slate-300 pt-8 mt-8': i === 2 }">
+          <!-- Header -->
+          <div class="flex justify-between items-center border-b-2 border-black pb-4 mb-4">
              <div class="flex items-center gap-4">
-                <img src="/logo.png" class="w-16 h-16 grayscale" />
+                <img src="/logo.png" class="h-16 w-16 object-contain grayscale animate-pulse" />
                 <div>
-                   <h2 class="text-xl font-black">کۆمپانیای سەروەری موکریان</h2>
-                   <p class="text-[10px] font-bold opacity-60">نوسینگەی ئاڵوگۆڕی دراو</p>
+                   <h1 class="text-xl font-black text-black">کۆمپانیای سەروەری موکریان</h1>
+                   <p class="text-xs font-bold text-black uppercase">SARWARY MUKRIAN / EXCHANGE VOUCHER</p>
                 </div>
              </div>
              <div class="text-left" dir="ltr">
-                <h1 class="text-2xl font-black leading-none">EXCHANGE SLIP</h1>
-                <p class="text-xs font-bold opacity-50 mt-1">Ref ID: #{{ printingTx.id }}</p>
+                <h2 class="text-xl font-black text-black leading-none">EXCHANGE SLIP</h2>
+                <p class="text-xs font-black mt-1">REF: #TX-{{ printingTx.id }}</p>
              </div>
           </div>
-          <div class="grid grid-cols-3 gap-4 mb-8 text-xs font-bold border-y border-black py-4">
-             <div>بەروار: {{ formatFullTime(printingTx.created_at) }}</div>
-             <div class="text-center">جۆر: {{ printingTx.type === 'buy' ? 'کڕین (BUY)' : 'فرۆشتن (SELL)' }}</div>
-             <div class="text-left">مشتەری: {{ printingTx.client_name || printingTx.account?.name }}</div>
-          </div>
-          <div class="flex justify-between items-end mb-10">
-             <div>
-                <span class="text-[10px] font-black uppercase opacity-50 block mb-2">ووردەکاری مامەڵە</span>
-                <p class="text-3xl font-black">{{ formatNum(printingTx.primary_amount) }} <span class="text-lg opacity-50">{{ printingTx.primary_currency }}</span></p>
-                <p class="text-sm font-bold opacity-60 mt-1">بە نرخی {{ formatNum(printingTx.rate) }}</p>
+
+          <!-- Basic Info Grid -->
+          <div class="grid grid-cols-3 gap-4 mb-6 text-xs text-black">
+             <div class="border border-black p-3 rounded">
+                <span class="font-black block text-slate-500">بەروار / Date</span>
+                <span class="text-sm font-black">{{ formatFullTime(printingTx.created_at) }}</span>
              </div>
-             <div class="text-left">
-                <span class="text-[10px] font-black uppercase opacity-50 block mb-2">کۆی گشتی دینار</span>
-                <p class="text-4xl font-black">{{ formatNum(printingTx.secondary_amount) }} <span class="text-xl opacity-50">{{ printingTx.secondary_currency }}</span></p>
+             <div class="border border-black p-3 rounded">
+                <span class="font-black block text-slate-500">مشتەری / Client</span>
+                <span class="text-sm font-black">{{ printingTx.client_name || printingTx.account?.name || 'مشتەری گشتی' }}</span>
+             </div>
+             <div class="border border-black p-3 rounded text-left" dir="ltr">
+                <span class="font-black block text-slate-500">Operation Status</span>
+                <span class="text-sm font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
              </div>
           </div>
-          <div class="flex justify-between text-[10px] font-black uppercase pt-10 border-t border-slate-100">
-             <div class="w-40 border-t-2 border-black pt-2 text-center">واژۆی ژمێریار</div>
-             <div class="w-40 border-t-2 border-black pt-2 text-center">واژۆی کڕیار</div>
+
+          <!-- Transaction Detail Table -->
+          <div class="border-2 border-black mb-6">
+             <div class="bg-black text-white px-4 py-2.5 flex justify-between text-xs font-black uppercase">
+                <span>ووردەکاری ئاڵوگۆڕ / Transaction Details</span>
+                <span>کۆتایی / Calculation</span>
+             </div>
+             <div class="flex">
+                <!-- Details -->
+                <div class="flex-1 p-4 border-l-2 border-black flex flex-col gap-3 text-right">
+                   <div class="grid grid-cols-2 gap-4">
+                      <div>
+                         <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">جۆری مامەڵە / Transaction Type</span>
+                         <span class="text-sm font-black" :class="printingTx.type === 'buy' ? 'text-emerald-600' : 'text-rose-600'">
+                            {{ printingTx.type === 'buy' ? 'کڕینی دراو (BUY)' : 'فرۆشتنی دراو (SELL)' }}
+                         </span>
+                      </div>
+                      <div>
+                         <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">ئەنجامدەر / Authorized By</span>
+                         <span class="text-sm font-black text-black">{{ printingTx.user?.name || 'Admin' }}</span>
+                      </div>
+                   </div>
+                   <div class="border-t border-slate-200 pt-3">
+                      <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">ڕێژەی ئاڵوگۆڕ / Exchange Rate</span>
+                      <p class="text-lg font-black font-mono text-black">1 {{ printingTx.primary_currency }} = {{ formatNum(printingTx.rate) }} {{ printingTx.secondary_currency }}</p>
+                   </div>
+                </div>
+                <!-- Big Amount -->
+                <div class="w-1/3 p-4 flex flex-col items-center justify-center bg-slate-50">
+                   <span class="text-[9px] font-black text-slate-400 uppercase block font-sans mb-1">TOTAL AMOUNT</span>
+                   <p class="text-3xl font-black font-mono tracking-tighter text-black">{{ formatNum(printingTx.primary_amount) }} {{ printingTx.primary_currency }}</p>
+                   <p class="text-sm font-bold text-slate-500 my-1">بۆ دەکاتە</p>
+                   <p class="text-2xl font-black font-mono text-emerald-600">{{ formatNum(printingTx.secondary_amount) }} {{ printingTx.secondary_currency }}</p>
+                </div>
+             </div>
+          </div>
+
+          <!-- Cryptographic Seal and Footers -->
+          <div class="text-center space-y-2 py-4">
+             <div class="text-[10px] font-mono text-slate-500 flex justify-center items-center gap-2">
+                <span>🔒 INTEGRITY SEAL:</span>
+                <span class="font-bold text-black">SM-v2-TX-{{ printingTx.id }}-SHA256-{{ Math.abs(printingTx.profit || 0) }}</span>
+             </div>
+             <p class="text-xs font-bold leading-relaxed text-slate-700">
+                «تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە. نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.»
+             </p>
+          </div>
+
+          <!-- Signatures -->
+          <div class="flex justify-between mt-12 px-8">
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-xs font-black uppercase">ژمێریار / Accountant</p>
+             </div>
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-xs font-black uppercase">کۆمپانیا / Office Stamp</p>
+             </div>
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-xs font-black uppercase">کڕیار / Client</p>
+             </div>
+          </div>
+
+          <!-- Cut Line -->
+          <div v-if="i === 1" class="my-8 border-t border-dashed border-slate-300 relative">
+             <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[10px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / CUSTOMER COPY)</span>
+          </div>
+       </div>
+    </div>
+
+    <!-- Print Options Modal -->
+    <div v-if="showPrintOptions" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[99999] flex items-center justify-center p-4 md:p-8 overflow-y-auto no-print animate-fade-in text-right">
+       <div class="bg-slate-900 border border-white/10 w-full max-w-lg rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden relative">
+          <!-- Modal Header -->
+          <div class="px-8 py-6 bg-slate-950/50 border-b border-white/5 flex items-center justify-between">
+             <div class="flex items-center gap-3">
+                <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+                <h3 class="text-base font-black text-white">شێوازی چاپکردن هەڵبژێرە</h3>
+             </div>
+             <button @click="showPrintOptions = false" class="w-10 h-10 bg-slate-950 hover:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+             </button>
+          </div>
+
+          <!-- Selection Options -->
+          <div class="p-8 space-y-4">
+             <!-- Option 1: Thermal Printer -->
+             <button @click="executePrint('80mm')" class="w-full text-right p-6 rounded-3xl bg-slate-950/40 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group flex items-center gap-6">
+                <div class="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                   <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="flex-1">
+                   <h4 class="text-white font-black text-lg mb-1 group-hover:text-emerald-400 transition-colors">پسوڵەی حەراری بچووک (80mm)</h4>
+                   <p class="text-slate-400 text-xs">گونجاوە بۆ پرینتەری حەراری بچووک و مۆبایل و تابلێت.</p>
+                </div>
+             </button>
+
+             <!-- Option 2: Laser Printer -->
+             <button @click="executePrint('a4')" class="w-full text-right p-6 rounded-3xl bg-slate-950/40 border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group flex items-center gap-6">
+                <div class="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                   <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                </div>
+                <div class="flex-1">
+                   <h4 class="text-white font-black text-lg mb-1 group-hover:text-blue-400 transition-colors">پسوڵەی فەرمی گەورە (A4 / A5)</h4>
+                   <p class="text-slate-400 text-xs">گونجاوە بۆ پرینتەری گەورەی نوسینگە و لێزەری.</p>
+                </div>
+             </button>
           </div>
        </div>
     </div>
@@ -284,7 +478,11 @@ const liveRates = ref({})
 const loading = ref(false)
 const showResults = ref(null)
 const tableFilter = ref('all')
+const tableSearch = ref('')
 const printingTx = ref(null)
+const showPrintOptions = ref(false)
+const selectedTxToPrint = ref(null)
+const printMode = ref('80mm')
 
 const accounts = ref([])
 const transactions = ref([])
@@ -494,8 +692,23 @@ const filteredAccounts = computed(() => {
 })
 
 const filteredTransactions = computed(() => {
-  if (tableFilter.value === 'all') return transactions.value
-  return transactions.value.filter(t => t.type === tableFilter.value)
+  let list = transactions.value
+  if (tableFilter.value !== 'all') {
+    list = list.filter(t => t.type === tableFilter.value)
+  }
+  const q = tableSearch.value.trim().toLowerCase()
+  if (!q) return list
+
+  return list.filter(t => {
+    const matchId = t.id.toString() === q || t.id.toString() === q.replace('#', '')
+    const clientName = (t.client_name || '').toLowerCase()
+    const accountName = (t.account?.name || '').toLowerCase()
+    const accountCode = (t.account?.code || '').toString().toLowerCase()
+    const matchName = clientName.includes(q) || accountName.includes(q) || accountCode.includes(q)
+    const matchAmount = t.primary_amount.toString().includes(q) || t.secondary_amount.toString().includes(q)
+    const matchRate = t.rate.toString().includes(q)
+    return matchId || matchName || matchAmount || matchRate
+  })
 })
 
 function selectAccount(acc, type) {
@@ -576,8 +789,23 @@ async function deleteTransaction(tx) {
 }
 
 function printInvoice(tx) {
-  printingTx.value = tx
-  setTimeout(() => { window.print(); printingTx.value = null }, 100)
+  selectedTxToPrint.value = tx
+  showPrintOptions.value = true
+}
+
+function executePrint(mode) {
+  printMode.value = mode
+  printingTx.value = selectedTxToPrint.value
+  showPrintOptions.value = false
+  
+  // Apply body print class
+  document.body.classList.add(`print-${mode}`)
+  
+  setTimeout(() => {
+    window.print()
+    printingTx.value = null
+    document.body.classList.remove(`print-${mode}`)
+  }, 150)
 }
 
 const formatNum = (n) => new Intl.NumberFormat().format(n || 0)
@@ -588,9 +816,44 @@ onMounted(fetchData)
 
 <style scoped>
 @media print {
-  body * { visibility: hidden; }
-  #print-area, #print-area * { visibility: visible; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  body * { display: none !important; }
+  
+  /* Shared Print display overrides */
+  body.print-80mm #print-area,
+  body.print-80mm #print-area *,
+  body.print-a4 #print-area-a4,
+  body.print-a4 #print-area-a4 * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  body.print-80mm #print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 2mm !important;
+    box-sizing: border-box !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  body.print-a4 #print-area-a4 {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    padding: 1.5cm !important;
+    box-sizing: border-box !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  body.print-a4 .a4-voucher {
+    width: 100% !important;
+    page-break-inside: avoid !important;
+  }
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 </style>

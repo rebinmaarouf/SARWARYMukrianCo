@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('registries', RegistryController::class);
     Route::get('audit-advanced', [AuditReportController::class, 'getAdvancedAudit']);
     Route::get('audit-advanced/verify', [AuditReportController::class, 'verifyIntegrity']);
+    Route::get('smart-analytics', [\App\Http\Controllers\Api\Finance\SmartAnalyticsController::class, 'index']);
     Route::get('accounts/recalculate', [AccountController::class, 'recalculateBalances']);
     Route::apiResource('accounts', AccountController::class);
     Route::apiResource('transfers', TransferController::class);
@@ -48,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('currencies', CurrencyController::class);
     Route::apiResource('exchanges', ExchangeController::class);
     Route::get('journals', [JournalController::class, 'index']);
+    Route::get('journals/{id}', [JournalController::class, 'show']);
     Route::delete('journals/{id}', [JournalController::class, 'destroy']);
     
     // Reports & Audit

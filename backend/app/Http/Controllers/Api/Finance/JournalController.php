@@ -72,4 +72,13 @@ class JournalController extends Controller
 
         return response()->json(['message' => 'Journal entry and its associated transactions deleted successfully']);
     }
+
+    /**
+     * Display the specified journal entry.
+     */
+    public function show($id)
+    {
+        $entry = JournalEntry::with(['account', 'currency', 'user', 'entryable'])->findOrFail($id);
+        return response()->json($entry);
+    }
 }

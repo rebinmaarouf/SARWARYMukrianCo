@@ -44,7 +44,7 @@
 
         <div class="flex flex-wrap gap-2">
           <span v-for="p in getPerms(role).slice(0, 4)" :key="p" class="px-3 py-1 bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-lg uppercase">
-            {{ p.replace('manage_', '').replace('view_', '').replace(/_/g, ' ') }}
+            {{ permissionLabels[p] || p.replace('manage_', '').replace('view_', '').replace(/_/g, ' ') }}
           </span>
           <span v-if="getPermCount(role) > 4" class="px-3 py-1 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-lg">
             +{{ getPermCount(role) - 4 }}
@@ -85,7 +85,7 @@
               <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-6">دەسەڵاتە دیاریکراوەکان</label>
               <div class="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
                 <label v-for="p in allPermissions" :key="p.id" class="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl cursor-pointer">
-                  <span class="text-xs font-black text-slate-300 uppercase tracking-tight">{{ p.name.replace(/_/g, ' ') }}</span>
+                  <span class="text-xs font-black text-slate-300 uppercase tracking-tight">{{ permissionLabels[p.name] || p.name.replace(/_/g, ' ') }}</span>
                   <input type="checkbox" v-model="form.permissions" :value="p.name" class="w-5 h-5 rounded-lg text-emerald-500 bg-slate-800 border-slate-700">
                 </label>
               </div>
@@ -115,6 +115,20 @@ const showModal = ref(false)
 const isLoading = ref(false)
 const route = useRoute()
 const form = ref({ id: null, name: '', permissions: [] })
+
+const permissionLabels = {
+  view_dashboard: 'بینینی داشبۆرد',
+  manage_exchange: 'بەڕێوەبردنی تێرمیناڵی ئاڵوگۆڕ',
+  manage_hawala: 'بەڕێوەبردنی حەواڵەکان',
+  manage_vaults: 'بەڕێوەبردنی خەزێنەکان',
+  manage_users: 'بەڕێوەبردنی بەکارهێنەران',
+  manage_accounts: 'بەڕێوەبردنی حیسابات',
+  view_reports: 'بینینی ڕاپۆرتەکان',
+  delete_records: 'سڕینەوەی تۆمارەکان',
+  edit_past_records: 'دەستکاریکردنی تۆمارە کۆنەکان',
+  verify_database_integrity: 'پشکنینی پاکی داتابەیس',
+  manage_notifications: 'ڕێکخستنی نۆتیفیکەیشنی ڕاستەوخۆ (Pusher)'
+}
 
 async function fetchData() {
   isLoading.value = true

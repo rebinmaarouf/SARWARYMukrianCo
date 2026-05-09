@@ -166,6 +166,46 @@ class ExchangeController extends Controller
                 // 5. Delegate to comprehensive Journal Service Method
                 $this->recordJournalEntries($transaction, $request);
 
+                // Real-time Push Notification trigger
+                try {
+                    $options = [
+                        'cluster' => env('PUSHER_APP_CLUSTER'),
+                        'useTLS' => true
+                    ];
+                    $pusher = new \Pusher\Pusher(
+                        env('PUSHER_APP_KEY'),
+                        env('PUSHER_APP_SECRET'),
+                        env('PUSHER_APP_ID'),
+                        $options
+                    );
+
+                    $msg = ($transaction->type === 'buy' ? 'کڕینی ' : 'فرۆشتنی ') . 
+                           number_format($transaction->primary_amount) . ' ' . $transaction->primary_currency . 
+                           ' بە نرخی ' . number_format($transaction->rate) . 
+                           ' بۆ حیسابی ' . ($transaction->client_name ?: $transaction->account?->name) . ' ئەنجامدرا.';
+
+                    $pusher->trigger('currency-exchange', 'transaction-created', [
+                        'id' => $transaction->id,
+                        'title' => $transaction->type === 'buy' ? '💸 کڕینی دراو' : '💰 فرۆشتنی دراو',
+                        'message' => $msg,
+                        'type' => $transaction->type,
+                        'time' => now()->format('H:i')
+                    ]);
+
+                    if ($transaction->profit < -1000) {
+                        $currencyLabel = ($transaction->secondary_currency === 'USD') ? 'دۆلار' : 'دینار';
+                        $pusher->trigger('currency-exchange', 'transaction-created', [
+                            'id' => $transaction->id,
+                            'title' => '🔴 ئاگاداری زیانی گەورە',
+                            'message' => "مامەڵەی #{$transaction->id} بڕی زیانێکی زۆری تۆمارکردووە (" . number_format(abs($transaction->profit)) . " {$currencyLabel})!",
+                            'type' => 'anomaly',
+                            'time' => now()->format('H:i')
+                        ]);
+                    }
+                } catch (\Exception $pe) {
+                    \Log::error('Pusher notification error: ' . $pe->getMessage());
+                }
+
                 return response()->json($transaction->load('account'), 201);
             });
         } catch (\Exception $e) {
@@ -300,7 +340,7 @@ class ExchangeController extends Controller
 
     public function show($id)
     {
-        return response()->json(Transaction::with('account')->findOrFail($id));
+        return response()->json(Transaction::with(['account', 'user', 'vault_from', 'vault_to'])->findOrFail($id));
     }
 
     public function destroy($id)

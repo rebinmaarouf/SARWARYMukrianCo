@@ -32,7 +32,12 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|unique:roles,name',
+            'name' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::unique('roles', 'name')
+                    ->where('guard_name', 'api')
+            ],
             'permissions' => 'array'
         ]);
 
@@ -48,7 +53,13 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|string|unique:roles,name,' . $role->id,
+            'name' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::unique('roles', 'name')
+                    ->ignore($role->id)
+                    ->where('guard_name', $role->guard_name)
+            ],
             'permissions' => 'array'
         ]);
 

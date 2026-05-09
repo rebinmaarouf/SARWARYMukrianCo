@@ -26,7 +26,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_reports',
             'delete_records',
             'edit_past_records',
-            'verify_database_integrity'
+            'verify_database_integrity',
+            'manage_notifications'
         ];
 
         foreach ($permissions as $permission) {
@@ -48,7 +49,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 4. Super Admin (God Mode)
         $roleAdmin = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
-        $roleAdmin->syncPermissions(Permission::all());
+        $roleAdmin->syncPermissions(Permission::where('guard_name', 'web')->get());
 
         // Create a default Super Admin user
         $admin = User::firstOrCreate([

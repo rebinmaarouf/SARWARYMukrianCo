@@ -171,13 +171,42 @@
           </div>
 
           <div class="flex items-center gap-4">
+             <!-- Notification Bell Dropdown -->
+             <div class="relative animate-fade-in" v-if="auth.isSuperAdmin || auth.permissions.includes('manage_notifications')">
+                <button @click="toggleNotificationDropdown" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all relative">
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                   <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#050505] animate-pulse"></span>
+                </button>
+
+                <!-- Dropdown Overlay -->
+                <div v-if="isNotificationDropdownOpen" @click.stop class="absolute top-full left-0 mt-3 w-80 bg-slate-950/95 border border-white/10 rounded-2xl shadow-2xl p-4 backdrop-blur-3xl z-[100]" dir="rtl">
+                   <div class="flex justify-between items-center pb-3 border-b border-white/5 mb-3">
+                      <span class="text-xs font-black text-white">ئاگادارکردنەوە ڕاستەوخۆکان</span>
+                      <button v-if="notifications.length > 0" @click="clearNotifications" class="text-[10px] font-bold text-slate-500 hover:text-rose-400 transition-colors">سڕینەوەی هەمووی</button>
+                   </div>
+                   
+                   <div class="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar">
+                      <div v-if="notifications.length === 0" class="py-10 text-center text-xs font-bold text-slate-600">
+                         هیچ ئاگادارکردنەوەیەکی نوێ نییە
+                      </div>
+                      <div v-for="n in notifications" :key="n.id" class="p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all flex flex-col gap-1 text-right">
+                         <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-black text-emerald-400" :class="{ 'text-rose-400': n.type === 'anomaly' }">{{ n.title }}</span>
+                            <span class="text-[8px] font-bold text-slate-500">{{ n.time }}</span>
+                         </div>
+                         <p class="text-xs text-slate-300 font-bold leading-relaxed">{{ n.message }}</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
              <div class="text-right hidden sm:block">
                 <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{{ currentBranch?.name }} / Auth</p>
                 <p class="text-sm font-bold text-white">{{ auth.user?.name }}</p>
              </div>
              <div class="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center font-black text-emerald-500 border border-white/10 shadow-lg">
                 {{ auth.user?.name?.charAt(0) }}
-             </div>
+              </div>
           </div>
        </header>
 
@@ -195,10 +224,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter, useRoute } from 'vue-router'
 import axios from '../plugins/axios'
+import Pusher from 'pusher-js'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -210,6 +240,26 @@ const logoUrl = '/logo.png'
 
 const branches = ref([])
 const currentBranch = ref(null)
+
+// Pusher & Notification States
+const notifications = ref([])
+const unreadCount = ref(0)
+const isNotificationDropdownOpen = ref(false)
+let pusherInstance = null
+
+const clearNotifications = () => {
+  notifications.value = []
+  unreadCount.value = 0
+}
+
+const toggleNotificationDropdown = (event) => {
+  event.stopPropagation()
+  isNotificationDropdownOpen.value = !isNotificationDropdownOpen.value
+}
+
+const closeNotificationDropdown = () => {
+  isNotificationDropdownOpen.value = false
+}
 
 const fetchBranches = async () => {
   try {
@@ -235,16 +285,66 @@ watch(() => route.path, () => {
 })
 
 const logout = async () => {
+  if (pusherInstance) {
+    pusherInstance.disconnect()
+  }
   await auth.logout()
   router.push('/login')
 }
 
 onMounted(async () => {
+  window.addEventListener('click', closeNotificationDropdown)
   try { 
     await auth.fetchProfile()
     await fetchBranches()
     await axios.get('/currencies') 
+
+    // Initialize Pusher Real-Time listeners dynamically
+    const pusherKey = import.meta.env.VITE_PUSHER_APP_KEY || '5f3f1b0d2a7426fbc85b'
+    const pusherCluster = import.meta.env.VITE_PUSHER_APP_CLUSTER || 'eu'
+
+    pusherInstance = new Pusher(pusherKey, {
+      cluster: pusherCluster,
+      forceTLS: true
+    })
+
+    const channel = pusherInstance.subscribe('currency-exchange')
+    channel.bind('transaction-created', (data) => {
+      // Unshift notification
+      notifications.value.unshift({
+        id: Date.now() + Math.random(),
+        title: data.title || 'ئاگادارکردنەوەی نوێ',
+        message: data.message,
+        type: data.type || 'info',
+        time: data.time || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+      })
+      unreadCount.value++
+
+      // Play soft notification sound (Acoustics from AudioContext)
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        const oscillator = audioCtx.createOscillator()
+        const gainNode = audioCtx.createGain()
+        oscillator.connect(gainNode)
+        gainNode.connect(audioCtx.destination)
+        oscillator.type = 'sine'
+        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime) // Sound pitch (D5 note)
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime)
+        oscillator.start()
+        oscillator.stop(audioCtx.currentTime + 0.15)
+      } catch (err) {
+        console.warn('Audio feedback failed:', err)
+      }
+    })
   } catch (e) {
+    console.error(e)
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('click', closeNotificationDropdown)
+  if (pusherInstance) {
+    pusherInstance.disconnect()
   }
 })
 </script>

@@ -40,7 +40,29 @@
       </div>
     </div>
 
-    <template v-if="canVerifyIntegrity">
+    <!-- Tab Navigation (No Print) -->
+    <div class="flex flex-wrap gap-2 p-2 bg-slate-950 border border-white/5 rounded-3xl mb-10 no-print max-w-fit">
+      <button @click="activeTab = 'audit'"
+              class="px-6 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2"
+              :class="activeTab === 'audit' ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-400 hover:text-white'">
+        📊 ووردبینی دارایی و قەڵغان
+      </button>
+      <button @click="activeTab = 'predictions'"
+              class="px-6 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2"
+              :class="activeTab === 'predictions' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'">
+        🧠 پێشبینیکردنی سیولە (Predictive)
+      </button>
+      <button @click="activeTab = 'anomalies'"
+              class="px-6 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2"
+              :class="activeTab === 'anomalies' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white'">
+        🔍 شیکاری گوماناوییەکان
+        <span v-if="anomalies.length > 0" class="px-2 py-0.5 bg-rose-500 text-white rounded-full text-[9px] animate-pulse">
+          {{ anomalies.length }}
+        </span>
+      </button>
+    </div>
+
+    <template v-if="canVerifyIntegrity && activeTab === 'audit'">
       <!-- Cryptographic Database Integrity Shield (No Print) -->
       <div class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl mb-10 no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div class="flex items-center gap-4">
@@ -109,7 +131,8 @@
     </template>
 
     <!-- Main Report Content (Printable) -->
-    <div id="printable-report" class="bg-white text-slate-950 md:rounded-[3rem] overflow-hidden shadow-2xl relative print:m-0 print:rounded-none" dir="rtl">
+    <div :class="{ 'hidden': activeTab !== 'audit' }" class="print:block">
+      <div id="printable-report" class="bg-white text-slate-950 md:rounded-[3rem] overflow-hidden shadow-2xl relative print:m-0 print:rounded-none" dir="rtl">
       
       <!-- Official Header - Optimized for Print Height -->
       <div class="p-8 border-b-4 border-emerald-600 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 print:p-4 print:border-b-2">
@@ -323,6 +346,7 @@
               </div>
            </div>
         </div>
+      </div>
 
         <!-- Dynamic Running Print Footer -->
         <div class="hidden print:flex fixed bottom-0 left-0 right-0 justify-between items-center border-t border-slate-200 pt-1 text-[8px] font-bold text-slate-400" style="position: fixed; bottom: -0.2cm; left: 0; right: 0; direction: rtl;">
@@ -331,8 +355,253 @@
         </div>
 
       </div>
+    </div> <!-- Closes activeTab === 'audit' wrapper -->
+
+    <!-- AI LIQUIDITY PREDICTIONS TAB -->
+    <div v-if="activeTab === 'predictions'" class="space-y-8 no-print">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Predictions Cards for each Currency (USD & IQD) -->
+        <div v-for="(pred, cur) in predictions" :key="cur" 
+             class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl space-y-6 flex flex-col justify-between">
+          
+          <!-- Top Row with Currency & Status badge -->
+          <div class="flex justify-between items-center border-b border-white/5 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center font-black text-lg text-blue-400">
+                {{ cur }}
+              </div>
+              <div>
+                <h3 class="text-xl font-black">پێشبینی سیولەی {{ cur }}</h3>
+                <p class="text-xs text-slate-400 font-bold">بۆ ٧ ڕۆژی داهاتوو (AI Cash Flow Model)</p>
+              </div>
+            </div>
+            <span class="px-4 py-2 rounded-xl font-black text-xs border"
+                  :class="{
+                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': pred.status === 'secure',
+                    'bg-amber-500/10 text-amber-400 border-amber-500/20': pred.status === 'warning',
+                    'bg-rose-500/10 text-rose-400 border-rose-500/20': pred.status === 'critical'
+                  }">
+              {{ pred.status_kurdish }}
+            </span>
+          </div>
+
+          <!-- Mid Section Stats -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5">
+              <p class="text-[10px] font-black text-slate-500 uppercase">سیولەی گشتی سندوقەکان</p>
+              <p class="text-lg font-black text-white mt-1">
+                {{ formatNum(pred.current_balance) }} <span class="text-xs text-slate-400 font-bold">{{ cur }}</span>
+              </p>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5">
+              <p class="text-[10px] font-black text-slate-500 uppercase">تێکڕای ڕۆیشتووی ڕۆژانە</p>
+              <p class="text-lg font-black text-slate-400 mt-1">
+                {{ formatNum(pred.avg_daily_outflow) }} <span class="text-xs text-slate-500 font-bold">{{ cur }}</span>
+              </p>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5 col-span-2">
+              <p class="text-[10px] font-black text-slate-500 uppercase">ڕۆیشتنی پێشبینیکراو (٧ ڕۆژی داهاتوو)</p>
+              <p class="text-2xl font-black text-blue-400 mt-1">
+                {{ formatNum(pred.predicted_7d_outflow) }} <span class="text-sm text-slate-400 font-bold">{{ cur }}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- AI Injection Advice Alert Box -->
+          <div class="p-4 rounded-2xl border text-xs font-semibold"
+               :class="{
+                 'bg-emerald-500/5 border-emerald-500/10 text-emerald-300': pred.status === 'secure',
+                 'bg-amber-500/5 border-amber-500/10 text-amber-300': pred.status === 'warning',
+                 'bg-rose-500/5 border-rose-500/10 text-rose-300': pred.status === 'critical'
+               }">
+            <p class="font-black text-sm mb-1">💡 شیکاری و ڕێنمایی زیرەکی دەستکرد:</p>
+            <p v-if="pred.status === 'secure'">
+              ئاستی سیولەی سندوقەکانت نایابە! بڕی پێویست پارەی کاشت لەبەر دەستە بۆ پڕکردنەوەی خواستەکانی بازاڕ لە ٧ ڕۆژی داهاتوودا.
+            </p>
+            <p v-else-if="pred.status === 'warning'">
+              سیولە نزیکە لە ئاستی ئاگادارکردنەوە. پێشنیار دەکرێت بڕی <strong>{{ formatNum(pred.suggested_injection) }} {{ cur }}</strong> پارەی کاش بخەیتە ناو سندوقەکانتەوە بۆ پاراستنی جێگیری بازرگانی.
+            </p>
+            <p v-else>
+              🚨 هۆشداری توند! پێشبینی دەکەین لە ٧ ڕۆژی داهاتوودا تووشی کەمبوونی توندی کاش بیت. تکایە بە خێرایی لانی کەم بڕی <strong>{{ formatNum(pred.suggested_injection) }} {{ cur }}</strong> بخەیتە ناو سندوقەکانەوە.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
     </div>
+
+    <!-- FORENSIC ANOMALIES TAB -->
+    <div v-if="activeTab === 'anomalies'" class="space-y-6 no-print">
+      <div class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl space-y-4">
+        
+        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+          <div>
+            <h3 class="text-2xl font-black">شیکاری و دۆزینەوەی مامەڵە گوماناوییەکان</h3>
+            <p class="text-xs text-slate-400 font-bold mt-1">پشکنینی چڕ بۆ دۆزینەوەی کاتژمێری نەگونجاو، نرخە دەرەکییەکان، و مامەڵە زۆر گەورەکان.</p>
+          </div>
+          <span class="px-4 py-2 bg-slate-950 text-slate-400 rounded-full text-xs font-black border border-white/5">
+            Total Flagged: {{ anomalies.length }}
+          </span>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="anomalies.length === 0" class="py-12 text-center text-slate-500 font-semibold space-y-3">
+          <svg class="w-12 h-12 mx-auto text-emerald-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-sm">سەرجەم مامەڵەکان پاکن و هیچ لادان یان سەرپێچییەک لە کاتژمێر یان نرخدا نەدۆزراوەتەوە!</p>
+        </div>
+
+        <!-- Table of anomalies -->
+        <div v-else class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead>
+              <tr class="text-slate-400 border-b border-white/5">
+                <th class="pb-3 text-right">مەترسی</th>
+                <th class="pb-3 text-right">جۆر / لادان</th>
+                <th class="pb-3 text-right">مامەڵە</th>
+                <th class="pb-3 text-right">ڕوونکردنەوەی فۆڕێنسیک</th>
+                <th class="pb-3 text-right">ئەنجامدەر</th>
+                <th class="pb-3 text-right">کاتی تۆمارکردن</th>
+                <th class="pb-3 text-left pl-4">کردار</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 font-semibold text-slate-300">
+              <tr v-for="a in anomalies" :key="a.id" class="hover:bg-white/5 transition-colors">
+                <td class="py-4">
+                  <span class="px-3 py-1.5 rounded-xl text-[10px] font-black border"
+                        :class="{
+                          'bg-rose-500/10 text-rose-400 border-rose-500/20': a.severity === 'critical',
+                          'bg-amber-500/10 text-amber-400 border-amber-500/20': a.severity === 'high',
+                          'bg-yellow-500/10 text-yellow-400 border-yellow-500/20': a.severity === 'medium'
+                        }">
+                    {{ a.severity_kurdish }}
+                  </span>
+                </td>
+                <td class="py-4">
+                  <p class="font-black text-white">{{ a.category }}</p>
+                </td>
+                <td class="py-4">
+                  <p class="font-bold text-slate-300">مامەڵەی #{{ a.id }}</p>
+                  <p class="text-[10px] text-slate-400 font-semibold mt-0.5">
+                    {{ formatNum(a.primary_amount) }} {{ a.primary_currency }}
+                  </p>
+                </td>
+                <td class="py-4 text-slate-400 max-w-sm font-semibold text-right">
+                  {{ a.description }}
+                </td>
+                <td class="py-4 text-slate-300">{{ a.operator }}</td>
+                <td class="py-4 text-slate-400 text-[10px]" dir="ltr">
+                  {{ a.date }}
+                </td>
+                <td class="py-4 text-left pl-4">
+                  <button @click="openForensicModal(a.id, a)"
+                          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 hover:scale-[1.03] text-white font-black rounded-xl text-xs transition-all shadow-lg shadow-blue-500/10 flex items-center gap-1.5">
+                    👁️ پشکنین
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
   </div>
+</div>
+
+    <!-- FORENSIC INVESTIGATOR MODAL -->
+    <div v-if="showForensicModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[99999] flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
+      <div class="bg-slate-900 border border-white/10 rounded-[3rem] max-w-2xl w-full p-8 space-y-6 shadow-2xl relative text-right text-white">
+        
+        <!-- Close button -->
+        <button @click="showForensicModal = false" class="absolute top-6 left-6 text-slate-400 hover:text-white font-bold text-lg">
+          ✕
+        </button>
+
+        <div class="flex items-center gap-3 border-b border-white/5 pb-4">
+          <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center font-black text-xl">
+            🔍
+          </div>
+          <div>
+            <h3 class="text-xl font-black">پشکنەری وردی فۆڕێنسیک (Forensic Inspector)</h3>
+            <p class="text-xs text-slate-400 font-bold mt-0.5">بەدواداچوونی گومانی ژمارە #{{ selectedAnomalyId }}</p>
+          </div>
+        </div>
+
+        <div v-if="forensicLoading" class="py-12 text-center space-y-3">
+          <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs text-slate-400 font-bold">بارکردنی زانیارییەکانی مێژووی مامەڵە...</p>
+        </div>
+
+        <div v-else-if="selectedTransaction" class="space-y-6">
+          
+          <!-- Danger/Alert Warning Badge -->
+          <div class="p-4 rounded-2xl border flex items-start gap-3"
+               :class="{
+                 'bg-rose-500/10 text-rose-300 border-rose-500/20': selectedAnomaly?.severity === 'high' || selectedAnomaly?.severity === 'critical',
+                 'bg-amber-500/10 text-amber-300 border-amber-500/20': selectedAnomaly?.severity === 'medium'
+               }">
+            <span class="text-lg">⚠️</span>
+            <div class="text-xs space-y-1">
+              <p class="font-black">مەترسی لادان: {{ selectedAnomaly?.severity_kurdish }}</p>
+              <p class="font-bold leading-relaxed text-slate-300">{{ selectedAnomaly?.description }}</p>
+            </div>
+          </div>
+
+          <!-- Transaction Info Fields Grid -->
+          <div class="grid grid-cols-2 gap-4 text-xs font-semibold">
+            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+              <span class="text-slate-500 text-[10px] block">ناسنامەی سەرەکی (Transaction ID)</span>
+              <p class="text-white font-black text-sm">#{{ selectedTransaction.id }}</p>
+            </div>
+            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+              <span class="text-slate-500 text-[10px] block">ئەنجامدەر (Operator)</span>
+              <p class="text-white font-black text-sm">{{ selectedTransaction.user?.name || 'سیستم' }}</p>
+            </div>
+            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+              <span class="text-slate-500 text-[10px] block">دراوی یەکەم (Primary Amount)</span>
+              <p class="text-white font-black text-sm">{{ formatNum(selectedTransaction.primary_amount) }} {{ selectedTransaction.primary_currency }}</p>
+            </div>
+            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+              <span class="text-slate-500 text-[10px] block">دراوی دووەم (Secondary Amount)</span>
+              <p class="text-white font-black text-sm">
+                {{ formatNum(selectedTransaction.secondary_amount) }} {{ selectedTransaction.secondary_currency }}
+                <span v-if="selectedTransaction.rate" class="text-xs text-slate-400 font-bold block mt-0.5">نرخی ئاڵوگۆڕ: {{ formatNum(selectedTransaction.rate) }}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Description Box -->
+          <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1 text-xs">
+            <span class="text-slate-500 text-[10px] block font-semibold">تێبینی / وەسفی مامەڵە</span>
+            <p class="text-white font-bold leading-relaxed">{{ selectedTransaction.note || 'بێ تێبینی' }}</p>
+          </div>
+
+          <!-- Cryptographic Hash Integrity Verification -->
+          <div class="bg-slate-950/60 p-4 rounded-2xl border border-white/10 flex items-center justify-between text-xs">
+            <div class="space-y-1">
+              <p class="font-black">پشکنینی مۆری کریپتۆگرافی (Cryptographic Seal Check)</p>
+              <p class="text-[10px] text-slate-400 font-bold">بەرنامەکە فۆڕێنسیکی زنجیرەی واڵت دەکات بۆ دڵنیابوونەوە لە پاکی داتاکە.</p>
+            </div>
+            <span class="px-4 py-2 rounded-xl font-black text-xs border"
+                  :class="isTampered(selectedTransaction.id) ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+              {{ isTampered(selectedTransaction.id) ? '🔴 دەستکاری کراوە (Tampered)' : '🟢 سەلامەتە (Seal Intact)' }}
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/5">
+          <button @click="showForensicModal = false" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-xl text-xs transition-all">
+            داخستن
+          </button>
+        </div>
+
+      </div>
+    </div>
 </template>
 
 <script setup>
@@ -357,6 +626,55 @@ const integrityLoading = ref(false)
 const integrityStatus = ref(null)
 const integrityViolations = ref([])
 const scannedRows = ref(0)
+
+const activeTab = ref('audit')
+const smartLoading = ref(false)
+const predictions = ref({})
+const anomalies = ref([])
+
+const showForensicModal = ref(false)
+const forensicLoading = ref(false)
+const selectedAnomalyId = ref(null)
+const selectedAnomaly = ref(null)
+const selectedTransaction = ref(null)
+
+async function openForensicModal(id, anomaly) {
+  selectedAnomalyId.value = id
+  selectedAnomaly.value = anomaly
+  showForensicModal.value = true
+  forensicLoading.value = true
+  selectedTransaction.value = null
+  try {
+    const { data: res } = await axios.get(`/exchanges/${id}`)
+    selectedTransaction.value = res
+  } catch (e) {
+    console.error(e)
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'شکستی هێنا لە وەرگرتنی وردەکارییەکانی مامەڵە.' })
+  } finally {
+    forensicLoading.value = false
+  }
+}
+
+function isTampered(id) {
+  return integrityViolations.value.some(v => v.id === id)
+}
+
+
+async function fetchSmartAnalytics() {
+  smartLoading.value = true
+  try {
+    const branchId = filters.value.branch_id || 'all'
+    const { data: res } = await axios.get('/smart-analytics', {
+      params: { branch_id: branchId }
+    })
+    predictions.value = res.predictions || {}
+    anomalies.value = res.anomalies || []
+  } catch (e) {
+    console.error(e)
+  } finally {
+    smartLoading.value = false
+  }
+}
 
 async function runIntegrityCheck() {
   integrityLoading.value = true
@@ -448,6 +766,7 @@ async function fetchData() {
   try {
     const { data: res } = await axios.get('/audit-advanced', { params: filters.value })
     data.value = res
+    await fetchSmartAnalytics()
   } catch (e) {
     console.error(e)
     Swal.fire({ icon: 'error', title: 'Error', text: 'شکستی هێنا لە وەرگرتنی داتاکان' })

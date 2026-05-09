@@ -292,7 +292,8 @@
     </div> <!-- END Universal Ledger Card -->
 
     <!-- PREMIUM TRANSACTION VOUCHER PRINT TEMPLATE -->
-    <div v-if="printingEntry" id="print-area-registry" class="print-area-wrapper" dir="rtl">
+    <!-- 80MM THERMAL PRINT TEMPLATE -->
+    <div v-if="printingEntry" id="print-area-registry-thermal" class="print-area-wrapper" dir="rtl">
        <div v-for="i in 2" :key="i" class="print-voucher">
           <!-- Header -->
           <div class="flex justify-between items-center border-b-2 border-black pb-2 mb-3">
@@ -310,7 +311,7 @@
           </div>
 
           <!-- Basic Info Grid -->
-          <div class="grid grid-cols-2 gap-2 mb-3 text-[8px]">
+          <div class="grid grid-cols-2 gap-2 mb-3 text-[8px] text-black">
              <div class="border border-black p-1.5 rounded">
                 <span class="font-black block text-slate-500">بەروار / Date</span>
                 <span class="text-xs font-black">{{ formatDate(printingEntry.entry_date) }}</span>
@@ -322,14 +323,14 @@
           </div>
 
           <!-- Transaction Detail Table -->
-          <div class="border-2 border-black mb-3">
+          <div class="border-2 border-black mb-3 text-black">
              <div class="bg-black text-white px-3 py-1 flex justify-between text-[9px] font-black uppercase">
                 <span>حیسابەکان / Accounts Details</span>
                 <span>بڕی پارە / Amount</span>
              </div>
              <div class="flex">
                 <!-- Account Info -->
-                <div class="flex-1 p-2 border-l-2 border-black flex flex-col gap-2">
+                <div class="flex-1 p-2 border-l-2 border-black flex flex-col gap-2 text-right">
                    <div>
                       <span class="text-[7px] font-black text-slate-400 uppercase block">حیسابی قەرزار / DEBTOR (FROM)</span>
                       <p class="text-base font-black leading-tight">{{ printingEntry.debtor_account?.name }}</p>
@@ -343,21 +344,21 @@
                 </div>
                 <!-- Big Amount -->
                 <div class="w-1/3 p-2 flex flex-col items-center justify-center bg-slate-50">
-                   <span class="text-[7px] font-black text-slate-400 uppercase block mb-0.5">TOTAL AMOUNT</span>
-                   <p class="text-3xl font-black font-mono tracking-tighter">{{ formatNum(printingEntry.amount) }}</p>
+                   <span class="text-[7px] font-black text-slate-400 uppercase block mb-0.5 font-sans">TOTAL AMOUNT</span>
+                   <p class="text-3xl font-black font-mono tracking-tighter text-black">{{ formatNum(printingEntry.amount) }}</p>
                    <p class="text-base font-black text-slate-600 uppercase">{{ printingEntry.currency?.code }}</p>
                 </div>
              </div>
           </div>
 
           <!-- Notes Section -->
-          <div v-if="printingEntry.notes" class="border border-black p-1.5 rounded mb-2 text-[8px]">
+          <div v-if="printingEntry.notes" class="border border-black p-1.5 rounded mb-2 text-[8px] text-right text-black">
              <span class="font-black block text-slate-500">تێبینی / Notes</span>
              <p class="font-bold text-[10px]">{{ printingEntry.notes }}</p>
           </div>
 
           <!-- Signatures -->
-          <div class="flex justify-between mt-10 px-6">
+          <div class="flex justify-between mt-10 px-6 text-black">
              <div class="text-center w-28 border-t border-black pt-1">
                 <p class="text-[8px] font-black uppercase">ژمێریار / Accountant</p>
              </div>
@@ -370,7 +371,7 @@
           </div>
 
           <!-- Legal Disclaimer & Contact -->
-          <div class="mt-6 border-t border-slate-100 pt-3 flex justify-between items-end">
+          <div class="mt-6 border-t border-slate-100 pt-3 flex justify-between items-end text-black">
              <div class="text-[8px] font-bold text-slate-500 leading-tight">
                 <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
                 <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
@@ -384,6 +385,103 @@
           <!-- Cut Line -->
           <div v-if="i === 1" class="my-10 border-t-2 border-dashed border-slate-300 relative">
              <span class="absolute left-1/2 -translate-x-1/2 -top-1.5 bg-white px-2 text-[6px] text-slate-400">ببڕدرێت لێرەوە / CUT HERE</span>
+          </div>
+       </div>
+    </div>
+
+    <!-- A4/A5 OFFICE PRINT TEMPLATE -->
+    <div v-if="printingEntry" id="print-area-registry-a4" class="print-area-wrapper" dir="rtl">
+       <div v-for="i in 2" :key="i" class="print-voucher" :class="{ 'border-t-2 border-dashed border-slate-300 pt-8 mt-8': i === 2 }">
+          <!-- Header -->
+          <div class="flex justify-between items-center border-b-2 border-black pb-4 mb-4">
+             <div class="flex items-center gap-4">
+                <img src="/logo.png" class="h-16 w-16 object-contain grayscale animate-pulse" />
+                <div>
+                   <h1 class="text-xl font-black text-black">کۆمپانیای سەروەری موکریان</h1>
+                   <p class="text-xs font-bold text-black uppercase">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
+                </div>
+             </div>
+             <div class="text-left" dir="ltr">
+                <h2 class="text-xl font-black text-black leading-none">TRANSACTION VOUCHER</h2>
+                <p class="text-xs font-black mt-1">REF: #REG-{{ printingEntry.id }}</p>
+             </div>
+          </div>
+
+          <!-- Basic Info Grid -->
+          <div class="grid grid-cols-2 gap-4 mb-6 text-xs text-black">
+             <div class="border border-black p-3 rounded">
+                <span class="font-black block text-slate-500">بەروار / Date</span>
+                <span class="text-sm font-black">{{ formatDate(printingEntry.entry_date) }}</span>
+             </div>
+             <div class="border border-black p-3 rounded text-left" dir="ltr">
+                <span class="font-black block text-slate-500">Operation Status</span>
+                <span class="text-sm font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
+             </div>
+          </div>
+
+          <!-- Transaction Detail Table -->
+          <div class="border-2 border-black mb-6 text-black">
+             <div class="bg-black text-white px-4 py-2.5 flex justify-between text-xs font-black uppercase">
+                <span>حیسابەکان / Accounts Details</span>
+                <span>بڕی پارە / Amount</span>
+             </div>
+             <div class="flex">
+                <!-- Account Info -->
+                <div class="flex-1 p-4 border-l-2 border-black flex flex-col gap-3 text-right">
+                   <div>
+                      <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">حیسابی قەرزار / DEBTOR (FROM)</span>
+                      <p class="text-base font-black leading-tight">{{ printingEntry.debtor_account?.name }}</p>
+                      <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.debtor_account?.code }}</p>
+                   </div>
+                   <div class="border-t border-slate-200 pt-3">
+                      <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">حیسابی داین / CREDITOR (TO)</span>
+                      <p class="text-base font-black leading-tight">{{ printingEntry.creditor_account?.name }}</p>
+                      <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.creditor_account?.code }}</p>
+                   </div>
+                </div>
+                <!-- Big Amount -->
+                <div class="w-1/3 p-4 flex flex-col items-center justify-center bg-slate-50">
+                   <span class="text-[9px] font-black text-slate-400 uppercase block font-sans mb-1">TOTAL AMOUNT</span>
+                   <p class="text-3xl font-black font-mono tracking-tighter text-black">{{ formatNum(printingEntry.amount) }}</p>
+                   <p class="text-lg font-black text-slate-600 uppercase mt-1">{{ printingEntry.currency?.code }}</p>
+                </div>
+             </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div v-if="printingEntry.notes" class="border border-black p-3 rounded mb-4 text-xs text-right text-black">
+             <span class="font-black block text-slate-500">تێبینی / Notes</span>
+             <p class="font-bold text-sm">{{ printingEntry.notes }}</p>
+          </div>
+
+          <!-- Signatures -->
+          <div class="flex justify-between mt-12 px-8 text-black">
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-xs font-black uppercase">ژمێریار / Accountant</p>
+             </div>
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-xs font-black uppercase">کۆمپانیا / Office Stamp</p>
+             </div>
+             <div class="text-center w-36 border-t border-black pt-2">
+                <p class="text-xs font-black uppercase">کڕیار / Client</p>
+             </div>
+          </div>
+
+          <!-- Legal Disclaimer & Contact -->
+          <div class="mt-8 border-t border-slate-100 pt-4 flex justify-between items-end text-black">
+             <div class="text-[10px] font-bold text-slate-500 leading-tight">
+                <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
+                <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
+             </div>
+             <div class="text-left text-[8px] font-black opacity-35 uppercase tracking-tighter">
+                <p>Sarwary Mukrian Co. | Registry Audit Trail</p>
+                <p>System Hash: SM-v2-{{ printingEntry.id }} | {{ i === 1 ? 'OFFICE COPY' : 'CUSTOMER COPY' }}</p>
+             </div>
+          </div>
+
+          <!-- Cut Line -->
+          <div v-if="i === 1" class="my-10 border-t-2 border-dashed border-slate-300 relative">
+             <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[10px] text-slate-400">ببڕدرێت لێرەوە / CUT HERE (OFFICE / CUSTOMER COPY)</span>
           </div>
        </div>
     </div>
@@ -471,13 +569,19 @@
           </div>
 
           <!-- Modal Footer (Action Buttons) -->
-          <div class="px-8 py-6 bg-slate-950/80 border-t border-white/5 flex gap-4 justify-end">
+          <div class="px-8 py-6 bg-slate-950/80 border-t border-white/5 flex flex-wrap gap-4 justify-end">
              <button @click="showPreviewModal = false" class="px-6 py-4 bg-slate-900 border border-white/5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl font-black text-xs uppercase tracking-wider transition-all">
                 پەشیمانبوونەوە
              </button>
-             <button @click="executePrint" class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+             <!-- Print 80mm -->
+             <button @click="executePrint('80mm')" class="px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                دڵنیابوونەوە و پرینتکردن
+                چاپی حەراری (80mm)
+             </button>
+             <!-- Print A4 -->
+             <button @click="executePrint('a4')" class="px-6 py-4 bg-blue-500 hover:bg-blue-400 text-white rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                چاپی گەورە (A4)
              </button>
           </div>
        </div>
@@ -503,18 +607,25 @@ const currentFilterId = ref(null)
 const printingEntry = ref(null)
 const previewingEntry = ref(null)
 const showPreviewModal = ref(false)
+const printMode = ref('80mm')
 
 async function printInvoice(entry) {
   previewingEntry.value = entry
   showPreviewModal.value = true
 }
 
-async function executePrint() {
+async function executePrint(mode) {
+  printMode.value = mode
   printingEntry.value = previewingEntry.value
   showPreviewModal.value = false
+  
+  // Apply body print class
+  document.body.classList.add(`print-${mode}`)
+  
   setTimeout(() => {
     window.print()
     printingEntry.value = null
+    document.body.classList.remove(`print-${mode}`)
   }, 150)
 }
 const currencyId = computed(() => currentFilterId.value || Number(route.params.currencyId) || (currencies.value.length ? currencies.value[0].id : 1))
@@ -632,17 +743,66 @@ onMounted(() => { fetchCurrencies(); fetchEntries() })
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @media print {
   body * { display: none !important; }
-  #print-area-registry, #print-area-registry * { display: block !important; visibility: visible !important; }
-  #print-area-registry div, #print-area-registry p, #print-area-registry span, #print-area-registry table, #print-area-registry thead, #print-area-registry tr, #print-area-registry th, #print-area-registry td, #print-area-registry img { display: block !important; }
-  #print-area-registry table { display: table !important; }
-  #print-area-registry thead { display: table-header-group !important; }
-  #print-area-registry tr { display: table-row !important; }
-  #print-area-registry th, #print-area-registry td { display: table-cell !important; }
-  #print-area-registry .flex { display: flex !important; }
-  #print-area-registry .grid { display: grid !important; }
-  #print-area-registry { position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: white !important; color: black !important; padding: 1.2cm; margin: 0; z-index: 9999; }
-  .print-voucher { width: 100%; background: white !important; color: black !important; }
-  @page { size: A4; margin: 0; }
+  
+  /* Shared overrides */
+  body.print-80mm #print-area-registry-thermal,
+  body.print-80mm #print-area-registry-thermal *,
+  body.print-a4 #print-area-registry-a4,
+  body.print-a4 #print-area-registry-a4 * {
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  body.print-80mm #print-area-registry-thermal div, 
+  body.print-80mm #print-area-registry-thermal p, 
+  body.print-80mm #print-area-registry-thermal span, 
+  body.print-80mm #print-area-registry-thermal table, 
+  body.print-80mm #print-area-registry-thermal thead, 
+  body.print-80mm #print-area-registry-thermal tr, 
+  body.print-80mm #print-area-registry-thermal th, 
+  body.print-80mm #print-area-registry-thermal td { 
+    display: block !important; 
+  }
+  body.print-80mm #print-area-registry-thermal table { display: table !important; }
+  body.print-80mm #print-area-registry-thermal thead { display: table-header-group !important; }
+  body.print-80mm #print-area-registry-thermal tr { display: table-row !important; }
+  body.print-80mm #print-area-registry-thermal th, 
+  body.print-80mm #print-area-registry-thermal td { 
+    display: table-cell !important; 
+  }
+  body.print-80mm #print-area-registry-thermal .flex { display: flex !important; }
+  body.print-80mm #print-area-registry-thermal .grid { display: grid !important; }
+  
+  body.print-80mm #print-area-registry-thermal { 
+    position: absolute !important; 
+    left: 0 !important; 
+    top: 0 !important; 
+    width: 80mm !important; 
+    max-width: 80mm !important; 
+    padding: 2mm !important; 
+    box-sizing: border-box !important;
+    background: white !important; 
+    color: black !important; 
+    z-index: 9999; 
+  }
+  
+  body.print-a4 #print-area-registry-a4 {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    padding: 1.5cm !important;
+    box-sizing: border-box !important;
+    background: white !important;
+    color: black !important;
+    z-index: 9999;
+  }
+
+  .print-voucher { 
+    width: 100% !important; 
+    background: white !important; 
+    color: black !important; 
+  }
 }
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .custom-scrollbar::-webkit-scrollbar { height: 6px; }
