@@ -22,6 +22,17 @@ class IntegrityService
             $isPrevHashBroken = $entry->previous_hash !== $previousHash;
 
             if ($isHashInvalid || $isPrevHashBroken) {
+                $reason = '';
+                $riskLevel = 'critical';
+                
+                if ($isHashInvalid && $isPrevHashBroken) {
+                    $reason = 'دەستکاریکردنی توند: بڕی پارە، سندوق، یان زانیارییە سەرەکییەکانی ئەم مامەڵەیە گۆڕدراون لە دەرەوەی سیستم!';
+                } elseif ($isHashInvalid) {
+                    $reason = 'زانیاری گۆڕدراو: ناوەڕۆکی ئەم مامەڵەیە (وەسف، بڕی پارە، یان ڕێکەوت) ڕاستەوخۆ لە دەرەوەی سیستم دەستکاری کراوە!';
+                } else {
+                    $reason = 'پچڕانی زنجیرە: مامەڵەی پێش ئەم دێڕە سڕدراوەتەوە یان دەستکاری کراوە کە زنجیرەی هاوسەنگی شکاندووە!';
+                }
+
                 $violations[] = [
                     'id' => $entry->id,
                     'date' => $entry->date instanceof \Carbon\Carbon ? $entry->date->toDateString() : (string)$entry->date,
@@ -32,7 +43,8 @@ class IntegrityService
                     'calculated_hash' => $calculatedHash,
                     'stored_previous_hash' => $entry->previous_hash,
                     'expected_previous_hash' => $previousHash,
-                    'reason' => $isHashInvalid ? 'خۆدی داتاکان گۆڕدراون (Row Values Modified)' : 'زنجیرەی هاشەکە پچڕاوە (Chain Link Broken)'
+                    'reason' => $reason,
+                    'risk_level' => $riskLevel
                 ];
             }
 

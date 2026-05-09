@@ -368,9 +368,24 @@ async function runIntegrityCheck() {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'ئاگاداری: گۆڕانکاری نەخوازراو!',
-        text: `کێشە لە هاوسەنگی کریپتۆگرافی دۆزرایەوە! ${res.violations.length} جوڵەی حیسابی دەستکاری کراون یان سڕدراونەتەوە!`,
-        confirmButtonText: 'بینینی وردەکاری',
+        title: '🚨 زەنگی مەترسی: دەستکاری دەرەکی دۆزرایەوە!',
+        html: `
+          <div dir="rtl" class="text-right text-sm space-y-4 leading-relaxed">
+            <p class="font-black text-rose-400 text-base">کاک ڕێبین، زانیارییەکانت بە فەرمی پارێزراون بەڵام:</p>
+            <p class="text-slate-300 font-semibold">سیستەمی پاراستنی کریپتۆگرافی دۆزیویەتییەوە کە <strong>کەسێک یان بەرنامەیەک لە پشتەوە چووەتە ناو بنکەدراوە (Database) و زانیارییەکی مێژوویی گۆڕیوە بەبێ مۆڵەتی سیستم!</strong></p>
+            
+            <div class="bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20 text-rose-300 font-black text-xs space-y-2">
+              <p>📍 مامەڵەی تێکچوو: <strong>دێڕی ژمارە #${res.violations[0]?.id}</strong></p>
+              <p>📝 هۆکاری کێشەکە: <strong>${res.violations[0]?.reason}</strong></p>
+            </div>
+            
+            <div class="bg-slate-900 p-4 rounded-2xl border border-white/5 text-slate-400 font-bold text-xs space-y-1">
+              <p class="text-amber-400 font-black">💡 بۆچی ئەمە مەترسیدارە؟</p>
+              <p>ئەگەر کارمەندێک بیەوێت ساختەکاری یان پارە دزین بشارێتەوە، دەچێت لە داتابەیس بڕی پارەکە یان وەسفەکە دەگۆڕێت. ئەم سیستمە ڕێگری لێدەکات و دەستبەجێ فەزاحەتی دەکات!</p>
+            </div>
+          </div>
+        `,
+        confirmButtonText: 'سەیرکردنی لیستی وردەکارییەکان',
         confirmButtonColor: '#ef4444'
       })
     }
