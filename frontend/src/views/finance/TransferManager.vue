@@ -151,7 +151,7 @@
 
   <!-- PREMIUM 80MM THERMAL RECEIPT -->
   <div v-if="printingTransfer" id="receipt-print-area" class="print-only-container text-black" dir="rtl">
-    <div v-for="i in 2" :key="i" class="pb-6" :class="{ 'border-t border-dashed border-black pt-6 mt-6': i === 2 }">
+    <div class="pb-6">
       <!-- Top Branding -->
       <div class="text-center mb-4">
          <div class="flex items-center justify-center gap-2 mb-1">
@@ -219,12 +219,6 @@
       <div class="flex justify-between text-[8px] font-black pt-4 border-t border-dashed border-slate-200">
          <div class="w-24 border-t border-black pt-1 text-center">واژۆی ڕادەستکار</div>
          <div class="w-24 border-t border-black pt-1 text-center">واژۆی وەرگر</div>
-      </div>
-
-      <!-- Divider with Scissors -->
-      <div v-if="i === 1" class="text-center text-[8px] font-bold text-slate-400 py-4 flex justify-center items-center gap-2">
-         <span>✂️-----------------------------------------</span>
-         <span>بڕین لێرەوە (OFFICE / DEPT COPY)</span>
       </div>
     </div>
   </div>

@@ -247,7 +247,7 @@
 
     <!-- Print Template (Invisible) -->
     <div v-if="printingTx" id="print-area" class="fixed inset-0 bg-white z-[9999] p-4 text-black hidden print:block" dir="rtl">
-       <div v-for="i in 2" :key="i" class="pb-6" :class="{ 'border-t border-dashed border-black pt-6 mt-6': i === 2 }">
+       <div class="pb-6">
           <div class="text-center mb-4">
              <div class="flex items-center justify-center gap-2 mb-1">
                 <img src="/logo.png" class="w-10 h-10 grayscale" @error="(e) => e.target.style.display='none'" />
@@ -309,12 +309,6 @@
           <div class="flex justify-between text-[8px] font-black pt-4 border-t border-dashed border-slate-200">
              <div class="w-24 border-t border-black pt-1 text-center">واژۆی ژمێریار</div>
              <div class="w-24 border-t border-black pt-1 text-center">واژۆی کڕیار</div>
-          </div>
-
-          <!-- Divider with Scissors -->
-          <div v-if="i === 1" class="text-center text-[8px] font-bold text-slate-400 py-4 flex justify-center items-center gap-2">
-             <span>✂️-----------------------------------------</span>
-             <span>بڕین لێرەوە (OFFICE / CUSTOMER COPY)</span>
           </div>
        </div>
     </div>

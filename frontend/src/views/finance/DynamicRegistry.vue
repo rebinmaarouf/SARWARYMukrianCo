@@ -294,7 +294,7 @@
     <!-- PREMIUM TRANSACTION VOUCHER PRINT TEMPLATE -->
     <!-- 80MM THERMAL PRINT TEMPLATE -->
     <div v-if="printingEntry" id="print-area-registry-thermal" class="print-area-wrapper" dir="rtl">
-       <div v-for="i in 2" :key="i" class="print-voucher">
+       <div class="print-voucher">
           <!-- Header -->
           <div class="flex justify-between items-center border-b-2 border-black pb-2 mb-3">
              <div class="flex items-center gap-3">
@@ -378,13 +378,8 @@
              </div>
              <div class="text-left text-[7px] font-black opacity-30 uppercase tracking-tighter">
                 <p>Sarwary Mukrian Co. | Registry Audit Trail</p>
-                <p>System Hash: SM-v2-{{ printingEntry.id }} | {{ i === 1 ? 'OFFICE COPY' : 'CUSTOMER COPY' }}</p>
+                <p>System Hash: SM-v2-{{ printingEntry.id }} | VERIFIED COPY</p>
              </div>
-          </div>
-
-          <!-- Cut Line -->
-          <div v-if="i === 1" class="my-10 border-t-2 border-dashed border-slate-300 relative">
-             <span class="absolute left-1/2 -translate-x-1/2 -top-1.5 bg-white px-2 text-[6px] text-slate-400">ببڕدرێت لێرەوە / CUT HERE</span>
           </div>
        </div>
     </div>
