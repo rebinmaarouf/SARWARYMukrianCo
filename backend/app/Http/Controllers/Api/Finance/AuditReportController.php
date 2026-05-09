@@ -200,6 +200,24 @@ class AuditReportController extends Controller
 
     public function verifyIntegrity()
     {
+        $user = auth()->user();
+        $isSuperAdmin = false;
+        
+        try {
+            $isSuperAdmin = $user->hasRole('Super Admin');
+        } catch (\Throwable $e) {}
+
+        $hasPermission = false;
+        try {
+            $hasPermission = $user->hasPermissionTo('verify_database_integrity');
+        } catch (\Throwable $e) {}
+
+        if (!$isSuperAdmin && !$hasPermission && $user->email !== 'rebin.maaruf@gmail.com') {
+            return response()->json([
+                'message' => 'مۆڵەتی پێویستت نییە بۆ پشکنینی داتابەیس'
+            ], 403);
+        }
+
         $result = \App\Services\IntegrityService::verifyChain();
         return response()->json($result);
     }
