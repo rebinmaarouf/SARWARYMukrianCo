@@ -293,7 +293,7 @@
 
     <!-- PREMIUM TRANSACTION VOUCHER PRINT TEMPLATE -->
     <!-- 80MM THERMAL PRINT TEMPLATE -->
-    <div v-if="printingEntry" id="print-area-registry-thermal" class="print-area-wrapper" dir="rtl">
+    <div v-if="printingEntry" id="print-area-registry-thermal" class="print-only-container text-black" dir="rtl">
        <div class="print-voucher">
           <!-- Header -->
           <div class="flex justify-between items-center border-b-2 border-black pb-2 mb-3">
@@ -360,7 +360,7 @@
           <!-- Signatures -->
           <div class="flex justify-between mt-10 px-6 text-black">
              <div class="text-center w-28 border-t border-black pt-1">
-                <p class="text-[8px] font-black uppercase">ژمێریار / Accountant</p>
+                <p class="text-[8px] font-black uppercase">واژۆی ژمێریار</p>
              </div>
              <div class="text-center w-28 border-t border-black pt-1">
                 <p class="text-[8px] font-black uppercase">کۆمپانیا / Office</p>
@@ -385,86 +385,86 @@
     </div>
 
     <!-- A4/A5 OFFICE PRINT TEMPLATE -->
-    <div v-if="printingEntry" id="print-area-registry-a4" class="print-area-wrapper" dir="rtl">
-       <div v-for="i in 2" :key="i" class="print-voucher" :class="{ 'border-t-2 border-dashed border-slate-300 pt-8 mt-8': i === 2 }">
+    <div v-if="printingEntry" id="print-area-registry-a4" class="print-only-container text-black" dir="rtl">
+       <div v-for="i in 2" :key="i" class="print-voucher" :class="{ 'border-t border-dashed border-slate-400 pt-4 mt-4': i === 2 }">
           <!-- Header -->
-          <div class="flex justify-between items-center border-b-2 border-black pb-4 mb-4">
-             <div class="flex items-center gap-4">
-                <img src="/logo.png" class="h-16 w-16 object-contain grayscale animate-pulse" />
+          <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
+             <div class="flex items-center gap-2">
+                <img src="/logo.png" class="h-10 w-10 object-contain grayscale" />
                 <div>
-                   <h1 class="text-xl font-black text-black">کۆمپانیای سەروەری موکریان</h1>
-                   <p class="text-xs font-bold text-black uppercase">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
+                   <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
+                   <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
                 </div>
              </div>
              <div class="text-left" dir="ltr">
-                <h2 class="text-xl font-black text-black leading-none">TRANSACTION VOUCHER</h2>
-                <p class="text-xs font-black mt-1">REF: #REG-{{ printingEntry.id }}</p>
+                <h2 class="text-sm font-black text-black leading-none">TRANSACTION VOUCHER</h2>
+                <p class="text-[10px] font-black mt-0.5">REF: #REG-{{ printingEntry.id }}</p>
              </div>
           </div>
 
           <!-- Basic Info Grid -->
-          <div class="grid grid-cols-2 gap-4 mb-6 text-xs text-black">
-             <div class="border border-black p-3 rounded">
-                <span class="font-black block text-slate-500">بەروار / Date</span>
-                <span class="text-sm font-black">{{ formatDate(printingEntry.entry_date) }}</span>
+          <div class="grid grid-cols-2 gap-2 mb-2 text-[10px] text-black">
+             <div class="border border-black p-1.5 rounded">
+                <span class="font-black block text-slate-500 text-[8px]">بەروار / Date</span>
+                <span class="text-xs font-black">{{ formatDate(printingEntry.entry_date) }}</span>
              </div>
-             <div class="border border-black p-3 rounded text-left" dir="ltr">
-                <span class="font-black block text-slate-500">Operation Status</span>
-                <span class="text-sm font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
+             <div class="border border-black p-1.5 rounded text-left" dir="ltr">
+                <span class="font-black block text-slate-500 text-[8px]">Operation Status</span>
+                <span class="text-xs font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
              </div>
           </div>
 
           <!-- Transaction Detail Table -->
-          <div class="border-2 border-black mb-6 text-black">
-             <div class="bg-black text-white px-4 py-2.5 flex justify-between text-xs font-black uppercase">
+          <div class="border border-black mb-2 text-black">
+             <div class="bg-black text-white px-3 py-1 flex justify-between text-[9px] font-black uppercase">
                 <span>حیسابەکان / Accounts Details</span>
                 <span>بڕی پارە / Amount</span>
              </div>
              <div class="flex">
                 <!-- Account Info -->
-                <div class="flex-1 p-4 border-l-2 border-black flex flex-col gap-3 text-right">
+                <div class="flex-1 p-2 border-l border-black flex flex-col gap-1 text-right">
                    <div>
-                      <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">حیسابی قەرزار / DEBTOR (FROM)</span>
-                      <p class="text-base font-black leading-tight">{{ printingEntry.debtor_account?.name }}</p>
+                      <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">حیسابی قەرزار / DEBTOR (FROM)</span>
+                      <p class="text-xs font-black leading-tight">{{ printingEntry.debtor_account?.name }}</p>
                       <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.debtor_account?.code }}</p>
                    </div>
-                   <div class="border-t border-slate-200 pt-3">
-                      <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">حیسابی داین / CREDITOR (TO)</span>
-                      <p class="text-base font-black leading-tight">{{ printingEntry.creditor_account?.name }}</p>
+                   <div class="border-t border-slate-200 pt-1">
+                      <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">حیسابی داین / CREDITOR (TO)</span>
+                      <p class="text-xs font-black leading-tight">{{ printingEntry.creditor_account?.name }}</p>
                       <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.creditor_account?.code }}</p>
                    </div>
                 </div>
                 <!-- Big Amount -->
-                <div class="w-1/3 p-4 flex flex-col items-center justify-center bg-slate-50">
-                   <span class="text-[9px] font-black text-slate-400 uppercase block font-sans mb-1">TOTAL AMOUNT</span>
-                   <p class="text-3xl font-black font-mono tracking-tighter text-black">{{ formatNum(printingEntry.amount) }}</p>
-                   <p class="text-lg font-black text-slate-600 uppercase mt-1">{{ printingEntry.currency?.code }}</p>
+                <div class="w-1/3 p-2 flex flex-col items-center justify-center bg-slate-50">
+                   <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">TOTAL AMOUNT</span>
+                   <p class="text-lg font-black font-mono tracking-tighter text-black">{{ formatNum(printingEntry.amount) }}</p>
+                   <p class="text-xs font-black text-slate-600 uppercase mt-0.5">{{ printingEntry.currency?.code }}</p>
                 </div>
              </div>
           </div>
 
           <!-- Notes Section -->
-          <div v-if="printingEntry.notes" class="border border-black p-3 rounded mb-4 text-xs text-right text-black">
-             <span class="font-black block text-slate-500">تێبینی / Notes</span>
-             <p class="font-bold text-sm">{{ printingEntry.notes }}</p>
+          <div v-if="printingEntry.notes" class="border border-black p-1.5 rounded mb-2 text-[9px] text-right text-black">
+             <span class="font-black block text-slate-500 text-[8px]">تێبینی / Notes</span>
+             <p class="font-bold text-xs">{{ printingEntry.notes }}</p>
           </div>
 
           <!-- Signatures -->
-          <div class="flex justify-between mt-12 px-8 text-black">
-             <div class="text-center w-36 border-t border-black pt-2">
-                <p class="text-xs font-black uppercase">ژمێریار / Accountant</p>
+          <div class="flex justify-between mt-4 px-4 text-black">
+             <div class="text-center w-28 border-t border-black pt-1">
+                <p class="text-[9px] font-black uppercase">ژمێریار / Accountant</p>
              </div>
-             <div class="text-center w-36 border-t border-black pt-2">
-                <p class="text-xs font-black uppercase">کۆمپانیا / Office Stamp</p>
+             <div class="text-center w-28 border-t border-black pt-1">
+                <p class="text-[9px] font-black uppercase">کۆمپانیا / Office Stamp</p>
              </div>
-             <div class="text-center w-36 border-t border-black pt-2">
-                <p class="text-xs font-black uppercase">کڕیار / Client</p>
+             <div class="text-center w-28 border-t border-black pt-1">
+                <p class="text-[9px] font-black uppercase">کڕیار / Client</p>
              </div>
           </div>
 
           <!-- Legal Disclaimer & Contact -->
-          <div class="mt-8 border-t border-slate-100 pt-4 flex justify-between items-end text-black">
-             <div class="text-[10px] font-bold text-slate-500 leading-tight">
+          <div class="mt-4 border-t border-slate-100 pt-1 flex justify-between items-end text-black">
+             <div class="text-[9px] font-bold text-slate-500 leading-tight">
                 <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
                 <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
              </div>
@@ -475,8 +475,8 @@
           </div>
 
           <!-- Cut Line -->
-          <div v-if="i === 1" class="my-10 border-t-2 border-dashed border-slate-300 relative">
-             <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[10px] text-slate-400">ببڕدرێت لێرەوە / CUT HERE (OFFICE / CUSTOMER COPY)</span>
+          <div v-if="i === 1" class="my-3 border-t border-dashed border-slate-400 relative">
+             <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[9px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / CUSTOMER COPY)</span>
           </div>
        </div>
     </div>

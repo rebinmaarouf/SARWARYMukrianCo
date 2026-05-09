@@ -2,19 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global Print-only Container Support */
+.print-only-container {
+  display: none !important;
+}
+
 @media print {
-  .no-print, nav, header, aside, .sidebar, .navbar, .top-bar, button {
+  /* Hide non-printing interface elements */
+  .no-print, nav, header, aside, .sidebar, .navbar, .top-bar, button, .modal, [role="dialog"] {
     display: none !important;
   }
+  
+  /* Reset body and wrapper margins */
   body, #app {
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
   }
-  .print-container {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+
+  /* Force display: none on everything inside body first to ensure isolation */
+  body * {
+    display: none !important;
+  }
+
+  /* ---------------------------------------------------- */
+  /* 80mm Thermal Printer Mode Isolation */
+  /* ---------------------------------------------------- */
+  body.print-80mm .print-only-container#print-area,
+  body.print-80mm .print-only-container#print-area *,
+  body.print-80mm .print-only-container#receipt-print-area,
+  body.print-80mm .print-only-container#receipt-print-area *,
+  body.print-80mm .print-only-container#print-area-registry-thermal,
+  body.print-80mm .print-only-container#print-area-registry-thermal * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Table overrides for 80mm */
+  body.print-80mm table { display: table !important; }
+  body.print-80mm thead { display: table-header-group !important; }
+  body.print-80mm tr { display: table-row !important; }
+  body.print-80mm th, body.print-80mm td { display: table-cell !important; }
+  body.print-80mm .flex { display: flex !important; }
+  body.print-80mm .grid { display: grid !important; }
+
+  body.print-80mm {
+    width: 80mm !important;
+    max-width: 80mm !important;
+  }
+
+  /* ---------------------------------------------------- */
+  /* A4/A5 Laser Printer Mode Isolation */
+  /* ---------------------------------------------------- */
+  body.print-a4 .print-only-container#print-area-a4,
+  body.print-a4 .print-only-container#print-area-a4 *,
+  body.print-a4 .print-only-container#receipt-print-area-a4,
+  body.print-a4 .print-only-container#receipt-print-area-a4 *,
+  body.print-a4 .print-only-container#print-area-registry-a4,
+  body.print-a4 .print-only-container#print-area-registry-a4 * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Flex grid layouts for A4 */
+  body.print-a4 .flex { display: flex !important; }
+  body.print-a4 .grid { display: grid !important; }
+  body.print-a4 table { display: table !important; }
+  body.print-a4 thead { display: table-header-group !important; }
+  body.print-a4 tr { display: table-row !important; }
+  body.print-a4 th, body.print-a4 td { display: table-cell !important; }
+
+  body.print-a4 {
+    width: 210mm !important;
+    height: 297mm !important;
   }
 }

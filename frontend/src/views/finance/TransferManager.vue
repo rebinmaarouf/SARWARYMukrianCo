@@ -225,100 +225,100 @@
 
   <!-- PREMIUM A4 TRANSFER RECEIPT -->
   <div v-if="printingTransfer" id="receipt-print-area-a4" class="print-only-container text-black" dir="rtl">
-    <div v-for="i in 2" :key="i" class="a4-voucher" :class="{ 'border-t-2 border-dashed border-slate-300 pt-8 mt-8': i === 2 }">
+    <div v-for="i in 2" :key="i" class="a4-voucher" :class="{ 'border-t border-dashed border-slate-400 pt-4 mt-4': i === 2 }">
       <!-- Top Branding -->
-      <div class="flex justify-between items-center border-b-2 border-black pb-4 mb-4">
-         <div class="flex items-center gap-4">
-            <img src="/logo.png" class="h-16 w-16 object-contain grayscale animate-pulse" />
+      <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
+         <div class="flex items-center gap-2">
+            <img src="/logo.png" class="h-10 w-10 object-contain grayscale" />
             <div>
-               <h1 class="text-xl font-black text-black">کۆمپانیای سەروەری موکریان</h1>
-               <p class="text-xs font-bold text-black uppercase">SARWARY MUKRIAN / INTERNAL MONEY TRANSFER</p>
+               <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
+               <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / INTERNAL MONEY TRANSFER</p>
             </div>
          </div>
          <div class="text-left" dir="ltr">
-            <h2 class="text-xl font-black text-black leading-none">TRANSFER VOUCHER</h2>
-            <p class="text-xs font-black mt-1">REF: #TR-{{ printingTransfer.id }}</p>
+            <h2 class="text-sm font-black text-black leading-none">TRANSFER VOUCHER</h2>
+            <p class="text-[10px] font-black mt-0.5">REF: #TR-{{ printingTransfer.id }}</p>
          </div>
       </div>
 
       <!-- Basic Info Grid -->
-      <div class="grid grid-cols-3 gap-4 mb-6 text-xs text-black">
-         <div class="border border-black p-3 rounded">
-            <span class="font-black block text-slate-500">بەروار / Date</span>
-            <span class="text-sm font-black">{{ formatTime(printingTransfer.created_at) }}</span>
+      <div class="grid grid-cols-3 gap-2 mb-2 text-[10px] text-black">
+         <div class="border border-black p-1.5 rounded">
+            <span class="font-black block text-slate-500 text-[8px]">بەروار / Date</span>
+            <span class="text-xs font-black">{{ formatTime(printingTransfer.created_at) }}</span>
          </div>
-         <div class="border border-black p-3 rounded">
-            <span class="font-black block text-slate-500">لە سندوقی / From Vault</span>
-            <span class="text-sm font-black">{{ printingTransfer.from_account?.name }}</span>
+         <div class="border border-black p-1.5 rounded">
+            <span class="font-black block text-slate-500 text-[8px]">لە سندوقی / From Vault</span>
+            <span class="text-xs font-black">{{ printingTransfer.from_account?.name }}</span>
          </div>
-         <div class="border border-black p-3 rounded text-right">
-            <span class="font-black block text-slate-500">بۆ سندوقی / To Vault</span>
-            <span class="text-sm font-black">{{ printingTransfer.to_account?.name }}</span>
+         <div class="border border-black p-1.5 rounded text-right">
+            <span class="font-black block text-slate-500 text-[8px]">بۆ سندوقی / To Vault</span>
+            <span class="text-xs font-black">{{ printingTransfer.to_account?.name }}</span>
          </div>
       </div>
 
       <!-- Financial Summary -->
-      <div class="border-2 border-black mb-6">
-         <div class="bg-black text-white px-4 py-2.5 flex justify-between text-xs font-black uppercase">
+      <div class="border border-black mb-2">
+         <div class="bg-black text-white px-3 py-1 flex justify-between text-[9px] font-black uppercase">
             <span>وردەکاری گواستنەوە / Transfer Summary</span>
             <span>بڕی کۆتایی / Final Amount</span>
          </div>
          <div class="flex">
             <!-- Details -->
-            <div class="flex-1 p-4 border-l-2 border-black flex flex-col gap-3 text-right">
-               <div class="grid grid-cols-2 gap-4">
+            <div class="flex-1 p-2 border-l border-black flex flex-col gap-1 text-right">
+               <div class="grid grid-cols-2 gap-2">
                   <div>
-                     <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">دراوی سەرەکی / Currency</span>
-                     <span class="text-sm font-black">{{ printingTransfer.currency?.code }}</span>
+                     <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">دراوی سەرەکی / Currency</span>
+                     <span class="text-xs font-black">{{ printingTransfer.currency?.code }}</span>
                   </div>
                   <div>
-                     <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">ئەنجامدەر / Authorized By</span>
-                     <span class="text-sm font-black text-black">{{ printingTransfer.user?.name || 'Admin' }}</span>
+                     <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">ئەنجامدەر / Authorized By</span>
+                     <span class="text-xs font-black text-black">{{ printingTransfer.user?.name || 'Admin' }}</span>
                   </div>
                </div>
-               <div class="border-t border-slate-200 pt-3" v-if="printingTransfer.notes">
-                  <span class="text-[9px] font-black text-slate-400 uppercase block font-sans">تێبینی / Remarks</span>
+               <div class="border-t border-slate-200 pt-1" v-if="printingTransfer.notes">
+                  <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">تێبینی / Remarks</span>
                   <p class="text-xs font-bold text-black">{{ printingTransfer.notes }}</p>
                </div>
             </div>
             <!-- Big Amount -->
-            <div class="w-1/3 p-4 flex flex-col items-center justify-center bg-slate-50">
-               <span class="text-[9px] font-black text-slate-400 uppercase block font-sans mb-1">TOTAL TRANSFERRED</span>
-               <p class="text-3xl font-black font-mono tracking-tighter text-black">{{ formatNumber(printingTransfer.amount) }} {{ printingTransfer.currency?.code }}</p>
-               <div class="mt-2 text-center text-emerald-600" v-if="printingTransfer.commission_amount > 0">
+            <div class="w-1/3 p-2 flex flex-col items-center justify-center bg-slate-50">
+               <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">TOTAL TRANSFERRED</span>
+               <p class="text-lg font-black font-mono tracking-tighter text-black">{{ formatNumber(printingTransfer.amount) }} {{ printingTransfer.currency?.code }}</p>
+               <div class="mt-1 text-center text-emerald-600" v-if="printingTransfer.commission_amount > 0">
                   <span class="text-[8px] block font-black uppercase opacity-60">عومولە / COMMISSION</span>
-                  <p class="text-sm font-black font-mono">+ {{ formatNumber(printingTransfer.commission_amount) }} {{ getCurrencyCode(printingTransfer.commission_currency_id) }}</p>
+                  <p class="text-xs font-black font-mono">+ {{ formatNumber(printingTransfer.commission_amount) }} {{ getCurrencyCode(printingTransfer.commission_currency_id) }}</p>
                </div>
             </div>
          </div>
       </div>
 
       <!-- Signature Area and Cryptographic Seal -->
-      <div class="text-center space-y-2 py-4">
-         <div class="text-[10px] font-mono text-slate-500 flex justify-center items-center gap-2">
+      <div class="text-center space-y-1 py-1">
+         <div class="text-[8px] font-mono text-slate-500 flex justify-center items-center gap-1">
             <span>🔒 INTEGRITY SEAL:</span>
             <span class="font-bold text-black">SM-v2-TR-{{ printingTransfer.id }}-SHA256-{{ printingTransfer.amount }}</span>
          </div>
-         <p class="text-xs font-bold leading-relaxed text-slate-700">
+         <p class="text-[9px] font-bold leading-tight text-slate-700">
             «مۆری فەرمی کۆمپانیای سەروەری موکریان - سوپاس بۆ متمانەتان.»
          </p>
       </div>
 
-      <div class="flex justify-between mt-12 px-8">
-         <div class="text-center w-36 border-t border-black pt-2">
-            <p class="text-xs font-black uppercase">واژۆی ڕادەستکار / Handed Over By</p>
+      <div class="flex justify-between mt-4 px-4">
+         <div class="text-center w-28 border-t border-black pt-1">
+            <p class="text-[9px] font-black uppercase text-black">واژۆی ڕادەستکار / Handed Over By</p>
          </div>
-         <div class="text-center w-36 border-t border-black pt-2">
-            <p class="text-xs font-black uppercase">کۆمپانیا / Office Stamp</p>
+         <div class="text-center w-28 border-t border-black pt-1">
+            <p class="text-[9px] font-black uppercase text-black">کۆمپانیا / Office Stamp</p>
          </div>
-         <div class="text-center w-36 border-t border-black pt-2">
-            <p class="text-xs font-black uppercase">واژۆی وەرگر / Received By</p>
+         <div class="text-center w-28 border-t border-black pt-1">
+            <p class="text-[9px] font-black uppercase text-black">واژۆی وەرگر / Received By</p>
          </div>
       </div>
 
       <!-- Cut Line -->
-      <div v-if="i === 1" class="my-8 border-t border-dashed border-slate-300 relative">
-         <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[10px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / DEPT COPY)</span>
+      <div v-if="i === 1" class="my-3 border-t border-dashed border-slate-400 relative">
+         <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[9px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / DEPT COPY)</span>
       </div>
     </div>
   </div>
