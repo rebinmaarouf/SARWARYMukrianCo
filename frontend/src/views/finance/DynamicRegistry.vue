@@ -736,69 +736,6 @@ onMounted(() => { fetchCurrencies(); fetchEntries() })
 <style scoped>
 .animate-fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@media print {
-  body * { display: none !important; }
-  
-  /* Shared overrides */
-  body.print-80mm #print-area-registry-thermal,
-  body.print-80mm #print-area-registry-thermal *,
-  body.print-a4 #print-area-registry-a4,
-  body.print-a4 #print-area-registry-a4 * {
-    display: block !important;
-    visibility: visible !important;
-  }
-  
-  body.print-80mm #print-area-registry-thermal div, 
-  body.print-80mm #print-area-registry-thermal p, 
-  body.print-80mm #print-area-registry-thermal span, 
-  body.print-80mm #print-area-registry-thermal table, 
-  body.print-80mm #print-area-registry-thermal thead, 
-  body.print-80mm #print-area-registry-thermal tr, 
-  body.print-80mm #print-area-registry-thermal th, 
-  body.print-80mm #print-area-registry-thermal td { 
-    display: block !important; 
-  }
-  body.print-80mm #print-area-registry-thermal table { display: table !important; }
-  body.print-80mm #print-area-registry-thermal thead { display: table-header-group !important; }
-  body.print-80mm #print-area-registry-thermal tr { display: table-row !important; }
-  body.print-80mm #print-area-registry-thermal th, 
-  body.print-80mm #print-area-registry-thermal td { 
-    display: table-cell !important; 
-  }
-  body.print-80mm #print-area-registry-thermal .flex { display: flex !important; }
-  body.print-80mm #print-area-registry-thermal .grid { display: grid !important; }
-  
-  body.print-80mm #print-area-registry-thermal { 
-    position: absolute !important; 
-    left: 0 !important; 
-    top: 0 !important; 
-    width: 80mm !important; 
-    max-width: 80mm !important; 
-    padding: 2mm !important; 
-    box-sizing: border-box !important;
-    background: white !important; 
-    color: black !important; 
-    z-index: 9999; 
-  }
-  
-  body.print-a4 #print-area-registry-a4 {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    padding: 1.5cm !important;
-    box-sizing: border-box !important;
-    background: white !important;
-    color: black !important;
-    z-index: 9999;
-  }
-
-  .print-voucher { 
-    width: 100% !important; 
-    background: white !important; 
-    color: black !important; 
-  }
-}
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .custom-scrollbar::-webkit-scrollbar { height: 6px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }

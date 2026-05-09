@@ -809,45 +809,5 @@ onMounted(fetchData)
 </script>
 
 <style scoped>
-@media print {
-  body * { display: none !important; }
-  
-  /* Shared Print display overrides */
-  body.print-80mm #print-area,
-  body.print-80mm #print-area *,
-  body.print-a4 #print-area-a4,
-  body.print-a4 #print-area-a4 * {
-    display: block !important;
-    visibility: visible !important;
-  }
-
-  body.print-80mm #print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 80mm !important;
-    max-width: 80mm !important;
-    padding: 2mm !important;
-    box-sizing: border-box !important;
-    background: white !important;
-    color: black !important;
-  }
-
-  body.print-a4 #print-area-a4 {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    padding: 1.5cm !important;
-    box-sizing: border-box !important;
-    background: white !important;
-    color: black !important;
-  }
-  
-  body.print-a4 .a4-voucher {
-    width: 100% !important;
-    page-break-inside: avoid !important;
-  }
-}
 .no-scrollbar::-webkit-scrollbar { display: none; }
 </style>
