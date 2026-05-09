@@ -25,11 +25,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage_accounts',
             'view_reports',
             'delete_records',
-            'edit_past_records'
+            'edit_past_records',
+            'verify_database_integrity'
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'api']);
         }
 
         // 1. Cashier Role (Daily Operations Only)
