@@ -168,8 +168,8 @@ class AuditReportController extends Controller
 
             $accountTotalIQD = 0;
             foreach ($entries as $e) {
-                $currency = DB::table('currencies')->where('id', $e->currency_id)->first();
-                $rate = $currency->exchange_rate_to_base ?? 1.0;
+                $currencyModel = Currency::find($e->currency_id);
+                $rate = $currencyModel ? $currencyModel->current_rate : 1.0;
 
                 $code = $account->code;
                 // Standard IUAS Balance Calculation
