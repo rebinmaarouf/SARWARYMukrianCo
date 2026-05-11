@@ -269,11 +269,63 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <tr v-for="acc in data.financials?.assets?.accounts" :key="acc.code">
-                <td class="px-4 py-2 text-[9px] font-black text-slate-400 print:py-1 print:text-[8px]">{{ acc.code }}</td>
-                <td class="px-4 py-2 text-xs font-black text-slate-800 print:py-1 print:text-[9px]">{{ acc.name }}</td>
-                <td class="px-4 py-2 text-xs font-black text-emerald-700 text-left print:py-1 print:text-[9px]">{{ formatNum(acc.balance_iqd) }}</td>
-              </tr>
+              <template v-for="acc in data.financials?.assets?.accounts" :key="acc.code">
+                <tr @click="toggleAccountRow(acc)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
+                  <td class="px-4 py-2.5 text-[9px] font-black text-slate-400 print:py-1 print:text-[8px] flex items-center gap-2">
+                    <span class="no-print text-slate-400 transition-transform duration-300 group-hover:text-emerald-500" :class="{ 'rotate-180 text-emerald-600': isAccountExpanded(acc) }">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                    </span>
+                    {{ acc.code }}
+                  </td>
+                  <td class="px-4 py-2.5 text-xs font-black text-slate-800 print:py-1 print:text-[9px]">{{ acc.name }}</td>
+                  <td class="px-4 py-2.5 text-xs font-black text-emerald-700 text-left print:py-1 print:text-[9px]">{{ formatNum(acc.balance_iqd) }}</td>
+                </tr>
+
+                <!-- Collapsible Detail Sub-Table for Assets (Hidden in Print) -->
+                <tr v-if="isAccountExpanded(acc)" class="bg-slate-50/60 no-print transition-all duration-300">
+                  <td colspan="3" class="px-6 py-4">
+                    <div class="bg-slate-950 text-slate-100 rounded-3xl p-6 shadow-2xl border border-white/5 space-y-4">
+                      <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                        <span class="text-xs font-black text-emerald-400 tracking-tight flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+                          ڕابەر و جوڵەکانی حیسابی: {{ acc.name }} ({{ acc.code }})
+                        </span>
+                        <span class="text-[9px] bg-slate-900 text-slate-400 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
+                          کۆی کۆتا جوڵەکان: {{ acc.entries?.length || 0 }}
+                        </span>
+                      </div>
+                      
+                      <div v-if="!acc.entries || acc.entries.length === 0" class="text-center py-6 text-xs text-slate-500 font-bold">
+                        هیچ جوڵەیەکی حیسابی بەردەست نییە بۆ ئەم حیسابە لەم بەروارەدا.
+                      </div>
+                      
+                      <table v-else class="w-full text-right text-[10px] border-collapse">
+                        <thead>
+                          <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
+                            <th class="pb-3 text-right">ڕێکەوت</th>
+                            <th class="pb-3 text-right">وەسف و تێبینی</th>
+                            <th class="pb-3 text-right text-emerald-400">لادان / هاتوو (Debtor)</th>
+                            <th class="pb-3 text-right text-rose-400">بەرانبەر / ڕۆیشتوو (Creditor)</th>
+                            <th class="pb-3 text-left">ئەنجامدەر</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 font-semibold">
+                          <tr v-for="d in acc.entries" :key="d.id" class="hover:bg-white/[0.02] transition-colors">
+                            <td class="py-3 text-slate-400 font-bold">{{ d.date }}</td>
+                            <td class="py-3 font-bold text-slate-200">
+                              {{ d.description }}
+                              <span class="text-[9px] text-slate-500 block mt-0.5">دراوی ئەسڵی: {{ d.currency_code }}</span>
+                            </td>
+                            <td class="py-3 text-emerald-400 font-black">{{ d.debit > 0 ? formatNum(d.debit) : '-' }}</td>
+                            <td class="py-3 text-rose-400 font-black">{{ d.credit > 0 ? formatNum(d.credit) : '-' }}</td>
+                            <td class="py-3 text-left text-slate-400 font-bold">{{ d.user_name || 'سیستەم' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </tbody>
             <tfoot>
               <tr class="bg-emerald-600 text-white font-black print:bg-slate-50 print:text-black">
@@ -299,11 +351,63 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <tr v-for="acc in data.financials?.liabilities?.accounts" :key="acc.code">
-                <td class="px-4 py-2 text-[9px] font-black text-slate-400 print:py-1 print:text-[8px]">{{ acc.code }}</td>
-                <td class="px-4 py-2 text-xs font-black text-slate-800 print:py-1 print:text-[9px]">{{ acc.name }}</td>
-                <td class="px-4 py-2 text-xs font-black text-rose-700 text-left print:py-1 print:text-[9px]">{{ formatNum(acc.balance_iqd) }}</td>
-              </tr>
+              <template v-for="acc in data.financials?.liabilities?.accounts" :key="acc.code">
+                <tr @click="toggleAccountRow(acc)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
+                  <td class="px-4 py-2.5 text-[9px] font-black text-slate-400 print:py-1 print:text-[8px] flex items-center gap-2">
+                    <span class="no-print text-slate-400 transition-transform duration-300 group-hover:text-rose-500" :class="{ 'rotate-180 text-rose-600': isAccountExpanded(acc) }">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                    </span>
+                    {{ acc.code }}
+                  </td>
+                  <td class="px-4 py-2.5 text-xs font-black text-slate-800 print:py-1 print:text-[9px]">{{ acc.name }}</td>
+                  <td class="px-4 py-2.5 text-xs font-black text-rose-700 text-left print:py-1 print:text-[9px]">{{ formatNum(acc.balance_iqd) }}</td>
+                </tr>
+
+                <!-- Collapsible Detail Sub-Table for Liabilities (Hidden in Print) -->
+                <tr v-if="isAccountExpanded(acc)" class="bg-slate-50/60 no-print transition-all duration-300">
+                  <td colspan="3" class="px-6 py-4">
+                    <div class="bg-slate-950 text-slate-100 rounded-3xl p-6 shadow-2xl border border-white/5 space-y-4">
+                      <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                        <span class="text-xs font-black text-rose-400 tracking-tight flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping"></span>
+                          ڕابەر و جوڵەکانی حیسابی: {{ acc.name }} ({{ acc.code }})
+                        </span>
+                        <span class="text-[9px] bg-slate-900 text-slate-400 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
+                          کۆی کۆتا جوڵەکان: {{ acc.entries?.length || 0 }}
+                        </span>
+                      </div>
+                      
+                      <div v-if="!acc.entries || acc.entries.length === 0" class="text-center py-6 text-xs text-slate-500 font-bold">
+                        هیچ جوڵەیەکی حیسابی بەردەست نییە بۆ ئەم حیسابە لەم بەروارەدا.
+                      </div>
+                      
+                      <table v-else class="w-full text-right text-[10px] border-collapse">
+                        <thead>
+                          <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
+                            <th class="pb-3 text-right">ڕێکەوت</th>
+                            <th class="pb-3 text-right">وەسف و تێبینی</th>
+                            <th class="pb-3 text-right text-emerald-400">لادان / هاتوو (Debtor)</th>
+                            <th class="pb-3 text-right text-rose-400">بەرانبەر / ڕۆیشتوو (Creditor)</th>
+                            <th class="pb-3 text-left">ئەنجامدەر</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 font-semibold">
+                          <tr v-for="d in acc.entries" :key="d.id" class="hover:bg-white/[0.02] transition-colors">
+                            <td class="py-3 text-slate-400 font-bold">{{ d.date }}</td>
+                            <td class="py-3 font-bold text-slate-200">
+                              {{ d.description }}
+                              <span class="text-[9px] text-slate-500 block mt-0.5">دراوی ئەسڵی: {{ d.currency_code }}</span>
+                            </td>
+                            <td class="py-3 text-emerald-400 font-black">{{ d.debit > 0 ? formatNum(d.debit) : '-' }}</td>
+                            <td class="py-3 text-rose-400 font-black">{{ d.credit > 0 ? formatNum(d.credit) : '-' }}</td>
+                            <td class="py-3 text-left text-slate-400 font-bold">{{ d.user_name || 'سیستەم' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </tbody>
             <tfoot>
               <tr class="bg-rose-600 text-white font-black print:bg-slate-50 print:text-black">
@@ -741,6 +845,18 @@ function isExpanded(f) {
 function getRowDetails(f) {
   if (!data.value.vault_details) return []
   return data.value.vault_details.filter(d => d.vault_code === f.vault_code && d.currency_code === f.currency_code)
+}
+
+const expandedAccounts = ref({})
+
+function toggleAccountRow(acc) {
+  const key = acc.code
+  expandedAccounts.value[key] = !expandedAccounts.value[key]
+}
+
+function isAccountExpanded(acc) {
+  const key = acc.code
+  return !!expandedAccounts.value[key]
 }
 const filters = ref({
   from_date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
