@@ -30,7 +30,7 @@
   }
 
   /* Clean print layout reset for core wrapping trees */
-  html, body, #app, main {
+  html, body, #app, main, #app > div, .min-h-screen {
     background: white !important;
     color: black !important;
     width: 100% !important;
@@ -76,8 +76,7 @@
   /* A4 Laser Printer Mode Setup (Centered, Flex-Balanced) */
   /* ---------------------------------------------------- */
   body.print-a4 .print-only-container#print-area-a4,
-  body.print-a4 .print-only-container#receipt-print-area-a4,
-  body.print-a4 .print-only-container#print-area-registry-a4 {
+  body.print-a4 .print-only-container#receipt-print-area-a4 {
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important; /* Anchor elements securely to top, 100% preventing top-clipping */
@@ -90,9 +89,27 @@
     background: white !important;
     color: black !important;
     z-index: 99999999 !important;
-    padding: 10mm 10mm !important; /* Professional margins */
+    padding: 15mm 10mm 10mm 10mm !important; /* Shift top copy down from the physical top edge of paper */
     box-sizing: border-box !important;
     overflow: hidden !important; /* Ensure it never spills into Page 2 */
+  }
+
+  body.print-a4 .print-only-container#print-area-registry-a4 {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    position: relative !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 195mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    background: white !important;
+    color: black !important;
+    z-index: 99999999 !important;
+    padding: 10mm 10mm !important; /* Unmodified perfect padding for General Registry */
+    box-sizing: border-box !important;
+    overflow: hidden;
   }
 
   /* Automatically position the cut-line in the exact vertical center using auto margins */
