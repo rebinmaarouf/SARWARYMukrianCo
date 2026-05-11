@@ -318,93 +318,93 @@
        <template v-for="i in 2" :key="i">
           <div class="a4-voucher">
              <!-- Header -->
-             <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
+             <div class="flex justify-between items-center border-b border-black pb-0.5 mb-1.5">
                 <div class="flex items-center gap-2">
-                   <img src="/logo.png" class="h-10 w-10 object-contain grayscale" />
+                   <img src="/logo.png" class="h-8 w-8 object-contain grayscale" />
                    <div>
-                      <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
-                      <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / EXCHANGE VOUCHER</p>
+                      <h1 class="text-sm font-black text-black leading-tight">کۆمپانیای سەروەری موکریان</h1>
+                      <p class="text-[8px] font-bold text-black uppercase tracking-tight">SARWARY MUKRIAN / EXCHANGE VOUCHER</p>
                    </div>
                 </div>
                 <div class="text-left" dir="ltr">
-                   <h2 class="text-sm font-black text-black leading-none">EXCHANGE SLIP</h2>
-                   <p class="text-[10px] font-black mt-0.5">REF: #TX-{{ printingTx.id }}</p>
+                   <h2 class="text-xs font-black text-black leading-none">EXCHANGE SLIP</h2>
+                   <p class="text-[8px] font-black mt-0.5">REF: #TX-{{ printingTx.id }}</p>
                 </div>
              </div>
 
              <!-- Basic Info Grid -->
-             <div class="grid grid-cols-3 gap-2 mb-2 text-[10px] text-black">
-                <div class="border border-black p-1.5 rounded">
-                   <span class="font-black block text-slate-500 text-[8px]">بەروار / Date</span>
-                   <span class="text-xs font-black">{{ formatFullTime(printingTx.created_at) }}</span>
+             <div class="grid grid-cols-3 gap-1.5 mb-1.5 text-[9px] text-black">
+                <div class="border border-black p-1 rounded">
+                   <span class="font-black block text-slate-500 text-[7px] leading-tight">بەروار / Date</span>
+                   <span class="text-[10px] font-black">{{ formatFullTime(printingTx.created_at) }}</span>
                 </div>
-                <div class="border border-black p-1.5 rounded">
-                   <span class="font-black block text-slate-500 text-[8px]">مشتەری / Client</span>
-                   <span class="text-xs font-black">{{ printingTx.client_name || printingTx.account?.name || 'مشتەری گشتی' }}</span>
+                <div class="border border-black p-1 rounded">
+                   <span class="font-black block text-slate-500 text-[7px] leading-tight">مشتەری / Client</span>
+                   <span class="text-[10px] font-black">{{ printingTx.client_name || printingTx.account?.name || 'مشتەری گشتی' }}</span>
                 </div>
-                <div class="border border-black p-1.5 rounded text-left" dir="ltr">
-                   <span class="font-black block text-slate-500 text-[8px]">Operation Status</span>
-                   <span class="text-xs font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
+                <div class="border border-black p-1 rounded text-left" dir="ltr">
+                   <span class="font-black block text-slate-500 text-[7px] leading-tight">Operation Status</span>
+                   <span class="text-[10px] font-black text-emerald-700">✓ PROCESSED</span>
                 </div>
              </div>
 
              <!-- Transaction Detail Table -->
-             <div class="border border-black mb-2">
-                <div class="bg-black text-white px-3 py-1 flex justify-between text-[9px] font-black uppercase">
+             <div class="border border-black mb-1.5">
+                <div class="bg-black text-white px-2 py-0.5 flex justify-between text-[8px] font-black uppercase">
                    <span>ووردەکاری ئاڵوگۆڕ / Transaction Details</span>
                    <span>کۆتایی / Calculation</span>
                 </div>
                 <div class="flex">
                    <!-- Details -->
-                   <div class="flex-1 p-2 border-l border-black flex flex-col gap-1 text-right">
-                      <div class="grid grid-cols-2 gap-2">
+                   <div class="flex-1 p-1 border-l border-black flex flex-col gap-0.5 text-right">
+                      <div class="grid grid-cols-2 gap-1.5">
                          <div>
-                            <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">جۆری مامەڵە / Transaction Type</span>
-                            <span class="text-xs font-black" :class="printingTx.type === 'buy' ? 'text-emerald-600' : 'text-rose-600'">
+                            <span class="text-[7px] font-black text-slate-500 uppercase block font-sans">جۆری مامەڵە / Transaction Type</span>
+                            <span class="text-[10px] font-black" :class="printingTx.type === 'buy' ? 'text-emerald-600' : 'text-rose-600'">
                                {{ printingTx.type === 'buy' ? 'کڕینی دراو (BUY)' : 'فرۆشتنی دراو (SELL)' }}
                             </span>
                          </div>
                          <div>
-                            <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">ئەنجامدەر / Authorized By</span>
-                            <span class="text-xs font-black text-black">{{ printingTx.user?.name || 'Admin' }}</span>
+                            <span class="text-[7px] font-black text-slate-500 uppercase block font-sans">ئەنجامدەر / Authorized By</span>
+                            <span class="text-[10px] font-black text-black">{{ printingTx.user?.name || 'Admin' }}</span>
                          </div>
                       </div>
-                      <div class="border-t border-slate-200 pt-1">
-                         <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">ڕێژەی ئاڵوگۆڕ / Exchange Rate</span>
-                         <p class="text-xs font-black font-mono text-black">1 {{ printingTx.primary_currency }} = {{ formatNum(printingTx.rate) }} {{ printingTx.secondary_currency }}</p>
+                      <div class="border-t border-slate-200 pt-0.5">
+                         <span class="text-[7px] font-black text-slate-500 uppercase block font-sans">ڕێژەی ئاڵوگۆڕ / Exchange Rate</span>
+                         <p class="text-[10px] font-black font-mono text-black">1 {{ printingTx.primary_currency }} = {{ formatNum(printingTx.rate) }} {{ printingTx.secondary_currency }}</p>
                       </div>
                    </div>
                    <!-- Big Amount -->
-                   <div class="w-1/3 p-2 flex flex-col items-center justify-center bg-slate-50">
-                      <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">TOTAL AMOUNT</span>
-                      <p class="text-lg font-black font-mono tracking-tighter text-black">{{ formatNum(printingTx.primary_amount) }} {{ printingTx.primary_currency }}</p>
-                      <p class="text-[9px] font-bold text-slate-500">بۆ دەکاتە</p>
-                      <p class="text-base font-black font-mono text-emerald-600">{{ formatNum(printingTx.secondary_amount) }} {{ printingTx.secondary_currency }}</p>
+                   <div class="w-1/3 p-1 flex flex-col items-center justify-center bg-slate-50">
+                      <span class="text-[7px] font-black text-slate-500 uppercase block font-sans">TOTAL AMOUNT</span>
+                      <p class="text-sm font-black font-mono tracking-tighter text-black">{{ formatNum(printingTx.primary_amount) }} {{ printingTx.primary_currency }}</p>
+                      <p class="text-[8px] font-bold text-slate-500 leading-none my-0.5">بۆ دەکاتە</p>
+                      <p class="text-xs font-black font-mono text-emerald-600 leading-none">{{ formatNum(printingTx.secondary_amount) }} {{ printingTx.secondary_currency }}</p>
                    </div>
                 </div>
              </div>
 
              <!-- Cryptographic Seal and Footers -->
-             <div class="text-center space-y-1 py-1">
-                <div class="text-[8px] font-mono text-slate-500 flex justify-center items-center gap-1">
+             <div class="text-center space-y-0.5 py-0.5">
+                <div class="text-[7px] font-mono text-slate-500 flex justify-center items-center gap-1">
                    <span>🔒 INTEGRITY SEAL:</span>
                    <span class="font-bold text-black">SM-v2-TX-{{ printingTx.id }}-SHA256-{{ Math.abs(printingTx.profit || 0) }}</span>
                 </div>
-                <p class="text-[9px] font-bold leading-tight text-slate-700">
+                <p class="text-[8px] font-bold leading-tight text-slate-700">
                    «تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە. نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.»
                 </p>
              </div>
 
              <!-- Signatures -->
-             <div class="flex justify-between mt-4 px-4">
-                <div class="text-center w-28 border-t border-black pt-1">
-                   <p class="text-[9px] font-black uppercase text-black">ژمێریار / Accountant</p>
+             <div class="flex justify-between mt-2.5 px-4">
+                <div class="text-center w-24 border-t border-black pt-0.5">
+                   <p class="text-[8px] font-black uppercase text-black">ژمێریار / Accountant</p>
                 </div>
-                <div class="text-center w-28 border-t border-black pt-1">
-                   <p class="text-[9px] font-black uppercase text-black">کۆمپانیا / Office Stamp</p>
+                <div class="text-center w-24 border-t border-black pt-0.5">
+                   <p class="text-[8px] font-black uppercase text-black">کۆمپانیا / Office Stamp</p>
                 </div>
-                <div class="text-center w-28 border-t border-black pt-1">
-                   <p class="text-[9px] font-black uppercase text-black">کڕیار / Client</p>
+                <div class="text-center w-24 border-t border-black pt-0.5">
+                   <p class="text-[8px] font-black uppercase text-black">کڕیار / Client</p>
                 </div>
              </div>
           </div>
