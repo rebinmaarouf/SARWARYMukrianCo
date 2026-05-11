@@ -51,7 +51,7 @@
     <!-- Universal Ledger Card Container -->
     <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl relative no-print">
       <!-- Ledger Content Table -->
-      <div class="hidden lg:block overflow-x-auto">
+      <div ref="headerScrollContainer" @scroll="syncScroll('header')" class="hidden lg:block overflow-x-auto scrollbar-none">
         <table class="w-full text-right border-collapse min-w-[1300px]" dir="rtl">
           <thead>
             <tr class="bg-slate-950/80 text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase border-b border-white/5">
@@ -205,8 +205,8 @@
       </div>
 
       <!-- Execution Log -->
-      <div class="overflow-hidden">
-        <table class="hidden lg:table w-full text-right border-collapse" dir="rtl">
+      <div ref="bodyScrollContainer" @scroll="syncScroll('body')" class="overflow-x-auto scrollbar-thin">
+        <table class="hidden lg:table w-full text-right border-collapse min-w-[1300px]" dir="rtl">
           <tbody>
             <tr v-for="entry in entries" :key="entry.id" class="border-b border-white/[0.02] hover:bg-white/[0.03] group transition-all">
               <td class="px-6 py-5 text-[10px] font-black text-slate-500 uppercase tracking-tighter w-32">{{ formatDate(entry.entry_date) }}</td>
@@ -588,6 +588,22 @@ const printingEntry = ref(null)
 const previewingEntry = ref(null)
 const showPreviewModal = ref(false)
 const printMode = ref('80mm')
+
+// Premium Synchronized Scroll Refs
+const headerScrollContainer = ref(null)
+const bodyScrollContainer = ref(null)
+
+function syncScroll(source) {
+  const header = headerScrollContainer.value
+  const body = bodyScrollContainer.value
+  if (!header || !body) return
+
+  if (source === 'header') {
+    body.scrollLeft = header.scrollLeft
+  } else {
+    header.scrollLeft = body.scrollLeft
+  }
+}
 
 async function printInvoice(entry) {
   previewingEntry.value = entry
