@@ -132,8 +132,8 @@
   /* Strict height and layout constraints to guarantee perfect 50/50 balance */
   .a4-voucher, .print-voucher {
     page-break-inside: avoid !important;
-    height: 125mm !important; /* Fixed half-page size */
-    max-height: 125mm !important;
+    height: 115mm !important; /* Reduced to guarantee both copies fit on a single A4 page without spilling into Page 2 */
+    max-height: 115mm !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important; /* Anchor elements securely to the top */
