@@ -113,8 +113,12 @@
     max-height: 125mm !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important; /* Anchor elements securely to the top */
     box-sizing: border-box !important;
     overflow: hidden !important;
+  }
+
+  .a4-voucher > :last-child, .print-voucher > :last-child {
+    margin-top: auto !important; /* Push signatures/footers perfectly to the bottom of the 125mm container */
   }
 }
