@@ -370,99 +370,100 @@
 
     <!-- A4/A5 OFFICE PRINT TEMPLATE -->
     <div v-if="printingEntry" id="print-area-registry-a4" class="print-only-container text-black" dir="rtl">
-       <div v-for="i in 2" :key="i" class="print-voucher" :class="{ 'border-t border-dashed border-slate-400 pt-4 mt-4': i === 2 }">
-          <!-- Header -->
-          <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
-             <div class="flex items-center gap-2">
-                <img src="/logo.png" class="h-10 w-10 object-contain grayscale" />
-                <div>
-                   <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
-                   <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
-                </div>
-             </div>
-             <div class="text-left" dir="ltr">
-                <h2 class="text-sm font-black text-black leading-none">TRANSACTION VOUCHER</h2>
-                <p class="text-[10px] font-black mt-0.5">REF: #REG-{{ printingEntry.id }}</p>
-             </div>
-          </div>
-
-          <!-- Basic Info Grid -->
-          <div class="grid grid-cols-2 gap-2 mb-2 text-[10px] text-black">
-             <div class="border border-black p-1.5 rounded">
-                <span class="font-black block text-slate-500 text-[8px]">بەروار / Date</span>
-                <span class="text-xs font-black">{{ formatDate(printingEntry.entry_date) }}</span>
-             </div>
-             <div class="border border-black p-1.5 rounded text-left" dir="ltr">
-                <span class="font-black block text-slate-500 text-[8px]">Operation Status</span>
-                <span class="text-xs font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
-             </div>
-          </div>
-
-          <!-- Transaction Detail Table -->
-          <div class="border border-black mb-2 text-black">
-             <div class="bg-black text-white px-3 py-1 flex justify-between text-[9px] font-black uppercase">
-                <span>حیسابەکان / Accounts Details</span>
-                <span>بڕی پارە / Amount</span>
-             </div>
-             <div class="flex">
-                <!-- Account Info -->
-                <div class="flex-1 p-2 border-l border-black flex flex-col gap-1 text-right">
+       <template v-for="i in 2" :key="i">
+          <div class="print-voucher">
+             <!-- Header -->
+             <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
+                <div class="flex items-center gap-2">
+                   <img src="/logo.png" class="h-10 w-10 object-contain grayscale" />
                    <div>
-                      <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">حیسابی قەرزار / DEBTOR (FROM)</span>
-                      <p class="text-xs font-black leading-tight">{{ printingEntry.debtor_account?.name }}</p>
-                      <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.debtor_account?.code }}</p>
-                   </div>
-                   <div class="border-t border-slate-200 pt-1">
-                      <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">حیسابی داین / CREDITOR (TO)</span>
-                      <p class="text-xs font-black leading-tight">{{ printingEntry.creditor_account?.name }}</p>
-                      <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.creditor_account?.code }}</p>
+                      <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
+                      <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
                    </div>
                 </div>
-                <!-- Big Amount -->
-                <div class="w-1/3 p-2 flex flex-col items-center justify-center bg-slate-50">
-                   <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">TOTAL AMOUNT</span>
-                   <p class="text-lg font-black font-mono tracking-tighter text-black">{{ formatNum(printingEntry.amount) }}</p>
-                   <p class="text-xs font-black text-slate-600 uppercase mt-0.5">{{ printingEntry.currency?.code }}</p>
+                <div class="text-left" dir="ltr">
+                   <h2 class="text-sm font-black text-black leading-none">TRANSACTION VOUCHER</h2>
+                   <p class="text-[10px] font-black mt-0.5">REF: #REG-{{ printingEntry.id }}</p>
+                </div>
+             </div>
+   
+             <!-- Basic Info Grid -->
+             <div class="grid grid-cols-2 gap-2 mb-2 text-[10px] text-black">
+                <div class="border border-black p-1.5 rounded">
+                   <span class="font-black block text-slate-500 text-[8px]">بەروار / Date</span>
+                   <span class="text-xs font-black">{{ formatDate(printingEntry.entry_date) }}</span>
+                </div>
+                <div class="border border-black p-1.5 rounded text-left" dir="ltr">
+                   <span class="font-black block text-slate-500 text-[8px]">Operation Status</span>
+                   <span class="text-xs font-black text-emerald-700">✓ PROCESSED & VERIFIED</span>
+                </div>
+             </div>
+   
+             <!-- Transaction Detail Table -->
+             <div class="border border-black mb-2 text-black">
+                <div class="bg-black text-white px-3 py-1 flex justify-between text-[9px] font-black uppercase">
+                   <span>حیسابەکان / Accounts Details</span>
+                   <span>بڕی پارە / Amount</span>
+                </div>
+                <div class="flex">
+                   <!-- Account Info -->
+                   <div class="flex-1 p-2 border-l border-black flex flex-col gap-1 text-right">
+                      <div>
+                         <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">حیسابی قەرزار / DEBTOR (FROM)</span>
+                         <p class="text-xs font-black leading-tight">{{ printingEntry.debtor_account?.name }}</p>
+                         <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.debtor_account?.code }}</p>
+                      </div>
+                      <div class="border-t border-slate-200 pt-1">
+                         <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">حیسابی داین / CREDITOR (TO)</span>
+                         <p class="text-xs font-black leading-tight">{{ printingEntry.creditor_account?.name }}</p>
+                         <p class="text-[8px] font-bold text-slate-600">Code: {{ printingEntry.creditor_account?.code }}</p>
+                      </div>
+                   </div>
+                   <!-- Big Amount -->
+                   <div class="w-1/3 p-2 flex flex-col items-center justify-center bg-slate-50">
+                      <span class="text-[8px] font-black text-slate-500 uppercase block font-sans">TOTAL AMOUNT</span>
+                      <p class="text-lg font-black font-mono tracking-tighter text-black">{{ formatNum(printingEntry.amount) }}</p>
+                      <p class="text-xs font-black text-slate-600 uppercase mt-0.5">{{ printingEntry.currency?.code }}</p>
+                   </div>
+                </div>
+             </div>
+   
+             <!-- Notes Section -->
+             <div v-if="printingEntry.notes" class="border border-black p-1.5 rounded mb-2 text-[9px] text-right text-black">
+                <span class="font-black block text-slate-500 text-[8px]">تێبینی / Notes</span>
+                <p class="font-bold text-xs">{{ printingEntry.notes }}</p>
+             </div>
+   
+             <!-- Signatures -->
+             <div class="flex justify-between mt-4 px-4 text-black">
+                <div class="text-center w-28 border-t border-black pt-1">
+                   <p class="text-[9px] font-black uppercase">ژمێریار / Accountant</p>
+                </div>
+                <div class="text-center w-28 border-t border-black pt-1">
+                   <p class="text-[9px] font-black uppercase">کۆمپانیا / Office Stamp</p>
+                </div>
+                <div class="text-center w-28 border-t border-black pt-1">
+                   <p class="text-[9px] font-black uppercase">کڕیار / Client</p>
+                </div>
+             </div>
+   
+             <!-- Legal Disclaimer & Contact -->
+             <div class="mt-4 border-t border-slate-100 pt-1 flex justify-between items-end text-black">
+                <div class="text-[9px] font-bold text-slate-500 leading-tight">
+                   <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
+                   <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
+                </div>
+                <div class="text-left text-[8px] font-black opacity-35 uppercase tracking-tighter">
+                   <p>Sarwary Mukrian Co. | Registry Audit Trail</p>
+                   <p>System Hash: SM-v2-{{ printingEntry.id }} | {{ i === 1 ? 'OFFICE COPY' : 'CUSTOMER COPY' }}</p>
                 </div>
              </div>
           </div>
-
-          <!-- Notes Section -->
-          <div v-if="printingEntry.notes" class="border border-black p-1.5 rounded mb-2 text-[9px] text-right text-black">
-             <span class="font-black block text-slate-500 text-[8px]">تێبینی / Notes</span>
-             <p class="font-bold text-xs">{{ printingEntry.notes }}</p>
-          </div>
-
-          <!-- Signatures -->
-          <div class="flex justify-between mt-4 px-4 text-black">
-             <div class="text-center w-28 border-t border-black pt-1">
-                <p class="text-[9px] font-black uppercase">ژمێریار / Accountant</p>
-             </div>
-             <div class="text-center w-28 border-t border-black pt-1">
-                <p class="text-[9px] font-black uppercase">کۆمپانیا / Office Stamp</p>
-             </div>
-             <div class="text-center w-28 border-t border-black pt-1">
-                <p class="text-[9px] font-black uppercase">کڕیار / Client</p>
-             </div>
-          </div>
-
-          <!-- Legal Disclaimer & Contact -->
-          <div class="mt-4 border-t border-slate-100 pt-1 flex justify-between items-end text-black">
-             <div class="text-[9px] font-bold text-slate-500 leading-tight">
-                <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
-                <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
-             </div>
-             <div class="text-left text-[8px] font-black opacity-35 uppercase tracking-tighter">
-                <p>Sarwary Mukrian Co. | Registry Audit Trail</p>
-                <p>System Hash: SM-v2-{{ printingEntry.id }} | {{ i === 1 ? 'OFFICE COPY' : 'CUSTOMER COPY' }}</p>
-             </div>
-          </div>
-
           <!-- Cut Line -->
-          <div v-if="i === 1" class="my-3 border-t border-dashed border-slate-400 relative">
-             <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[9px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / CUSTOMER COPY)</span>
+          <div v-if="i === 1" class="w-full border-t border-dashed border-slate-400 relative py-1">
+             <span class="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-3 text-[10px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / CUSTOMER COPY)</span>
           </div>
-       </div>
+       </template>
     </div>
 
     <!-- PREMIUM INVOICE PREVIEW MODAL -->

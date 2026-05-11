@@ -225,7 +225,8 @@
 
   <!-- PREMIUM A4 TRANSFER RECEIPT -->
   <div v-if="printingTransfer" id="receipt-print-area-a4" class="print-only-container text-black" dir="rtl">
-    <div v-for="i in 2" :key="i" class="a4-voucher" :class="{ 'border-t border-dashed border-slate-400 pt-4 mt-4': i === 2 }">
+    <template v-for="i in 2" :key="i">
+       <div class="a4-voucher">
       <!-- Top Branding -->
       <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
          <div class="flex items-center gap-2">
@@ -316,11 +317,12 @@
          </div>
       </div>
 
-      <!-- Cut Line -->
-      <div v-if="i === 1" class="my-3 border-t border-dashed border-slate-400 relative">
-         <span class="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-3 text-[9px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / DEPT COPY)</span>
-      </div>
-    </div>
+       </div>
+       <!-- Cut Line -->
+       <div v-if="i === 1" class="w-full border-t border-dashed border-slate-400 relative py-1">
+          <span class="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-3 text-[10px] text-slate-400">✂️ ببڕدرێت لێرەوە / CUT HERE (OFFICE / DEPT COPY)</span>
+       </div>
+    </template>
   </div>
 
   <!-- Print Options Modal -->
