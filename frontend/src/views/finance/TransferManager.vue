@@ -294,26 +294,28 @@
          </div>
       </div>
 
-      <!-- Signature Area and Cryptographic Seal -->
-      <div class="text-center space-y-1 py-1">
-         <div class="text-[8px] font-mono text-slate-500 flex justify-center items-center gap-1">
-            <span>🔒 INTEGRITY SEAL:</span>
-            <span class="font-bold text-black">SM-v2-TR-{{ printingTransfer.id }}-SHA256-{{ printingTransfer.amount }}</span>
+      <!-- Signatures -->
+      <div class="flex justify-between mt-4 px-4 text-black">
+         <div class="text-center w-28 border-t border-black pt-1">
+            <p class="text-[9px] font-black uppercase">واژۆی ڕادەستکار / Handed Over By</p>
          </div>
-         <p class="text-[9px] font-bold leading-tight text-slate-700">
-            «مۆری فەرمی کۆمپانیای سەروەری موکریان - سوپاس بۆ متمانەتان.»
-         </p>
+         <div class="text-center w-28 border-t border-black pt-1">
+            <p class="text-[9px] font-black uppercase">کۆمپانیا / Office Stamp</p>
+         </div>
+         <div class="text-center w-28 border-t border-black pt-1">
+            <p class="text-[9px] font-black uppercase">واژۆی وەرگر / Received By</p>
+         </div>
       </div>
 
-      <div class="flex justify-between mt-4 px-4">
-         <div class="text-center w-28 border-t border-black pt-1">
-            <p class="text-[9px] font-black uppercase text-black">واژۆی ڕادەستکار / Handed Over By</p>
+      <!-- Legal Disclaimer & Contact -->
+      <div class="mt-4 border-t border-slate-100 pt-1 flex justify-between items-end text-black">
+         <div class="text-[9px] font-bold text-slate-500 leading-tight">
+            <p>• تکایە پێش دەرچوون لە نوسینگە دڵنیابەرەوە لە بڕی پارەکە.</p>
+            <p>• نوسینگە بەرپرسیار نییە لە هەر هەڵەیەک دوای ڕۆیشتن.</p>
          </div>
-         <div class="text-center w-28 border-t border-black pt-1">
-            <p class="text-[9px] font-black uppercase text-black">کۆمپانیا / Office Stamp</p>
-         </div>
-         <div class="text-center w-28 border-t border-black pt-1">
-            <p class="text-[9px] font-black uppercase text-black">واژۆی وەرگر / Received By</p>
+         <div class="text-left text-[8px] font-black opacity-35 uppercase tracking-tighter">
+            <p>Sarwary Mukrian Co. | Transfer Audit Trail</p>
+            <p>System Hash: SM-v2-TR-{{ printingTransfer.id }} | {{ i === 1 ? 'OFFICE COPY' : 'CUSTOMER COPY' }}</p>
          </div>
       </div>
 
