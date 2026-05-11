@@ -226,7 +226,7 @@
   <!-- PREMIUM A4 TRANSFER RECEIPT -->
   <div v-if="printingTransfer" id="receipt-print-area-a4" class="print-only-container text-black" dir="rtl">
     <template v-for="i in 2" :key="i">
-       <div class="a4-voucher">
+       <div class="print-voucher">
       <!-- Top Branding -->
       <div class="flex justify-between items-center border-b border-black pb-1 mb-2">
          <div class="flex items-center gap-2">
