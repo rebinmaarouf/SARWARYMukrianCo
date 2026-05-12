@@ -659,7 +659,7 @@ const selectedDebtorCode = ref('')
 const selectedCreditorCode = ref('')
 
 const today = new Date().toISOString().split('T')[0]
-const newEntry = ref({ entry_date: today, amount: '', debtor_account_id: null, creditor_account_id: null, commission_1: '', commission_2: '', notes: '' })
+const newEntry = ref({ entry_date: today, currency_id: null, amount: '', debtor_account_id: null, creditor_account_id: null, commission_1: '', commission_2: '', notes: '' })
 
 async function fetchEntries() {
   try {
@@ -712,12 +712,13 @@ async function submitNewEntry() {
   try {
     const payload = {
       ...newEntry.value,
+      currency_id: newEntry.value.currency_id || currencyId.value,
       commission_1: newEntry.value.commission_1 === '' ? 0 : newEntry.value.commission_1,
       commission_2: newEntry.value.commission_2 === '' ? 0 : newEntry.value.commission_2
     }
     const { data } = await axios.post('/registries', payload)
     entries.value.unshift(data)
-    newEntry.value = { entry_date: today, amount: '', debtor_account_id: null, creditor_account_id: null, commission_1: '', commission_2: '', notes: '' }
+    newEntry.value = { entry_date: today, currency_id: currencyId.value, amount: '', debtor_account_id: null, creditor_account_id: null, commission_1: '', commission_2: '', notes: '' }
     debtorSearch.value = ''; creditorSearch.value = ''; selectedDebtorCode.value = ''; selectedCreditorCode.value = '';
     Swal.fire({ icon: 'success', title: 'Saved', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#10b981', color: '#fff' })
   } catch (e) {
