@@ -191,7 +191,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <template v-for="f in data.vault_forensics" :key="f.vault_code + f.currency_code">
+              <template v-for="f in data.vault_forensics" :key="f.vault_id + '_' + f.currency_code">
                 <!-- Main Row (Clickable) -->
                 <tr @click="toggleRow(f)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
                   <td class="px-4 py-2.5 font-black text-slate-800 print:py-1 flex items-center gap-2">
@@ -220,6 +220,28 @@
                         <span class="text-[9px] bg-slate-900 text-slate-400 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
                           کۆی جوڵەکان: {{ getRowDetails(f).length }}
                         </span>
+                      </div>
+
+                      <!-- Currency Analytics Summary Cards -->
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900/50 p-4 rounded-2xl border border-white/5">
+                        <div class="bg-slate-950 p-3 rounded-xl border border-white/5 space-y-1">
+                          <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">کۆی هاتوو (Total In / Debtor)</span>
+                          <div class="text-sm font-black text-emerald-400">
+                            +{{ formatNum(f.total_in) }} <span class="text-[9px] text-slate-500 font-bold uppercase">{{ f.currency_code }}</span>
+                          </div>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-white/5 space-y-1">
+                          <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">کۆی ڕۆیشتوو (Total Out / Creditor)</span>
+                          <div class="text-sm font-black text-rose-400">
+                            -{{ formatNum(f.total_out) }} <span class="text-[9px] text-slate-500 font-bold uppercase">{{ f.currency_code }}</span>
+                          </div>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-white/5 space-y-1">
+                          <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">پوختەی گۆڕانکاری (Net Change)</span>
+                          <div class="text-sm font-black" :class="f.net_change >= 0 ? 'text-blue-400' : 'text-rose-500'">
+                            {{ f.net_change >= 0 ? '+' : '' }}{{ formatNum(f.net_change) }} <span class="text-[9px] text-slate-500 font-bold uppercase">{{ f.currency_code }}</span>
+                          </div>
+                        </div>
                       </div>
                       
                       <div v-if="getRowDetails(f).length === 0" class="text-center py-6 text-xs text-slate-500 font-bold">
@@ -269,7 +291,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <template v-for="acc in data.financials?.assets?.accounts" :key="acc.code">
+              <template v-for="acc in data.financials?.assets?.accounts" :key="acc.code + '_' + acc.name">
                 <tr @click="toggleAccountRow(acc)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
                   <td class="px-4 py-2.5 text-[9px] font-black text-slate-400 print:py-1 print:text-[8px] flex items-center gap-2">
                     <span class="no-print text-slate-400 transition-transform duration-300 group-hover:text-emerald-500" :class="{ 'rotate-180 text-emerald-600': isAccountExpanded(acc) }">
@@ -293,6 +315,23 @@
                         <span class="text-[9px] bg-slate-900 text-slate-400 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
                           کۆی کۆتا جوڵەکان: {{ acc.entries?.length || 0 }}
                         </span>
+                      </div>
+
+                      <!-- Currency Breakdown Summary -->
+                      <div v-if="acc.currency_balances && acc.currency_balances.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-900/50 p-4 rounded-2xl border border-white/5">
+                        <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="bg-slate-950 p-3 rounded-xl border border-white/5 space-y-1">
+                          <div class="flex justify-between items-center text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span>دراوی {{ cb.currency_code }}</span>
+                            <span v-if="cb.currency_code !== 'IQD'" class="text-slate-500">سعر: {{ formatNum(cb.rate) }}</span>
+                          </div>
+                          <div class="text-sm font-black text-white flex items-baseline gap-1">
+                            {{ formatNum(cb.balance) }}
+                            <span class="text-[9px] text-slate-500 font-bold uppercase">{{ cb.currency_code }}</span>
+                          </div>
+                          <div v-if="cb.currency_code !== 'IQD'" class="text-[8px] text-emerald-400 font-bold">
+                            هاوتا بە دینار: {{ formatNum(cb.balance_iqd) }} IQD
+                          </div>
+                        </div>
                       </div>
                       
                       <div v-if="!acc.entries || acc.entries.length === 0" class="text-center py-6 text-xs text-slate-500 font-bold">
@@ -351,7 +390,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              <template v-for="acc in data.financials?.liabilities?.accounts" :key="acc.code">
+              <template v-for="acc in data.financials?.liabilities?.accounts" :key="acc.code + '_' + acc.name">
                 <tr @click="toggleAccountRow(acc)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
                   <td class="px-4 py-2.5 text-[9px] font-black text-slate-400 print:py-1 print:text-[8px] flex items-center gap-2">
                     <span class="no-print text-slate-400 transition-transform duration-300 group-hover:text-rose-500" :class="{ 'rotate-180 text-rose-600': isAccountExpanded(acc) }">
@@ -375,6 +414,23 @@
                         <span class="text-[9px] bg-slate-900 text-slate-400 px-3 py-1.5 rounded-full font-black uppercase tracking-wider">
                           کۆی کۆتا جوڵەکان: {{ acc.entries?.length || 0 }}
                         </span>
+                      </div>
+
+                      <!-- Currency Breakdown Summary -->
+                      <div v-if="acc.currency_balances && acc.currency_balances.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-900/50 p-4 rounded-2xl border border-white/5">
+                        <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="bg-slate-950 p-3 rounded-xl border border-white/5 space-y-1">
+                          <div class="flex justify-between items-center text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span>دراوی {{ cb.currency_code }}</span>
+                            <span v-if="cb.currency_code !== 'IQD'" class="text-slate-500">سعر: {{ formatNum(cb.rate) }}</span>
+                          </div>
+                          <div class="text-sm font-black text-white flex items-baseline gap-1">
+                            {{ formatNum(cb.balance) }}
+                            <span class="text-[9px] text-slate-500 font-bold uppercase">{{ cb.currency_code }}</span>
+                          </div>
+                          <div v-if="cb.currency_code !== 'IQD'" class="text-[8px] text-emerald-400 font-bold">
+                            هاوتا بە دینار: {{ formatNum(cb.balance_iqd) }} IQD
+                          </div>
+                        </div>
                       </div>
                       
                       <div v-if="!acc.entries || acc.entries.length === 0" class="text-center py-6 text-xs text-slate-500 font-bold">
@@ -833,29 +889,29 @@ async function runIntegrityCheck() {
 const expandedRows = ref({})
 
 function toggleRow(f) {
-  const key = f.vault_code + '_' + f.currency_code
+  const key = f.vault_id + '_' + f.currency_code
   expandedRows.value[key] = !expandedRows.value[key]
 }
 
 function isExpanded(f) {
-  const key = f.vault_code + '_' + f.currency_code
+  const key = f.vault_id + '_' + f.currency_code
   return !!expandedRows.value[key]
 }
 
 function getRowDetails(f) {
   if (!data.value.vault_details) return []
-  return data.value.vault_details.filter(d => d.vault_code === f.vault_code && d.currency_code === f.currency_code)
+  return data.value.vault_details.filter(d => d.vault_id === f.vault_id && d.currency_code === f.currency_code)
 }
 
 const expandedAccounts = ref({})
 
 function toggleAccountRow(acc) {
-  const key = acc.code
+  const key = acc.code + '_' + acc.name
   expandedAccounts.value[key] = !expandedAccounts.value[key]
 }
 
 function isAccountExpanded(acc) {
-  const key = acc.code
+  const key = acc.code + '_' + acc.name
   return !!expandedAccounts.value[key]
 }
 const filters = ref({

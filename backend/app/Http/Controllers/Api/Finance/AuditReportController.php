@@ -64,6 +64,7 @@ class AuditReportController extends Controller
         }
 
         $vaultForensics = $forensicsQuery->select(
+                'accounts.id as vault_id',
                 'accounts.name as vault_name',
                 'accounts.code as vault_code',
                 'currencies.code as currency_code',
@@ -89,6 +90,7 @@ class AuditReportController extends Controller
 
         $vaultDetails = $forensicsDetailsQuery->select(
                 'journal_entries.id',
+                'accounts.id as vault_id',
                 'accounts.code as vault_code',
                 'currencies.code as currency_code',
                 'journal_entries.date',
@@ -162,14 +164,16 @@ class AuditReportController extends Controller
                     'currency_id', 
                     DB::raw('SUM(debit) as total_debit'), 
                     DB::raw('SUM(credit) as total_credit')
-                )
+                 )
                 ->groupBy('currency_id')
                 ->get();
 
             $accountTotalIQD = 0;
+            $currencyBalances = [];
             foreach ($entries as $e) {
                 $currencyModel = Currency::find($e->currency_id);
                 $rate = $currencyModel ? $currencyModel->current_rate : 1.0;
+                $currencyCode = $currencyModel ? $currencyModel->code : '???';
 
                 $code = $account->code;
                 // Standard IUAS Balance Calculation
@@ -178,15 +182,52 @@ class AuditReportController extends Controller
                 } else {
                     $balance = $e->total_credit - $e->total_debit;
                 }
-                $accountTotalIQD += ($balance * $rate);
+                
+                if ($balance != 0) {
+                    $accountTotalIQD += ($balance * $rate);
+                    $currencyBalances[] = [
+                        'currency_code' => $currencyCode,
+                        'balance' => (float)$balance,
+                        'rate' => (float)$rate,
+                        'balance_iqd' => (float)($balance * $rate)
+                    ];
+                }
             }
 
             if ($accountTotalIQD != 0) {
+                $accountEntries = DB::table('journal_entries')
+                    ->join('currencies', 'journal_entries.currency_id', '=', 'currencies.id')
+                    ->leftJoin('users', 'journal_entries.user_id', '=', 'users.id')
+                    ->where('journal_entries.account_id', $account->id)
+                    ->whereNull('journal_entries.deleted_at')
+                    ->where(function($q) use ($isPL, $from, $to) {
+                        if ($isPL) {
+                            $q->whereBetween('journal_entries.date', [$from, $to]);
+                        } else {
+                            $q->where('journal_entries.date', '<=', $to);
+                        }
+                    })
+                    ->select(
+                        'journal_entries.id',
+                        'journal_entries.date',
+                        'journal_entries.debit',
+                        'journal_entries.credit',
+                        'journal_entries.description',
+                        'currencies.code as currency_code',
+                        'users.name as user_name'
+                    )
+                    ->orderBy('journal_entries.date', 'desc')
+                    ->orderBy('journal_entries.created_at', 'desc')
+                    ->take(50)
+                    ->get();
+
                 $details[] = [
                     'name' => $account->name,
                     'code' => $account->code,
                     'type' => $account->type,
-                    'balance_iqd' => $accountTotalIQD
+                    'balance_iqd' => $accountTotalIQD,
+                    'currency_balances' => $currencyBalances,
+                    'entries' => $accountEntries
                 ];
                 $totalIQD += $accountTotalIQD;
             }
