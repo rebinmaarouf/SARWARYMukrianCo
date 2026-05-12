@@ -710,12 +710,34 @@ async function submitNewEntry() {
   if (!newEntry.value.amount || !newEntry.value.debtor_account_id || !newEntry.value.creditor_account_id) return
   loading.value = true
   try {
-    const { data } = await axios.post('/registries', newEntry.value)
+    const payload = {
+      ...newEntry.value,
+      commission_1: newEntry.value.commission_1 === '' ? 0 : newEntry.value.commission_1,
+      commission_2: newEntry.value.commission_2 === '' ? 0 : newEntry.value.commission_2
+    }
+    const { data } = await axios.post('/registries', payload)
     entries.value.unshift(data)
     newEntry.value = { entry_date: today, amount: '', debtor_account_id: null, creditor_account_id: null, commission_1: '', commission_2: '', notes: '' }
     debtorSearch.value = ''; creditorSearch.value = ''; selectedDebtorCode.value = ''; selectedCreditorCode.value = '';
     Swal.fire({ icon: 'success', title: 'Saved', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#10b981', color: '#fff' })
-  } catch (e) { console.error(e) }
+  } catch (e) {
+    console.error(e)
+    if (e.response && e.response.status === 422) {
+      const errors = e.response.data.errors || {}
+      const errorMsg = Object.values(errors).flat().join('<br/>')
+      Swal.fire({
+        icon: 'error',
+        title: 'هەڵەی زانیاری داخڵکراو',
+        html: `<div dir="rtl" class="text-right text-xs leading-relaxed font-bold text-slate-300">${errorMsg}</div>`,
+        confirmButtonText: 'زۆر باشە',
+        confirmButtonColor: '#ef4444',
+        background: '#090d16',
+        color: '#fff'
+      })
+    } else {
+      Swal.fire({ icon: 'error', title: 'کێشەیەک ڕوویدا', text: 'شکستی هێنا لە تۆمارکردنی مامەڵە.', confirmButtonText: 'داخستن', confirmButtonColor: '#ef4444', background: '#090d16', color: '#fff' })
+    }
+  }
   finally { loading.value = false }
 }
 
