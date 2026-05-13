@@ -152,25 +152,56 @@
 
       <div class="p-8 space-y-8 print:p-4 print:space-y-4">
         
-        <!-- Summary Dashboard (4 Pillars) - Compact in Print -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 print:grid-cols-4 print:gap-1.5">
+        <!-- Summary Dashboard (5 Pillars) - Compact in Print -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 print:grid-cols-5 print:gap-1.5">
+          <!-- Assets -->
           <div class="p-4 bg-emerald-50 border-r-2 border-emerald-500 rounded-xl print:p-2">
             <span class="text-[8px] font-black text-emerald-700 uppercase mb-1 block print:text-[7px]">کۆی ماڵ و سامان</span>
             <p class="text-lg font-black text-emerald-900 leading-tight print:text-[11px]">{{ formatNum(data.financials?.assets?.total_iqd) }} <span class="text-[8px]">IQD</span></p>
           </div>
+          <!-- Liabilities -->
           <div class="p-4 bg-rose-50 border-r-2 border-rose-500 rounded-xl print:p-2">
             <span class="text-[8px] font-black text-rose-700 uppercase mb-1 block print:text-[7px]">سەرمایە و پابەندی</span>
             <p class="text-lg font-black text-rose-900 leading-tight print:text-[11px]">{{ formatNum(data.financials?.liabilities?.total_iqd) }} <span class="text-[8px]">IQD</span></p>
           </div>
+          <!-- Revenues -->
           <div class="p-4 bg-amber-50 border-r-2 border-amber-500 rounded-xl print:p-2">
             <span class="text-[8px] font-black text-amber-700 uppercase mb-1 block print:text-[7px]">داهاتی گشتی</span>
             <p class="text-lg font-black text-amber-900 leading-tight print:text-[11px]">{{ formatNum(data.financials?.revenues?.total_iqd) }} <span class="text-[8px]">IQD</span></p>
           </div>
-          <div class="p-4 bg-blue-50 border-r-2 border-blue-500 rounded-xl print:p-2">
+          <!-- Expenses -->
+          <div class="p-4 bg-purple-50 border-r-2 border-purple-500 rounded-xl print:p-2">
+            <span class="text-[8px] font-black text-purple-700 uppercase mb-1 block print:text-[7px]">کۆی خەرجی و زیان</span>
+            <p class="text-lg font-black text-purple-900 leading-tight print:text-[11px]">{{ formatNum(data.financials?.expenses?.total_iqd) }} <span class="text-[8px]">IQD</span></p>
+          </div>
+          <!-- Net Profit -->
+          <div class="p-4 bg-blue-50 border-r-2 border-blue-500 rounded-xl print:p-2 relative overflow-hidden">
             <span class="text-[8px] font-black text-blue-700 uppercase mb-1 block print:text-[7px]">پوختەی قازانج</span>
-            <p class="text-lg font-black leading-tight print:text-[11px]" :class="data.financials?.net_profit >= 0 ? 'text-blue-900' : 'text-rose-900'">
-               {{ formatNum(data.financials?.net_profit) }} <span class="text-[8px]">IQD</span>
-            </p>
+            <div class="flex items-center justify-between gap-1">
+              <p class="text-lg font-black leading-tight print:text-[11px]" :class="data.financials?.net_profit >= 0 ? 'text-blue-900' : 'text-rose-900'">
+                {{ formatNum(data.financials?.net_profit) }} <span class="text-[8px]">IQD</span>
+              </p>
+              <span v-if="profitMargin != 0" :class="data.financials?.net_profit >= 0 ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-rose-500/10 text-rose-700 border-rose-500/20'" class="no-print px-1.5 py-0.5 rounded text-[8px] font-black border leading-none">
+                {{ profitMargin }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Formula Explanation Ribbon -->
+        <div class="no-print p-4 bg-slate-900 text-slate-300 rounded-2xl border border-white/5 flex flex-wrap items-center justify-between gap-4 text-xs font-bold font-sans">
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 font-mono text-[10px] border border-amber-500/20">هاوکێشەی قازانج</span>
+            <span>پوختەی قازانج یەکسانە بە داهاتی گشتی منهای سەرجەم خەرجی و زیانەکان.</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm font-mono tracking-tight text-white" dir="ltr">
+            <span class="text-amber-400 font-bold" title="داهاتی گشتی">{{ formatNum(data.financials?.revenues?.total_iqd) }}</span>
+            <span class="text-slate-500">-</span>
+            <span class="text-purple-400 font-bold" title="خەرجی و زیان">{{ formatNum(data.financials?.expenses?.total_iqd) }}</span>
+            <span class="text-slate-500">=</span>
+            <span :class="data.financials?.net_profit >= 0 ? 'text-emerald-400' : 'text-rose-400'" class="font-black" title="پوختەی قازانج">
+              {{ formatNum(data.financials?.net_profit) }} IQD
+            </span>
           </div>
         </div>
 
@@ -780,6 +811,13 @@ const canVerifyIntegrity = computed(() => {
   return authStore.isSuperAdmin || 
          authStore.permissions.includes('verify_database_integrity') || 
          authStore.user?.email === 'rebin.maaruf@gmail.com'
+})
+
+const profitMargin = computed(() => {
+  const rev = Number(data.value?.financials?.revenues?.total_iqd || 0)
+  const net = Number(data.value?.financials?.net_profit || 0)
+  if (rev === 0) return 0
+  return ((net / rev) * 100).toFixed(1)
 })
 
 const integrityLoading = ref(false)
