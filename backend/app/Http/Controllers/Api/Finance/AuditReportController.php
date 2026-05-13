@@ -163,7 +163,8 @@ class AuditReportController extends Controller
             $entries = $query->select(
                     'currency_id', 
                     DB::raw('SUM(debit) as total_debit'), 
-                    DB::raw('SUM(credit) as total_credit')
+                    DB::raw('SUM(credit) as total_credit'),
+                    DB::raw('SUM(base_amount) as total_base')
                  )
                 ->groupBy('currency_id')
                 ->get();
@@ -179,17 +180,20 @@ class AuditReportController extends Controller
                 // Standard IUAS Balance Calculation
                 if (str_starts_with($code, '1') || str_starts_with($code, '3') || str_starts_with($code, '5') || $account->type === 'vault') {
                     $balance = $e->total_debit - $e->total_credit;
+                    $balance_iqd = $isPL ? (float)$e->total_base : ($balance * $rate);
                 } else {
                     $balance = $e->total_credit - $e->total_debit;
+                    $balance_iqd = $isPL ? -(float)$e->total_base : ($balance * $rate);
                 }
                 
-                if ($balance != 0) {
-                    $accountTotalIQD += ($balance * $rate);
+                if ($balance != 0 || $balance_iqd != 0) {
+                    $accountTotalIQD += $balance_iqd;
+                    $implicitRate = ($balance != 0) ? abs($balance_iqd / $balance) : $rate;
                     $currencyBalances[] = [
                         'currency_code' => $currencyCode,
                         'balance' => (float)$balance,
-                        'rate' => (float)$rate,
-                        'balance_iqd' => (float)($balance * $rate)
+                        'rate' => (float)$implicitRate,
+                        'balance_iqd' => (float)$balance_iqd
                     ];
                 }
             }
