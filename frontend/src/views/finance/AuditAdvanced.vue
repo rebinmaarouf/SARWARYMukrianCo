@@ -205,6 +205,115 @@
           </div>
         </div>
 
+        <!-- Collapsible Income/Expense Breakdown Section -->
+        <div class="no-print mt-6 bg-slate-900 border border-white/5 rounded-[2rem] overflow-hidden">
+          <button @click="showPLBreakdown = !showPLBreakdown" class="w-full px-8 py-5 flex justify-between items-center bg-slate-950/40 hover:bg-slate-950/60 transition-all">
+            <div class="flex items-center gap-3">
+              <span class="w-2.5 h-6 bg-amber-500 rounded-full"></span>
+              <span class="font-black text-sm text-slate-200">وردەکاری چڕی داهات و مەسروفات بەپێی دراوی بنەڕەتی</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 text-[9px] font-black bg-white/5 text-slate-400 rounded-lg uppercase tracking-wider">شیکردنەوەی سەرجەم جۆری دراوەکان</span>
+              <span class="text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': showPLBreakdown }">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+              </span>
+            </div>
+          </button>
+          
+          <div v-show="showPLBreakdown" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/20 border-t border-white/5">
+            <!-- Revenue Side -->
+            <div class="space-y-4">
+              <h4 class="text-xs font-black text-amber-400 flex items-center gap-2">
+                <span>📈 ووردەکاری سەرچاوەکانی داهات (Revenue Streams)</span>
+              </h4>
+              <div class="space-y-3">
+                <div v-for="acc in data.financials?.revenues?.accounts" :key="acc.code" class="p-4 bg-slate-950/60 border border-white/5 rounded-2xl hover:border-amber-500/20 transition-all">
+                  <div class="flex justify-between items-start mb-2">
+                    <div>
+                      <span class="text-slate-300 font-black text-xs block">{{ acc.name }}</span>
+                      <span class="text-[9px] font-bold text-slate-500">کۆد: {{ acc.code }}</span>
+                    </div>
+                    <span class="text-xs font-black text-amber-400">{{ formatNum(acc.balance_iqd) }} IQD</span>
+                  </div>
+                  <!-- Original Currency Balances -->
+                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5 text-[9px]">
+                    <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="p-1.5 bg-white/5 rounded-lg flex justify-between items-center">
+                      <span class="font-bold text-slate-400">{{ cb.currency_code }}</span>
+                      <span class="font-mono font-black text-slate-200">{{ formatNum(cb.balance) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Expense Side -->
+            <div class="space-y-4">
+              <h4 class="text-xs font-black text-purple-400 flex items-center gap-2">
+                <span>📉 ووردەکاری بەشەکانی خەرجی و زیان (Expenses & Losses)</span>
+              </h4>
+              <div class="space-y-3">
+                <div v-for="acc in data.financials?.expenses?.accounts" :key="acc.code" class="p-4 bg-slate-950/60 border border-white/5 rounded-2xl hover:border-purple-500/20 transition-all">
+                  <div class="flex justify-between items-start mb-2">
+                    <div>
+                      <span class="text-slate-300 font-black text-xs block">{{ acc.name }}</span>
+                      <span class="text-[9px] font-bold text-slate-500">کۆد: {{ acc.code }}</span>
+                    </div>
+                    <span class="text-xs font-black text-purple-400">{{ formatNum(acc.balance_iqd) }} IQD</span>
+                  </div>
+                  <!-- Original Currency Balances -->
+                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5 text-[9px]">
+                    <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="p-1.5 bg-white/5 rounded-lg flex justify-between items-center">
+                      <span class="font-bold text-slate-400">{{ cb.currency_code }}</span>
+                      <span class="font-mono font-black text-slate-200">{{ formatNum(cb.balance) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Printable P&L Breakdown (Print-only) -->
+        <div class="hidden print:block mt-4 border border-slate-200 rounded-xl p-4 bg-slate-50 text-[10px]">
+          <h4 class="font-black text-slate-900 border-b pb-2 mb-3">ووردەکاری جموجۆڵی داهات و مەسروفات بەپێی دراوەکان</h4>
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Revenues -->
+            <div>
+              <p class="font-black text-emerald-700 mb-2">داهاتەکان</p>
+              <div class="space-y-2">
+                <div v-for="acc in data.financials?.revenues?.accounts" :key="acc.code" class="border-b pb-1.5">
+                  <div class="flex justify-between font-bold">
+                    <span>{{ acc.name }} ({{ acc.code }})</span>
+                    <span>{{ formatNum(acc.balance_iqd) }} IQD</span>
+                  </div>
+                  <div class="flex gap-4 text-[9px] text-slate-500 mt-0.5">
+                    <span v-for="cb in acc.currency_balances" :key="cb.currency_code">
+                      {{ cb.currency_code }}: {{ formatNum(cb.balance) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Expenses -->
+            <div>
+              <p class="font-black text-rose-700 mb-2">خەرجی و زیانەکان</p>
+              <div class="space-y-2">
+                <div v-for="acc in data.financials?.expenses?.accounts" :key="acc.code" class="border-b pb-1.5">
+                  <div class="flex justify-between font-bold">
+                    <span>{{ acc.name }} ({{ acc.code }})</span>
+                    <span>{{ formatNum(acc.balance_iqd) }} IQD</span>
+                  </div>
+                  <div class="flex gap-4 text-[9px] text-slate-500 mt-0.5">
+                    <span v-for="cb in acc.currency_balances" :key="cb.currency_code">
+                      {{ cb.currency_code }}: {{ formatNum(cb.balance) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Vault Forensics - Ultra Compact for Print -->
         <section class="page-break">
           <div class="flex items-center gap-2 mb-3 print:mb-1.5">
@@ -826,6 +935,7 @@ const integrityViolations = ref([])
 const scannedRows = ref(0)
 
 const activeTab = ref('audit')
+const showPLBreakdown = ref(false)
 const smartLoading = ref(false)
 const predictions = ref({})
 const anomalies = ref([])
