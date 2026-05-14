@@ -1,13 +1,13 @@
 <template>
-  <div class="space-y-8 animate-fade-in">
+  <div class="space-y-8 animate-fade-in text-slate-800">
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-slate-900/40 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/5">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
       <div dir="rtl" class="text-right">
-        <h1 class="text-3xl font-black text-white tracking-tight">بەڕێوەبردنی حیسابات</h1>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight">بەڕێوەبردنی حیسابات</h1>
         <p class="text-slate-500 font-medium mt-1">لیستی هەموو قاسەکان، وەکیلەکان، و مەسروفاتەکان لە یەک خشتەدا</p>
       </div>
       <button @click="showCreateModal = true"
-        class="px-8 py-4 bg-emerald-500 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/10 hover:scale-105 transition-all flex items-center gap-3">
+        class="px-8 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 active:scale-95 transition-all flex items-center gap-3">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
         زیادکردنی حیسابی نوێ
       </button>
@@ -15,24 +15,24 @@
 
     <!-- Stats Row (Mini) -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-       <div v-for="(count, label) in typeCounts" :key="label" class="bg-slate-900/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between">
+       <div v-for="(count, label) in typeCounts" :key="label" class="bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-xs">
           <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ label }}</span>
-          <span class="text-lg font-black text-white">{{ count }}</span>
+          <span class="text-lg font-black text-slate-900">{{ count }}</span>
        </div>
     </div>
 
     <!-- Advanced Table Area -->
-    <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+    <div class="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
       <!-- Table Search & Filters -->
-      <div class="p-6 border-b border-white/5 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-950/20">
+      <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50">
         <div class="relative w-full md:w-96 group">
-          <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input v-model="searchTerm" @input="onSearch" type="text" placeholder="بگەڕێ بۆ حساب..." class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pr-12 pl-4 focus:outline-none focus:border-emerald-500/50 transition-all font-bold" dir="rtl">
+          <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input v-model="searchTerm" @input="onSearch" type="text" placeholder="بگەڕێ بۆ حساب..." class="w-full bg-white border border-slate-200 text-slate-900 rounded-xl py-3 pr-12 pl-4 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all font-bold shadow-xs" dir="rtl">
         </div>
         <div class="flex gap-2">
            <button v-for="t in types" :key="t.key" @click="filterType = t.key" 
-             class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all"
-             :class="filterType === t.key ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'">
+             class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all shadow-xs"
+             :class="filterType === t.key ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
              {{ t.label }}
            </button>
         </div>
@@ -41,7 +41,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-right border-collapse" dir="rtl">
           <thead>
-            <tr class="bg-slate-950/40 text-slate-500 uppercase text-[10px] font-black tracking-[0.2em] border-b border-white/5">
+            <tr class="bg-slate-50 text-slate-500 uppercase text-[10px] font-black tracking-[0.2em] border-b border-slate-200">
               <th class="px-8 py-5">کۆد</th>
               <th class="px-8 py-5">ناوی حیساب</th>
               <th class="px-8 py-5">جۆری حیساب</th>
@@ -50,59 +50,59 @@
               <th class="px-8 py-5 text-center">کردارەکان</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5">
-            <tr v-for="account in filteredAccounts" :key="account.id" class="group hover:bg-emerald-500/[0.02] transition-colors cursor-pointer">
+          <tbody class="divide-y divide-slate-100 font-semibold">
+            <tr v-for="account in filteredAccounts" :key="account.id" class="group hover:bg-slate-50 transition-colors cursor-pointer">
               <td class="px-8 py-5">
-                <span class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center font-mono font-black text-emerald-500 border border-white/5 group-hover:border-emerald-500/50 transition-all">
+                <span class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center font-mono font-black text-emerald-700 border border-slate-200 group-hover:border-emerald-600 transition-all shadow-xs">
                   {{ account.code || '—' }}
                 </span>
               </td>
               <td class="px-8 py-5">
                 <div class="flex flex-col">
                   <div class="flex items-center gap-3">
-                    <span class="text-white font-black text-lg group-hover:text-emerald-400 transition-colors">{{ account.name }}</span>
-                    <span v-if="account.is_global" class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[8px] font-black tracking-widest uppercase">
+                    <span class="text-slate-900 font-black text-lg group-hover:text-emerald-600 transition-colors">{{ account.name }}</span>
+                    <span v-if="account.is_global" class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8px] font-black tracking-widest uppercase shadow-xs">
                       گشتی / Global
                     </span>
                   </div>
-                  <span class="text-[10px] text-slate-600 font-bold tracking-widest">{{ account.address || 'بێ ناونیشان' }}</span>
+                  <span class="text-[10px] text-slate-500 font-bold tracking-widest">{{ account.address || 'بێ ناونیشان' }}</span>
                 </div>
               </td>
               <td class="px-8 py-5">
-                <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border"
+                <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-xs"
                   :class="getTypeStyle(account.type)">
                   {{ typeLabels[account.type] }}
                 </span>
               </td>
-              <td class="px-8 py-5 text-slate-400 font-bold tracking-tighter">
+              <td class="px-8 py-5 text-slate-600 font-bold tracking-tighter">
                 {{ account.mobile || '—' }}
               </td>
               <td class="px-8 py-5 text-left">
                 <div class="flex flex-col items-start gap-1.5">
                   <div v-for="b in account.balances" :key="b.currency_code" 
-                       class="flex items-center gap-3 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-white/5 min-w-[150px] justify-between group-hover:border-emerald-500/30 transition-all">
-                    <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">{{ b.currency_code }}</span>
+                       class="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs min-w-[150px] justify-between group-hover:border-emerald-300 transition-all">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{{ b.currency_code }}</span>
                     <span class="font-black text-sm transition-colors font-mono" 
-                          :class="b.amount >= 0 ? 'text-emerald-400' : 'text-rose-500'">
+                          :class="b.amount >= 0 ? 'text-emerald-700' : 'text-rose-600'">
                       {{ formatNum(b.amount) }}
                     </span>
                   </div>
-                  <span v-if="!account.balances || account.balances.length === 0" class="text-slate-800 font-bold text-xs px-4">0</span>
+                  <span v-if="!account.balances || account.balances.length === 0" class="text-slate-500 font-bold text-xs px-4">0</span>
                 </div>
               </td>
               <td class="px-8 py-5">
                 <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <router-link :to="{ name: 'admin-account-statement', query: { id: account.id } }" class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500 hover:text-slate-950 transition-all">
+                  <router-link :to="{ name: 'admin-account-statement', query: { id: account.id } }" class="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-200 shadow-xs">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   </router-link>
                   
                   <!-- Edit Button -->
-                  <button v-if="can('MANAGE ACCOUNTS')" @click="openEditModal(account)" class="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all">
+                  <button v-if="can('MANAGE ACCOUNTS')" @click="openEditModal(account)" class="p-2.5 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-600 hover:text-white transition-all border border-blue-200 shadow-xs">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
 
                   <!-- Delete Button -->
-                  <button v-if="can('DELETE RECORDS')" @click="deleteAccount(account.id)" class="p-2.5 bg-rose-500/10 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
+                  <button v-if="can('DELETE RECORDS')" @click="deleteAccount(account.id)" class="p-2.5 bg-rose-50 text-rose-700 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-200 shadow-xs">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -117,13 +117,13 @@
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showCreateModal || editingAccount" class="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" @click="closeModals"></div>
+          <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeModals"></div>
           
-          <div class="relative bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-3xl w-full max-w-xl p-10 overflow-hidden group">
-            <div class="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-16 -mt-16" :class="editingAccount ? 'bg-blue-500/5' : 'bg-emerald-500/5'"></div>
+          <div class="relative bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl w-full max-w-xl p-10 overflow-hidden group font-sans">
+            <div class="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-16 -mt-16" :class="editingAccount ? 'bg-blue-600/10' : 'bg-emerald-600/10'"></div>
             
             <div dir="rtl" class="text-right mb-8">
-              <h2 class="text-2xl font-black text-white">{{ editingAccount ? 'دەستکاری حیساب' : 'زیادکردنی حیسابی نوێ' }}</h2>
+              <h2 class="text-2xl font-black text-slate-900">{{ editingAccount ? 'دەستکاری حیساب' : 'زیادکردنی حیسابی نوێ' }}</h2>
               <p class="text-slate-500 text-sm font-medium">زانیارییەکانی حیسابەکە بە وردی پڕ بکەرەوە</p>
             </div>
 
@@ -132,18 +132,18 @@
                 <div class="space-y-2">
                   <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">ناوی حیساب</label>
                   <input v-model="activeForm.name" required type="text" placeholder="بۆ نموونە: کۆمپانیای ناترۆن" 
-                    class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-blue-500 outline-none transition-all" />
+                    class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 font-bold focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all shadow-xs" />
                 </div>
                 <div class="space-y-2">
                   <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">کۆدی حیساب</label>
                   <input v-model="activeForm.code" type="text" placeholder="بۆ نموونە: 101" 
-                    class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-mono font-bold focus:border-blue-500 outline-none transition-all" />
+                    class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 font-mono font-bold focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all shadow-xs" />
                 </div>
               </div>
 
               <div class="space-y-2">
                 <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">جۆری حیساب</label>
-                <select v-model="activeForm.type" required class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                <select v-model="activeForm.type" required class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 font-bold focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none appearance-none cursor-pointer shadow-xs">
                   <option value="vault">قاسە / سندوق (Vault)</option>
                   <option value="client">کڕیار / وەکیل (Client)</option>
                   <option value="revenue">داهات (Revenue)</option>
@@ -153,32 +153,32 @@
               </div>
 
               <!-- Global account toggle -->
-              <div v-if="['expense', 'revenue', 'equity'].includes(activeForm.type)" class="flex items-center gap-3 bg-slate-950/40 p-5 rounded-2xl border border-white/5">
-                <input v-model="activeForm.is_global" id="is_global_checkbox" type="checkbox" class="w-5 h-5 text-emerald-500 bg-slate-950 border-white/10 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" />
-                <label for="is_global_checkbox" class="text-xs font-black text-slate-300 cursor-pointer select-none">
+              <div v-if="['expense', 'revenue', 'equity'].includes(activeForm.type)" class="flex items-center gap-3 bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-xs">
+                <input v-model="activeForm.is_global" id="is_global_checkbox" type="checkbox" class="w-5 h-5 text-emerald-600 bg-white border-slate-300 rounded focus:ring-emerald-600 cursor-pointer" />
+                <label for="is_global_checkbox" class="text-xs font-black text-slate-700 cursor-pointer select-none">
                   ئەمە وەک حسابی گشتی (Global) بۆ هەموو لقەکان دیاری بکە
                 </label>
               </div>
 
               <div v-if="!activeForm.is_global" class="space-y-2">
                 <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">بۆ کام لق (Branch)</label>
-                <select v-model="activeForm.branch_id" :required="!activeForm.is_global" class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                <select v-model="activeForm.branch_id" :required="!activeForm.is_global" class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 font-bold focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none appearance-none cursor-pointer shadow-xs">
                   <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }} ({{ b.location }})</option>
                 </select>
               </div>
 
               <div class="space-y-2">
                 <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">تێبینی (ئارەزوومەندانە)</label>
-                <textarea v-model="activeForm.notes" rows="3" class="w-full bg-slate-950 border border-white/5 rounded-2xl px-6 py-4 text-white font-medium focus:border-blue-500 outline-none transition-all"></textarea>
+                <textarea v-model="activeForm.notes" rows="3" class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 font-medium focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition-all shadow-xs"></textarea>
               </div>
 
               <div class="flex gap-4 pt-4">
                 <button type="submit" :disabled="loading" 
-                  class="flex-1 py-5 text-slate-950 font-black text-lg rounded-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
-                  :class="editingAccount ? 'bg-blue-500 shadow-blue-500/20' : 'bg-emerald-500 shadow-emerald-500/20'">
+                  class="flex-1 py-5 text-white font-black text-lg rounded-2xl transition-all shadow-md active:scale-95 disabled:opacity-50"
+                  :class="editingAccount ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/10' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10'">
                   {{ loading ? 'خەریکی پاشەکەوتکردنە...' : (editingAccount ? 'نوێکردنەوەی حساب' : 'تۆمارکردنی حساب') }}
                 </button>
-                <button type="button" @click="closeModals" class="px-8 py-5 bg-slate-800 text-white font-black rounded-2xl">پاشگەزبوونەوە</button>
+                <button type="button" @click="closeModals" class="px-8 py-5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 font-black rounded-2xl shadow-xs">پاشگەزبوونەوە</button>
               </div>
             </form>
           </div>
@@ -275,11 +275,11 @@ const typeCounts = computed(() => {
 
 const getTypeStyle = (type) => {
   const styles = {
-    vault: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-    client: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    expense: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-    equity: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-    general: 'bg-slate-800 text-slate-400 border-white/5'
+    vault: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    client: 'bg-blue-50 text-blue-700 border-blue-200',
+    expense: 'bg-rose-50 text-rose-700 border-rose-200',
+    equity: 'bg-purple-50 text-purple-700 border-purple-200',
+    general: 'bg-slate-100 text-slate-600 border-slate-200'
   }
   return styles[type] || styles.general
 }
@@ -310,15 +310,15 @@ async function updateAccount() {
       icon: 'success',
       title: 'سەرکەوتوو بوو',
       text: 'گۆڕانکارییەکان بە سەرکەوتوویی پاشەکەوت کران',
-      background: 'rgba(15, 23, 42, 0.9)',
-      color: '#fff',
-      backdrop: 'rgba(0,0,0,0.4) blur(10px)',
+      background: '#ffffff',
+      color: '#0f172a',
+      backdrop: 'rgba(0,0,0,0.4) blur(4px)',
       showConfirmButton: false,
       timer: 2000,
       customClass: {
-        popup: 'rounded-[2.5rem] border border-white/10 shadow-3xl',
+        popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl',
         title: 'font-black text-2xl',
-        htmlContainer: 'font-bold text-slate-400'
+        htmlContainer: 'font-bold text-slate-600'
       }
     })
   } catch (e) {
@@ -326,12 +326,12 @@ async function updateAccount() {
       icon: 'error',
       title: 'هەڵە ڕوویدا',
       text: e.response?.data?.error || 'نەتوانرا گۆڕانکارییەکان پاشەکەوت بکرێت',
-      background: 'rgba(15, 23, 42, 0.9)',
-      color: '#fff',
-      confirmButtonColor: '#3b82f6',
+      background: '#ffffff',
+      color: '#0f172a',
+      confirmButtonColor: '#2563eb',
       customClass: {
-        popup: 'rounded-[2.5rem] border border-white/10 shadow-3xl',
-        confirmButton: 'px-10 py-4 rounded-2xl font-black'
+        popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl',
+        confirmButton: 'px-10 py-4 text-white rounded-2xl font-black'
       }
     })
   } finally {
@@ -347,14 +347,14 @@ async function deleteAccount(id) {
     showCancelButton: true,
     confirmButtonText: 'بەڵێ، بیسرەوە',
     cancelButtonText: 'پەشیمانم',
-    background: 'rgba(15, 23, 42, 0.9)',
-    color: '#fff',
-    confirmButtonColor: '#ef4444',
-    cancelButtonColor: '#1e293b',
+    background: '#ffffff',
+    color: '#0f172a',
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#64748b',
     customClass: {
-      popup: 'rounded-[2.5rem] border border-white/10 shadow-3xl',
-      confirmButton: 'px-8 py-4 rounded-2xl font-black mx-2',
-      cancelButton: 'px-8 py-4 rounded-2xl font-black mx-2'
+      popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl',
+      confirmButton: 'px-8 py-4 text-white rounded-2xl font-black mx-2',
+      cancelButton: 'px-8 py-4 text-white rounded-2xl font-black mx-2'
     }
   })
 
@@ -377,11 +377,11 @@ async function deleteAccount(id) {
         icon: 'error',
         title: 'ناتوانیت بیسرێیتەوە',
         text: e.response?.data?.error || 'ئەم حیسابە مێژووی هەیە',
-        background: 'rgba(15, 23, 42, 0.9)',
-        color: '#fff',
-        confirmButtonColor: '#ef4444',
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#dc2626',
         customClass: {
-          popup: 'rounded-[2.5rem] border border-white/10 shadow-3xl'
+          popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl'
         }
       })
     }
@@ -417,9 +417,12 @@ async function submitAccount() {
       icon: 'success',
       title: 'سەرکەوتوو بوو',
       text: 'حیسابەکە بە سەرکەوتوویی دروستکرا',
-      background: '#0f172a',
-      color: '#fff',
-      confirmButtonColor: '#10b981'
+      background: '#ffffff',
+      color: '#0f172a',
+      confirmButtonColor: '#10b981',
+      customClass: {
+        popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl'
+      }
     })
   } catch (e) {
     let msg = 'نەتوانرا حیسابەکە دروست بکرێت'
@@ -429,9 +432,12 @@ async function submitAccount() {
       icon: 'error',
       title: 'هەڵە',
       html: `<div dir="rtl" class="text-right text-sm font-bold">${msg}</div>`,
-      background: '#0f172a',
-      color: '#fff',
-      confirmButtonColor: '#ef4444'
+      background: '#ffffff',
+      color: '#0f172a',
+      confirmButtonColor: '#dc2626',
+      customClass: {
+        popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl'
+      }
     })
   } finally {
     loading.value = false
@@ -457,3 +463,4 @@ onMounted(() => {
 .animate-fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
+

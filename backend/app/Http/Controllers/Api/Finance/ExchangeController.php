@@ -48,12 +48,19 @@ class ExchangeController extends Controller
 
         $runningQty = 0.0;
         $runningCost = 0.0;
-        $currentWac = 0.0;
+        $usdRate = Currency::where('code', 'USD')->first()?->current_rate ?: 1500;
 
         foreach ($txs as $tx) {
             if ($tx->type === 'buy') {
                 $runningQty += (float)$tx->primary_amount;
-                $runningCost += (float)$tx->secondary_amount;
+                
+                // Ensure cost is ALWAYS in Base Currency (IQD)
+                $costInIqd = (float)$tx->secondary_amount;
+                if ($tx->secondary_currency === 'USD') {
+                    $costInIqd = $costInIqd * $usdRate;
+                }
+                
+                $runningCost += $costInIqd;
                 if ($runningQty > 0) {
                     $currentWac = $runningCost / $runningQty;
                 }
@@ -101,46 +108,42 @@ class ExchangeController extends Controller
                 if ($request->primary_currency === 'IQD' && $request->secondary_currency === 'USD') {
                     // Special case: IQD/USD inverse pair
                     $systemRateOfUsd = $secondaryCurrency->current_rate; // e.g., 1500
-                    $systemValueInSecondary = $request->primary_amount / $systemRateOfUsd;
-                    $transactionValueInSecondary = $request->secondary_amount;
 
                     if ($request->type === 'buy') {
-                        // WE BUY IQD / WE GIVE USD (Profit = System value in USD - actual USD we gave)
-                        $profitAmount = $systemValueInSecondary - $transactionValueInSecondary;
+                        // WE BUY IQD / WE GIVE USD (No profit on buy)
+                        $profitAmount = 0;
                     } else {
-                        // WE SELL IQD / WE RECEIVE USD (Profit = actual USD we received - System value in USD)
-                        $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
+                        // WE SELL IQD / WE RECEIVE USD
+                        $costInIqd = $request->primary_amount;
+                        $revenueInIqd = $request->secondary_amount * $systemRateOfUsd;
+                        $profitInIqd = $revenueInIqd - $costInIqd;
+                        $profitAmount = $profitInIqd / $systemRateOfUsd; // Store profit in secondary currency (USD)
                     }
                 } else {
                     // Standard currency pairs
-                    $primaryMultiplier = $this->getMultiplier($request->primary_currency);
-                    $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
-
-                    $systemRateForPrimary = $primaryCurrency->current_rate;
-                    $systemRateForSecondary = $secondaryCurrency->current_rate;
-
-                    if (!$primaryCurrency->is_base) {
-                        if ($request->type === 'buy') {
-                            $systemRateForPrimary = $unitTransactionRate;
-                        } else { // sell
-                            $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency);
-                            if ($systemRateForPrimary <= 0) {
-                                $systemRateForPrimary = $unitTransactionRate;
-                            }
-                        }
-                    }
-
-                    if (!$secondaryCurrency->is_base) {
-                        $systemRateForSecondary = $unitTransactionRate;
-                    }
-
-                    $systemValueInSecondary = ($request->primary_amount * $systemRateForPrimary) / $systemRateForSecondary;
-                    $transactionValueInSecondary = $request->secondary_amount;
-                    
                     if ($request->type === 'buy') {
-                        $profitAmount = $systemValueInSecondary - $transactionValueInSecondary;
-                    } else {
-                        $profitAmount = $transactionValueInSecondary - $systemValueInSecondary;
+                        // No profit on buying foreign currency
+                        $profitAmount = 0;
+                    } else { // sell
+                        // Profit = Revenue - Moving Average Cost
+                        $wacInIqd = $this->getMovingAverageCost($request->primary_currency);
+                        $costInIqd = $request->primary_amount * $wacInIqd;
+                        
+                        $revenueInSecondary = $request->secondary_amount;
+                        $revenueInIqd = $revenueInSecondary;
+                        
+                        $usdRate = Currency::where('code', 'USD')->first()?->current_rate ?: 1500;
+                        if ($request->secondary_currency === 'USD') {
+                            $revenueInIqd = $revenueInSecondary * $usdRate;
+                        }
+                        
+                        $profitInIqd = $revenueInIqd - $costInIqd;
+                        
+                        if ($request->secondary_currency === 'USD') {
+                            $profitAmount = $profitInIqd / $usdRate;
+                        } else {
+                            $profitAmount = $profitInIqd;
+                        }
                     }
                 }
 
@@ -244,18 +247,22 @@ class ExchangeController extends Controller
             }
         } else {
             // Standard currency pairs
-            $primaryMultiplier = $this->getMultiplier($request->primary_currency);
-            $unitTransactionRate = (float)$request->rate * $primaryMultiplier;
-
-            // Determine System Unit Rate for primary currency valuation in ledger
             $systemRateForPrimary = $primaryCurrency->current_rate;
             if (!$primaryCurrency->is_base) {
                 if ($request->type === 'buy') {
-                    $systemRateForPrimary = $unitTransactionRate;
+                    // For Journal valuation, use the unit rate we bought it at to balance the entry
+                    $primaryMultiplier = $this->getMultiplier($request->primary_currency);
+                    $systemRateForPrimary = (float)$request->rate * $primaryMultiplier;
+                    
+                    // If we paid in USD, translate the unit rate to IQD equivalent for ledger
+                    if ($request->secondary_currency === 'USD') {
+                        $usdRate = Currency::where('code', 'USD')->first()?->current_rate ?: 1500;
+                        $systemRateForPrimary = $systemRateForPrimary * $usdRate;
+                    }
                 } else { // sell
                     $systemRateForPrimary = $this->getMovingAverageCost($request->primary_currency, $transaction->id);
                     if ($systemRateForPrimary <= 0) {
-                        $systemRateForPrimary = $unitTransactionRate;
+                        $systemRateForPrimary = $primaryCurrency->current_rate;
                     }
                 }
             }
@@ -271,27 +278,17 @@ class ExchangeController extends Controller
             }
         }
 
-        // Leg 3: Book Profit to IUAS 484 (Revenue) or 384 (Expense/Loss)
+        // Leg 3: Book Profit to IUAS 484 (Consolidated P&L)
         if ($profitAmount != 0) {
-            if ($profitAmount > 0) {
-                // Gain goes to 484 (Revenue)
-                $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
-                if ($profitAccount) {
+            $profitAccount = Account::where('code', '484')->first() ?: Account::where('code', '41')->first();
+            if ($profitAccount) {
+                if ($profitAmount > 0) {
+                    // Gain goes to 484 (Credit - increases revenue)
                     JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
+                } else {
+                    // Loss goes to 484 (Debit - decreases revenue)
+                    JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
                 }
-            } else {
-                // Loss goes to 384 (Expense/Loss)
-                // Proactively find or create 384 according to Iraqi Unified Accounting System!
-                $lossAccount = Account::where('code', '384')->first();
-                if (!$lossAccount) {
-                    $lossAccount = Account::create([
-                        'code' => '384',
-                        'name' => 'زیانی ئاڵوگۆڕی دراو',
-                        'type' => 'expense',
-                        'branch_id' => $transaction->branch_id ?? 1
-                    ]);
-                }
-                JournalService::record($transaction, $lossAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
             }
         }
     }

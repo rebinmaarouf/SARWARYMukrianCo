@@ -1,16 +1,13 @@
 <template>
-  <div class="flex h-screen bg-[#050505] text-slate-200 font-['Inter',sans-serif] overflow-hidden rtl" dir="rtl">
+  <div class="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-['Inter',sans-serif] overflow-hidden rtl transition-colors duration-300" dir="rtl">
     
     <!-- Mobile Backdrop (Visible when sidebar open on mobile) -->
-    <div v-if="isMobileMenuOpen" @click="isMobileMenuOpen = false" 
-         class="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] lg:hidden animate-fade-in"></div>
+    <div v-if="isMobileMenuOpen" @click="isMobileMenuOpen = false" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] lg:hidden animate-fade-in"></div>
 
     <!-- Main Sidebar -->
     <aside :class="[
-      'bg-slate-900/20 backdrop-blur-3xl border-l border-white/5 flex flex-col transition-all duration-500 relative z-[70]',
-      // Desktop widths
+      'bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-l border-slate-200/60 dark:border-white/5 flex flex-col transition-all duration-500 relative z-[70] shadow-2xl shadow-slate-200/50 dark:shadow-none',
       isCollapsed ? 'md:w-24' : 'md:w-80',
-      // Mobile handling
       isMobileMenuOpen ? 'fixed inset-y-0 right-0 w-80 translate-x-0' : 'fixed inset-y-0 right-0 w-80 translate-x-full lg:translate-x-0 lg:relative lg:translate-x-0'
     ]">
       <!-- Sidebar Header / Logo Area -->
@@ -103,67 +100,67 @@
       </nav>
 
       <!-- Logout / User Section -->
-      <div class="p-6 border-t border-white/5 bg-slate-950/20">
-        <button @click="logout" class="nav-link text-rose-500 hover:bg-rose-500/10 w-full" :class="{ 'collapsed': isCollapsed }" data-tip="Logout">
+      <div class="p-6 border-t border-slate-100 dark:border-white/5 bg-rose-50/50 dark:bg-rose-950/20 mt-auto">
+        <button @click="logout" class="nav-link text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/10 hover:text-rose-700 w-full rounded-xl transition-all" :class="{ 'collapsed': isCollapsed }" data-tip="Logout">
           <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          <span v-if="!isCollapsed" class="font-bold text-right flex-1 whitespace-nowrap">چوونە دەرەوە</span>
+          <span v-if="!isCollapsed" class="font-black text-right flex-1 whitespace-nowrap">چوونە دەرەوە</span>
         </button>
       </div>
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col relative bg-[#050505] overflow-hidden">
+    <main class="flex-1 flex flex-col relative bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300">
        <!-- Header -->
-       <header class="h-20 flex items-center justify-between px-6 md:px-10 border-b border-white/5 bg-black/40 backdrop-blur-xl relative z-40">
+       <header class="h-20 flex items-center justify-between px-6 md:px-10 border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl relative z-40 transition-colors duration-300">
           <div class="flex items-center gap-4">
              <!-- Mobile Toggle -->
-             <button @click="isMobileMenuOpen = true" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-slate-400">
+             <button @click="isMobileMenuOpen = true" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
              </button>
              <!-- Desktop Expand -->
-             <button v-if="isCollapsed" @click="isCollapsed = false" class="hidden lg:flex w-10 h-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all">
+             <button v-if="isCollapsed" @click="isCollapsed = false" class="hidden lg:flex w-10 h-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 transition-all">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
              </button>
              <div class="hidden sm:flex items-center gap-4">
-                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-full uppercase tracking-widest border border-emerald-500/20">Enterprise ERP v2.4</span>
+                <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded-full uppercase tracking-widest border border-emerald-200">Enterprise ERP v2.4</span>
                 
-                <div class="h-6 w-px bg-white/10 mx-1"></div>
+                <div class="h-6 w-px bg-slate-200 mx-1"></div>
 
                 <!-- Global Branch Switcher (Super Admin Only) -->
                 <div v-if="auth.user?.email === 'rebin.maaruf@gmail.com' || auth.isSuperAdmin" class="relative group/branch">
-                   <button class="flex items-center gap-2 px-4 py-2 bg-slate-900/40 hover:bg-slate-800/60 border border-white/5 rounded-xl transition-all group">
-                      <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_#3b82f6]"></div>
-                      <div class="flex flex-col items-start text-right">
-                         <span class="text-[8px] font-black text-slate-500 uppercase leading-none mb-0.5">Active Branch</span>
-                         <span class="text-[11px] font-bold text-white">{{ currentBranch?.name || 'Loading...' }}</span>
-                      </div>
-                      <svg class="w-4 h-4 text-slate-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                   <button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 shadow-sm rounded-xl transition-all group">
+                      <span class="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse shadow-[0_0_8px_#3b82f6]"></span>
+                      <span class="flex flex-col items-start text-right">
+                         <span class="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase leading-none mb-0.5">Active Branch</span>
+                         <span class="text-[11px] font-bold text-slate-900 dark:text-white">{{ currentBranch?.name || 'Loading...' }}</span>
+                      </span>
+                      <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                    </button>
 
                    <!-- Dropdown Content -->
-                   <div class="absolute top-full right-0 mt-2 w-56 bg-slate-950 border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover/branch:opacity-100 group-hover/branch:visible transition-all z-[100] p-2 backdrop-blur-3xl">
-                      <div class="px-3 py-2 border-b border-white/5 mb-2">
-                         <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Select Location</span>
+                   <div class="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover/branch:opacity-100 group-hover/branch:visible transition-all z-[100] p-2 backdrop-blur-3xl">
+                      <div class="px-3 py-2 border-b border-slate-100 dark:border-white/5 mb-2">
+                         <span class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Select Location</span>
                       </div>
                       <button v-for="b in branches" :key="b.id" @click="handleBranchSwitch(b.id)"
-                        class="w-full text-right p-3 rounded-xl hover:bg-blue-600/10 flex items-center justify-between group/item transition-all mb-1 border border-transparent hover:border-blue-500/20">
-                        <div class="flex flex-col">
-                           <span class="text-xs font-black text-white group-hover/item:text-blue-400">{{ b.name }}</span>
-                           <span class="text-[9px] font-bold text-slate-500">{{ b.location }}</span>
-                        </div>
-                        <div v-if="currentBranch?.id === b.id" class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        class="w-full text-right p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 flex items-center justify-between group/item transition-all mb-1 border border-transparent hover:border-blue-100 dark:hover:border-blue-500/30">
+                        <span class="flex flex-col">
+                           <span class="text-xs font-black text-slate-900 dark:text-white group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400">{{ b.name }}</span>
+                           <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400">{{ b.location }}</span>
+                        </span>
+                        <span v-if="currentBranch?.id === b.id" class="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></span>
                       </button>
 
-                      <div class="h-px bg-white/5 my-1"></div>
+                      <div class="h-px bg-slate-100 dark:bg-white/5 my-1"></div>
                       
                       <!-- Global Consolidation Option -->
                       <button @click="handleBranchSwitch(null)"
-                        class="w-full text-right p-3 rounded-xl hover:bg-emerald-600/10 flex items-center justify-between group/item transition-all border border-transparent hover:border-emerald-500/20">
-                        <div class="flex flex-col">
-                           <span class="text-xs font-black text-emerald-400">هەموو لقەکان (Consolidated)</span>
-                           <span class="text-[9px] font-bold text-slate-500">بینینی کۆی گشتی داتاکان</span>
-                        </div>
-                        <div v-if="!currentBranch" class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        class="w-full text-right p-3 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 flex items-center justify-between group/item transition-all border border-transparent hover:border-emerald-100 dark:hover:border-emerald-500/30">
+                        <span class="flex flex-col">
+                           <span class="text-xs font-black text-emerald-700 dark:text-emerald-400">هەموو لقەکان (Consolidated)</span>
+                           <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400">بینینی کۆی گشتی داتاکان</span>
+                        </span>
+                        <span v-if="!currentBranch" class="inline-block w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400"></span>
                       </button>
                    </div>
                 </div>
@@ -171,40 +168,50 @@
           </div>
 
           <div class="flex items-center gap-4">
+             <!-- Theme Switcher -->
+             <button @click="toggleTheme" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all overflow-hidden relative group">
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-500" :class="isDarkMode ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'">
+                   <svg class="w-5 h-5 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-500" :class="!isDarkMode ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
+                   <svg class="w-5 h-5 drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+             </button>
+
              <!-- Notification Bell Dropdown -->
              <div class="relative animate-fade-in" v-if="auth.isSuperAdmin || auth.permissions.includes('manage_notifications')">
-                <button @click="toggleNotificationDropdown" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all relative">
+                <button @click="toggleNotificationDropdown" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all relative">
                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                   <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-[#050505] animate-pulse"></span>
+                   <span v-if="unreadCount" class="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse"></span>
                 </button>
 
                 <!-- Dropdown Overlay -->
-                <div v-if="isNotificationDropdownOpen" @click.stop class="absolute top-full left-0 mt-3 w-80 bg-slate-950/95 border border-white/10 rounded-2xl shadow-2xl p-4 backdrop-blur-3xl z-[100]" dir="rtl">
-                   <div class="flex justify-between items-center pb-3 border-b border-white/5 mb-3">
-                      <span class="text-xs font-black text-white">ئاگادارکردنەوە ڕاستەوخۆکان</span>
-                      <button v-if="notifications.length > 0" @click="clearNotifications" class="text-[10px] font-bold text-slate-500 hover:text-rose-400 transition-colors">سڕینەوەی هەمووی</button>
+                <div v-if="isNotificationDropdownOpen" @click.stop class="absolute top-full left-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 backdrop-blur-3xl z-[100]" dir="rtl">
+                   <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-white/5 mb-3">
+                      <span class="text-xs font-black text-slate-900 dark:text-white">ئاگادارکردنەوە ڕاستەوخۆکان</span>
+                      <button v-if="notifications.length" @click="clearNotifications" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors">سڕینەوەی هەمووی</button>
                    </div>
                    
                    <div class="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar">
-                      <div v-if="notifications.length === 0" class="py-10 text-center text-xs font-bold text-slate-600">
+                      <div v-if="notifications.length === 0" class="py-10 text-center text-xs font-bold text-slate-500 dark:text-slate-400">
                          هیچ ئاگادارکردنەوەیەکی نوێ نییە
                       </div>
-                      <div v-for="n in notifications" :key="n.id" class="p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all flex flex-col gap-1 text-right">
+                      <div v-for="n in notifications" :key="n.id" class="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex flex-col gap-1 text-right">
                          <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-black text-emerald-400" :class="{ 'text-rose-400': n.type === 'anomaly' }">{{ n.title }}</span>
-                            <span class="text-[8px] font-bold text-slate-500">{{ n.time }}</span>
+                            <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400" :class="{ 'text-rose-600 dark:text-rose-400': n.type === 'anomaly' }">{{ n.title }}</span>
+                            <span class="text-[8px] font-bold text-slate-400 dark:text-slate-500">{{ n.time }}</span>
                          </div>
-                         <p class="text-xs text-slate-300 font-bold leading-relaxed">{{ n.message }}</p>
+                         <p class="text-xs text-slate-700 dark:text-slate-300 font-bold leading-relaxed">{{ n.message }}</p>
                       </div>
                    </div>
                 </div>
              </div>
 
              <div class="text-right hidden sm:block">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{{ currentBranch?.name }} / Auth</p>
-                <p class="text-sm font-bold text-white">{{ auth.user?.name }}</p>
+                <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">{{ currentBranch?.name }} / Auth</p>
+                <p class="text-sm font-bold text-slate-900 dark:text-white transition-colors duration-300">{{ auth.user?.name }}</p>
              </div>
-             <div class="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center font-black text-emerald-500 border border-white/10 shadow-lg">
+             <div class="w-10 h-10 bg-slate-900 dark:bg-black rounded-xl flex items-center justify-center font-black text-emerald-400 shadow-sm transition-colors duration-300">
                 {{ auth.user?.name?.charAt(0) }}
               </div>
           </div>
@@ -237,6 +244,30 @@ const isCollapsed = ref(false)
 const isMobileMenuOpen = ref(false)
 const logoError = ref(false)
 const logoUrl = '/logo.png'
+
+// Theme Setup
+const isDarkMode = ref(false)
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
+  }
+}
+
+const initializeTheme = () => {
+  if (localStorage.getItem('theme') === 'dark') {
+    isDarkMode.value = true
+    document.documentElement.classList.add('dark')
+  } else {
+    isDarkMode.value = false
+    document.documentElement.classList.remove('dark')
+  }
+}
 
 const branches = ref([])
 const currentBranch = ref(null)
@@ -293,6 +324,7 @@ const logout = async () => {
 }
 
 onMounted(async () => {
+  initializeTheme()
   window.addEventListener('click', closeNotificationDropdown)
   try { 
     await auth.fetchProfile()

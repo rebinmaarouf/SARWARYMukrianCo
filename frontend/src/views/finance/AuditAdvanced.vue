@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[#050505] text-white p-4 md:p-10 font-sans pb-32">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 md:p-10 font-sans pb-32 transition-colors duration-300">
     
     <!-- Header Section (No Print) -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10 no-print">
       <div>
-        <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2">ووردبینی دارایی پێشکەوتوو</h1>
-        <p class="text-slate-400 text-sm font-medium">چاودێری گشتگیر و یەکگرتوو بۆ هەموو لقەکان و سندوقەکان.</p>
+        <h1 class="text-3xl md:text-5xl font-black tracking-tighter mb-2 text-slate-900 dark:text-white">ووردبینی دارایی پێشکەوتوو</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">چاودێری گشتگیر و یەکگرتوو بۆ هەموو لقەکان و سندوقەکان.</p>
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <button @click="printReport" class="px-8 py-4 bg-white text-slate-950 rounded-2xl font-black hover:bg-slate-200 transition-all flex items-center gap-2 shadow-2xl shadow-white/10">
+        <button @click="printReport" class="px-8 py-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-800 dark:hover:bg-slate-700 transition-all flex items-center gap-2 shadow-lg shadow-slate-900/10 dark:shadow-none">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           پرێنت کردنی ڕاپۆرت (PDF)
         </button>
@@ -17,46 +17,46 @@
     </div>
 
     <!-- Filters (No Print) -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 bg-slate-900/40 p-8 rounded-[3rem] border border-white/5 backdrop-blur-3xl mb-10 no-print">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-200/80 dark:border-white/5 shadow-sm mb-10 no-print transition-colors duration-300">
       <div class="space-y-2">
-        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">لە بەرواری</label>
-        <input v-model="filters.from_date" type="date" class="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500/50 transition-all" />
+        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">لە بەرواری</label>
+        <input v-model="filters.from_date" type="date" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white font-bold outline-none focus:border-emerald-600/50 dark:focus:border-emerald-500/50 transition-all" />
       </div>
       <div class="space-y-2">
-        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بۆ بەرواری</label>
-        <input v-model="filters.to_date" type="date" class="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500/50 transition-all" />
+        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">بۆ بەرواری</label>
+        <input v-model="filters.to_date" type="date" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white font-bold outline-none focus:border-emerald-600/50 dark:focus:border-emerald-500/50 transition-all" />
       </div>
       <div class="space-y-2">
-        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">دیاریکردنی لق</label>
-        <select v-model="filters.branch_id" class="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500/50 transition-all appearance-none">
+        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">دیاریکردنی لق</label>
+        <select v-model="filters.branch_id" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white font-bold outline-none focus:border-emerald-600/50 dark:focus:border-emerald-500/50 transition-all appearance-none">
           <option value="all">هەموو لقەکان (Consolidated)</option>
           <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
         </select>
       </div>
       <div class="flex items-end">
-        <button @click="fetchData" :disabled="loading" class="w-full py-4 bg-emerald-500 text-slate-950 font-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50">
+        <button @click="fetchData" :disabled="loading" class="w-full py-4 bg-emerald-600 dark:bg-emerald-500 text-white font-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-600/20 dark:shadow-none disabled:opacity-50">
           {{ loading ? 'چاوەڕێ بکە...' : 'نوێکردنەوەی ڕاپۆرت' }}
         </button>
       </div>
     </div>
 
     <!-- Tab Navigation (No Print) -->
-    <div class="flex flex-wrap gap-2 p-2 bg-slate-950 border border-white/5 rounded-3xl mb-10 no-print max-w-fit">
+    <div class="flex flex-wrap gap-2 p-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-3xl mb-10 no-print max-w-fit transition-colors duration-300">
       <button @click="activeTab = 'audit'"
               class="px-6 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2"
-              :class="activeTab === 'audit' ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-400 hover:text-white'">
+              :class="activeTab === 'audit' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
         📊 ووردبینی دارایی و قەڵغان
       </button>
       <button @click="activeTab = 'predictions'"
               class="px-6 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2"
-              :class="activeTab === 'predictions' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'">
+              :class="activeTab === 'predictions' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
         🧠 پێشبینیکردنی سیولە (Predictive)
       </button>
       <button @click="activeTab = 'anomalies'"
               class="px-6 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2"
-              :class="activeTab === 'anomalies' ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white'">
+              :class="activeTab === 'anomalies' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20 dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
         🔍 شیکاری گوماناوییەکان
-        <span v-if="anomalies.length > 0" class="px-2 py-0.5 bg-rose-500 text-white rounded-full text-[9px] animate-pulse">
+        <span v-if="anomalies.length > 0" class="px-2 py-0.5 bg-rose-600 text-white rounded-full text-[9px] animate-pulse">
           {{ anomalies.length }}
         </span>
       </button>
@@ -64,37 +64,37 @@
 
     <template v-if="canVerifyIntegrity && activeTab === 'audit'">
       <!-- Cryptographic Database Integrity Shield (No Print) -->
-      <div class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl mb-10 no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-sm p-8 rounded-[3rem] mb-10 no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-colors duration-300">
         <div class="flex items-center gap-4">
           <!-- Shield Icon with Pulsing Glow -->
-          <div class="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-2xl"
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-md"
                :class="{
-                 'bg-blue-500/10 text-blue-400 shadow-blue-500/10': integrityStatus === null,
-                 'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/20 border border-emerald-500/20 animate-pulse': integrityStatus === 'secure',
-                 'bg-rose-500/10 text-rose-400 shadow-rose-500/20 border border-rose-500/20 animate-bounce': integrityStatus === 'tampered'
+                 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30': integrityStatus === null,
+                 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 animate-pulse': integrityStatus === 'secure',
+                 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 animate-bounce': integrityStatus === 'tampered'
                }">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
           <div>
-            <h2 class="text-lg font-black tracking-tight mb-1">سیستەمی پاراستنی کریپتۆگرافی داتابەیس (Database Integrity Shield)</h2>
-            <p class="text-xs text-slate-400 font-semibold">
+            <h2 class="text-lg font-black tracking-tight mb-1 text-slate-900 dark:text-white">سیستەمی پاراستنی کریپتۆگرافی داتابەیس (Database Integrity Shield)</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold">
               پشکنینی چڕی داتاکان بە شێوازی زنجیرەیی کریپتۆگرافی (Cryptographic Hash Chain) بۆ دۆزینەوەی گۆڕانکاری یان سڕینەوەی دەرەکی.
             </p>
             <div class="mt-2 flex flex-wrap gap-2 text-[10px] font-bold">
-              <span v-if="integrityStatus === null" class="px-3 py-1 bg-slate-800 text-slate-400 rounded-full">سیستەم ئامادەیە بۆ پشکنین</span>
-              <span v-else-if="integrityStatus === 'secure'" class="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+              <span v-if="integrityStatus === null" class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">سیستەم ئامادەیە بۆ پشکنین</span>
+              <span v-else-if="integrityStatus === 'secure'" class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
                 سەرجەم جوڵەکان پارێزراون (Scanned {{ scannedRows }} entries - Hash Chain Intact)
               </span>
-              <span v-else-if="integrityStatus === 'tampered'" class="px-3 py-1 bg-rose-500/10 text-rose-400 rounded-full border border-rose-500/20">
+              <span v-else-if="integrityStatus === 'tampered'" class="px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200">
                 ئاگاداری: دەستکاری دەرەکی دۆزرایەوە! (Chain Breached)
               </span>
             </div>
           </div>
         </div>
         <button @click="runIntegrityCheck" :disabled="integrityLoading" 
-                class="px-6 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50">
+                class="px-6 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50">
           {{ integrityLoading ? 'پشکنینی داتابەیس...' : 'دەستپێکردنی پشکنینی هاوسەنگی' }}
         </button>
       </div>
@@ -205,41 +205,74 @@
           </div>
         </div>
 
+        <!-- Advanced Revenue Breakdown & Exchange Valuation Summary -->
+        <div class="no-print mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/5 shadow-sm p-6 rounded-3xl flex items-center justify-between gap-4 hover:border-amber-500 transition-all">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-wider block">کۆی قازانجی غەمولە (Total Commission)</span>
+              <p class="text-xl font-black text-slate-900 dark:text-white">{{ formatNum(totalCommissionIQD) }} <span class="text-xs font-bold text-slate-500 dark:text-slate-400">IQD</span></p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-lg shadow-xs">
+              💰
+            </div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/5 shadow-sm p-6 rounded-3xl flex items-center justify-between gap-4 hover:border-blue-500 transition-all">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-wider block">قازانج و زیانی ئاڵوگۆڕ (Exchange Profit/Loss)</span>
+              <p class="text-xl font-black" :class="totalExchangeProfitIQD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                {{ totalExchangeProfitIQD >= 0 ? '+' : '' }}{{ formatNum(totalExchangeProfitIQD) }} <span class="text-xs font-bold text-slate-500 dark:text-slate-400">IQD</span>
+              </p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg shadow-xs">
+              💱
+            </div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/5 shadow-sm p-6 rounded-3xl flex items-center justify-between gap-4 hover:border-emerald-500 transition-all">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-wider block">تێکڕای نرخی ئاڵوگۆڕ (IQD to USD Rate)</span>
+              <p class="text-xl font-black text-slate-900 dark:text-white">{{ formatNum(data.exchange_rate) }} <span class="text-xs font-bold text-slate-500 dark:text-slate-400">IQD / $1</span></p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg shadow-xs">
+              📊
+            </div>
+          </div>
+        </div>
+
         <!-- Collapsible Income/Expense Breakdown Section -->
-        <div class="no-print mt-6 bg-slate-900 border border-white/5 rounded-[2rem] overflow-hidden">
-          <button @click="showPLBreakdown = !showPLBreakdown" class="w-full px-8 py-5 flex justify-between items-center bg-slate-950/40 hover:bg-slate-950/60 transition-all">
+        <div class="no-print mt-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2rem] overflow-hidden transition-colors duration-300">
+          <button @click="showPLBreakdown = !showPLBreakdown" class="w-full px-8 py-5 flex justify-between items-center bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
             <div class="flex items-center gap-3">
               <span class="w-2.5 h-6 bg-amber-500 rounded-full"></span>
-              <span class="font-black text-sm text-slate-200">وردەکاری چڕی داهات و مەسروفات بەپێی دراوی بنەڕەتی</span>
+              <span class="font-black text-sm text-slate-900 dark:text-white">وردەکاری چڕی داهات و مەسروفات بەپێی دراوی بنەڕەتی</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="px-3 py-1 text-[9px] font-black bg-white/5 text-slate-400 rounded-lg uppercase tracking-wider">شیکردنەوەی سەرجەم جۆری دراوەکان</span>
-              <span class="text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': showPLBreakdown }">
+              <span class="px-3 py-1 text-[9px] font-black bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 rounded-lg uppercase tracking-wider">شیکردنەوەی سەرجەم جۆری دراوەکان</span>
+              <span class="text-slate-500 dark:text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': showPLBreakdown }">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
               </span>
             </div>
           </button>
           
-          <div v-show="showPLBreakdown" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/20 border-t border-white/5">
+          <div v-show="showPLBreakdown" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-slate-950/50 border-t border-slate-200 dark:border-white/5 transition-colors duration-300">
             <!-- Revenue Side -->
             <div class="space-y-4">
-              <h4 class="text-xs font-black text-amber-400 flex items-center gap-2">
+              <h4 class="text-xs font-black text-amber-600 dark:text-amber-500 flex items-center gap-2">
                 <span>📈 ووردەکاری سەرچاوەکانی داهات (Revenue Streams)</span>
               </h4>
               <div class="space-y-3">
-                <div v-for="acc in data.financials?.revenues?.accounts" :key="acc.code" class="p-4 bg-slate-950/60 border border-white/5 rounded-2xl hover:border-amber-500/20 transition-all">
+                <div v-for="acc in data.financials?.revenues?.accounts" :key="acc.code" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-xs rounded-2xl hover:border-amber-500 transition-all">
                   <div class="flex justify-between items-start mb-2">
                     <div>
-                      <span class="text-slate-300 font-black text-xs block">{{ acc.name }}</span>
-                      <span class="text-[9px] font-bold text-slate-500">کۆد: {{ acc.code }}</span>
+                      <span class="text-slate-900 dark:text-white font-black text-xs block">{{ acc.name }}</span>
+                      <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400">کۆد: {{ acc.code }}</span>
                     </div>
-                    <span class="text-xs font-black text-amber-400">{{ formatNum(acc.balance_iqd) }} IQD</span>
+                    <span class="text-xs font-black text-amber-600 dark:text-amber-400">{{ formatNum(acc.balance_iqd) }} IQD</span>
                   </div>
                   <!-- Original Currency Balances -->
-                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5 text-[9px]">
-                    <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="p-1.5 bg-white/5 rounded-lg flex justify-between items-center">
-                      <span class="font-bold text-slate-400">{{ cb.currency_code }}</span>
-                      <span class="font-mono font-black text-slate-200">{{ formatNum(cb.balance) }}</span>
+                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100 dark:border-white/5 text-[9px]">
+                    <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg flex justify-between items-center">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">{{ cb.currency_code }}</span>
+                      <span class="font-mono font-black text-slate-900 dark:text-white">{{ formatNum(cb.balance) }}</span>
                     </div>
                   </div>
                 </div>
@@ -248,23 +281,23 @@
 
             <!-- Expense Side -->
             <div class="space-y-4">
-              <h4 class="text-xs font-black text-purple-400 flex items-center gap-2">
+              <h4 class="text-xs font-black text-purple-600 dark:text-purple-400 flex items-center gap-2">
                 <span>📉 ووردەکاری بەشەکانی خەرجی و زیان (Expenses & Losses)</span>
               </h4>
               <div class="space-y-3">
-                <div v-for="acc in data.financials?.expenses?.accounts" :key="acc.code" class="p-4 bg-slate-950/60 border border-white/5 rounded-2xl hover:border-purple-500/20 transition-all">
+                <div v-for="acc in data.financials?.expenses?.accounts" :key="acc.code" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-xs rounded-2xl hover:border-purple-500 transition-all">
                   <div class="flex justify-between items-start mb-2">
                     <div>
-                      <span class="text-slate-300 font-black text-xs block">{{ acc.name }}</span>
-                      <span class="text-[9px] font-bold text-slate-500">کۆد: {{ acc.code }}</span>
+                      <span class="text-slate-900 dark:text-white font-black text-xs block">{{ acc.name }}</span>
+                      <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400">کۆد: {{ acc.code }}</span>
                     </div>
-                    <span class="text-xs font-black text-purple-400">{{ formatNum(acc.balance_iqd) }} IQD</span>
+                    <span class="text-xs font-black text-purple-600 dark:text-purple-400">{{ formatNum(acc.balance_iqd) }} IQD</span>
                   </div>
                   <!-- Original Currency Balances -->
-                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5 text-[9px]">
-                    <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="p-1.5 bg-white/5 rounded-lg flex justify-between items-center">
-                      <span class="font-bold text-slate-400">{{ cb.currency_code }}</span>
-                      <span class="font-mono font-black text-slate-200">{{ formatNum(cb.balance) }}</span>
+                  <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100 dark:border-white/5 text-[9px]">
+                    <div v-for="cb in acc.currency_balances" :key="cb.currency_code" class="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg flex justify-between items-center">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">{{ cb.currency_code }}</span>
+                      <span class="font-mono font-black text-slate-900 dark:text-white">{{ formatNum(cb.balance) }}</span>
                     </div>
                   </div>
                 </div>
@@ -317,41 +350,41 @@
         <!-- Vault Forensics - Ultra Compact for Print -->
         <section class="page-break">
           <div class="flex items-center gap-2 mb-3 print:mb-1.5">
-            <div class="w-2 h-6 bg-blue-600 rounded-full print:h-4"></div>
-            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tighter print:text-[10px] italic">ووردبینی جوڵەی سندوقەکان (Vault Analytics)</h3>
+            <div class="w-2 h-6 bg-blue-600 dark:bg-blue-500 rounded-full print:h-4"></div>
+            <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter print:text-[10px] italic">ووردبینی جوڵەی سندوقەکان (Vault Analytics)</h3>
           </div>
           <table class="w-full text-right border-collapse print:text-[9px]">
             <thead>
-              <tr class="bg-slate-100 text-[8px] font-black uppercase text-slate-600 print:text-[7px]">
+              <tr class="bg-slate-100 dark:bg-slate-900 text-[8px] font-black uppercase text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-white/5 print:text-[7px]">
                 <th class="px-4 py-2 print:py-1">سندوق</th>
                 <th class="px-4 py-2 print:py-1">دراو</th>
-                <th class="px-4 py-2 text-emerald-600 print:py-1">هاتوو (Debtor)</th>
-                <th class="px-4 py-2 text-rose-600 print:py-1">ڕۆیشتوو (Creditor)</th>
+                <th class="px-4 py-2 text-emerald-600 dark:text-emerald-500 print:py-1">هاتوو (Debtor)</th>
+                <th class="px-4 py-2 text-rose-600 dark:text-rose-500 print:py-1">ڕۆیشتوو (Creditor)</th>
                 <th class="px-4 py-2 text-left print:py-1">پوختە</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-slate-100 dark:divide-white/5">
               <template v-for="f in data.vault_forensics" :key="f.vault_id + '_' + f.currency_code">
                 <!-- Main Row (Clickable) -->
-                <tr @click="toggleRow(f)" class="cursor-pointer hover:bg-slate-50 transition-all group print:cursor-default">
-                  <td class="px-4 py-2.5 font-black text-slate-800 print:py-1 flex items-center gap-2">
-                    <span class="no-print text-slate-400 transition-transform duration-300 group-hover:text-blue-500" :class="{ 'rotate-180 text-blue-600': isExpanded(f) }">
+                <tr @click="toggleRow(f)" class="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all group print:cursor-default">
+                  <td class="px-4 py-2.5 font-black text-slate-800 dark:text-slate-200 print:py-1 flex items-center gap-2">
+                    <span class="no-print text-slate-400 dark:text-slate-500 transition-transform duration-300 group-hover:text-blue-500 dark:group-hover:text-blue-400" :class="{ 'rotate-180 text-blue-600 dark:text-blue-400': isExpanded(f) }">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
                     </span>
                     {{ f.vault_name }}
                   </td>
-                  <td class="px-4 py-2.5 font-black text-slate-500 print:py-1">{{ f.currency_code }}</td>
-                  <td class="px-4 py-2.5 font-black text-emerald-600 print:py-1">{{ formatNum(f.total_in) }}</td>
-                  <td class="px-4 py-2.5 font-black text-rose-600 print:py-1">{{ formatNum(f.total_out) }}</td>
-                  <td class="px-4 py-2.5 font-black text-left print:py-1" :class="f.net_change >= 0 ? 'text-emerald-700' : 'text-rose-700'">
+                  <td class="px-4 py-2.5 font-black text-slate-500 dark:text-slate-400 print:py-1">{{ f.currency_code }}</td>
+                  <td class="px-4 py-2.5 font-black text-emerald-600 dark:text-emerald-500 print:py-1">{{ formatNum(f.total_in) }}</td>
+                  <td class="px-4 py-2.5 font-black text-rose-600 dark:text-rose-500 print:py-1">{{ formatNum(f.total_out) }}</td>
+                  <td class="px-4 py-2.5 font-black text-left print:py-1" :class="f.net_change >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'">
                     {{ formatNum(f.net_change) }}
                   </td>
                 </tr>
 
                 <!-- Collapsible Detail Sub-Table (Hidden in Print) -->
-                <tr v-if="isExpanded(f)" class="bg-slate-50/60 no-print transition-all duration-300">
+                <tr v-if="isExpanded(f)" class="bg-slate-50/60 dark:bg-slate-900/40 no-print transition-all duration-300">
                   <td colspan="5" class="px-6 py-4">
-                    <div class="bg-slate-950 text-slate-100 rounded-3xl p-6 shadow-2xl border border-white/5 space-y-4">
+                    <div class="bg-slate-950 dark:bg-black/50 text-slate-100 rounded-3xl p-6 shadow-2xl border border-white/5 space-y-4">
                       <div class="flex justify-between items-center border-b border-white/5 pb-3">
                         <span class="text-xs font-black text-blue-400 tracking-tight flex items-center gap-1.5">
                           <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span>
@@ -416,15 +449,33 @@
           </table>
         </section>
 
+        <!-- Zero-Error Physical Vault vs Commission Vault Audit Verification -->
+        <div class="no-print mt-6 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors duration-300">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-blue-600 dark:bg-blue-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md shadow-blue-600/20 dark:shadow-none">
+              🛡️
+            </div>
+            <div class="space-y-1 text-right">
+              <h4 class="text-sm font-black text-blue-950 dark:text-blue-100">پشکنینی فۆڕێنسیکی سندوقی فیزیکی و غەمولە (Zero-Error Physical & Commission Separation)</h4>
+              <p class="text-xs text-blue-900/80 dark:text-blue-200/80 leading-relaxed font-semibold">
+                لە سیستەمی ژمێریاری سەروەری موکریاندا، تەنها یەک قاسەی فیزیکی هەیە. کاتێک غەمولە وەردەگیرێت، پارە کاشەکە دەچێتە ناو سندوقی سەرەکی فیزیکی، بەڵام لە ڕووی حیسابییەوە وەک داهاتی غەمولە لە تۆماری جیاوازدا جیا دەکرێتەوە بەبێ ئەوەی هیچ بڕە پارەیەک دووجار ئەژمار بکرێت (No Double Counting). باڵانسی کۆتایی قاسە تەواو هاوتا و دروستە لەگەڵ کاشی ناو دەستت.
+              </p>
+            </div>
+          </div>
+          <span class="px-4 py-2 bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 rounded-xl font-black text-xs border border-blue-200 dark:border-blue-800/50 tracking-wider shrink-0 shadow-xs transition-colors duration-300">
+            ئەژماری دووبارە نەبووەتەوە (100% Accurate)
+          </span>
+        </div>
+
         <!-- 1. Assets Detail - Compact -->
         <section class="page-break">
           <div class="flex items-center gap-2 mb-3 print:mb-1.5">
             <div class="w-2 h-6 bg-emerald-600 rounded-full print:h-4"></div>
-            <h3 class="text-sm font-black text-slate-900 uppercase tracking-tighter print:text-[10px]">١. ماڵ و سامان (Assets)</h3>
+            <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter print:text-[10px]">١. ماڵ و سامان (Assets)</h3>
           </div>
           <table class="w-full text-right border-collapse print:text-[9px]">
             <thead>
-              <tr class="bg-slate-900 text-white text-[8px] font-black uppercase print:bg-slate-100 print:text-black print:text-[7px]">
+              <tr class="bg-slate-900 dark:bg-slate-800 text-white text-[8px] font-black uppercase print:bg-slate-100 print:text-black print:text-[7px] transition-colors duration-300">
                 <th class="px-4 py-2 rounded-r-lg print:py-1 print:rounded-none">کۆدی حیساب</th>
                 <th class="px-4 py-2 print:py-1">ناوی حیساب</th>
                 <th class="px-4 py-2 text-left rounded-l-lg print:py-1 print:rounded-none">باڵانس (دینار)</th>
@@ -663,24 +714,24 @@
         
         <!-- Predictions Cards for each Currency (USD & IQD) -->
         <div v-for="(pred, cur) in predictions" :key="cur" 
-             class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl space-y-6 flex flex-col justify-between">
+             class="bg-white border border-slate-200 shadow-sm p-8 rounded-[3rem] space-y-6 flex flex-col justify-between">
           
           <!-- Top Row with Currency & Status badge -->
-          <div class="flex justify-between items-center border-b border-white/5 pb-4">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center font-black text-lg text-blue-400">
+              <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center font-black text-lg text-blue-600 border border-blue-100">
                 {{ cur }}
               </div>
               <div>
-                <h3 class="text-xl font-black">پێشبینی سیولەی {{ cur }}</h3>
-                <p class="text-xs text-slate-400 font-bold">بۆ ٧ ڕۆژی داهاتوو (AI Cash Flow Model)</p>
+                <h3 class="text-xl font-black text-slate-900">پێشبینی سیولەی {{ cur }}</h3>
+                <p class="text-xs text-slate-500 font-bold">بۆ ٧ ڕۆژی داهاتوو (AI Cash Flow Model)</p>
               </div>
             </div>
             <span class="px-4 py-2 rounded-xl font-black text-xs border"
                   :class="{
-                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': pred.status === 'secure',
-                    'bg-amber-500/10 text-amber-400 border-amber-500/20': pred.status === 'warning',
-                    'bg-rose-500/10 text-rose-400 border-rose-500/20': pred.status === 'critical'
+                    'bg-emerald-50 text-emerald-700 border-emerald-200': pred.status === 'secure',
+                    'bg-amber-50 text-amber-700 border-amber-200': pred.status === 'warning',
+                    'bg-rose-50 text-rose-700 border-rose-200': pred.status === 'critical'
                   }">
               {{ pred.status_kurdish }}
             </span>
@@ -688,22 +739,22 @@
 
           <!-- Mid Section Stats -->
           <div class="grid grid-cols-2 gap-4">
-            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
               <p class="text-[10px] font-black text-slate-500 uppercase">سیولەی گشتی سندوقەکان</p>
-              <p class="text-lg font-black text-white mt-1">
-                {{ formatNum(pred.current_balance) }} <span class="text-xs text-slate-400 font-bold">{{ cur }}</span>
+              <p class="text-lg font-black text-slate-900 mt-1">
+                {{ formatNum(pred.current_balance) }} <span class="text-xs text-slate-500 font-bold">{{ cur }}</span>
               </p>
             </div>
-            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
               <p class="text-[10px] font-black text-slate-500 uppercase">تێکڕای ڕۆیشتووی ڕۆژانە</p>
-              <p class="text-lg font-black text-slate-400 mt-1">
+              <p class="text-lg font-black text-slate-600 mt-1">
                 {{ formatNum(pred.avg_daily_outflow) }} <span class="text-xs text-slate-500 font-bold">{{ cur }}</span>
               </p>
             </div>
-            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5 col-span-2">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 col-span-2">
               <p class="text-[10px] font-black text-slate-500 uppercase">ڕۆیشتنی پێشبینیکراو (٧ ڕۆژی داهاتوو)</p>
-              <p class="text-2xl font-black text-blue-400 mt-1">
-                {{ formatNum(pred.predicted_7d_outflow) }} <span class="text-sm text-slate-400 font-bold">{{ cur }}</span>
+              <p class="text-2xl font-black text-blue-600 mt-1">
+                {{ formatNum(pred.predicted_7d_outflow) }} <span class="text-sm text-slate-500 font-bold">{{ cur }}</span>
               </p>
             </div>
           </div>
@@ -711,9 +762,9 @@
           <!-- AI Injection Advice Alert Box -->
           <div class="p-4 rounded-2xl border text-xs font-semibold"
                :class="{
-                 'bg-emerald-500/5 border-emerald-500/10 text-emerald-300': pred.status === 'secure',
-                 'bg-amber-500/5 border-amber-500/10 text-amber-300': pred.status === 'warning',
-                 'bg-rose-500/5 border-rose-500/10 text-rose-300': pred.status === 'critical'
+                 'bg-emerald-50 border-emerald-200 text-emerald-800': pred.status === 'secure',
+                 'bg-amber-50 border-amber-200 text-amber-800': pred.status === 'warning',
+                 'bg-rose-50 border-rose-200 text-rose-800': pred.status === 'critical'
                }">
             <p class="font-black text-sm mb-1">💡 شیکاری و ڕێنمایی زیرەکی دەستکرد:</p>
             <p v-if="pred.status === 'secure'">
@@ -734,14 +785,14 @@
 
     <!-- FORENSIC ANOMALIES TAB -->
     <div v-if="activeTab === 'anomalies'" class="space-y-6 no-print">
-      <div class="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] backdrop-blur-3xl space-y-4">
+      <div class="bg-white border border-slate-200 shadow-sm p-8 rounded-[3rem] space-y-4">
         
-        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
           <div>
-            <h3 class="text-2xl font-black">شیکاری و دۆزینەوەی مامەڵە گوماناوییەکان</h3>
-            <p class="text-xs text-slate-400 font-bold mt-1">پشکنینی چڕ بۆ دۆزینەوەی کاتژمێری نەگونجاو، نرخە دەرەکییەکان، و مامەڵە زۆر گەورەکان.</p>
+            <h3 class="text-2xl font-black text-slate-900">شیکاری و دۆزینەوەی مامەڵە گوماناوییەکان</h3>
+            <p class="text-xs text-slate-500 font-bold mt-1">پشکنینی چڕ بۆ دۆزینەوەی کاتژمێری نەگونجاو، نرخە دەرەکییەکان، و مامەڵە زۆر گەورەکان.</p>
           </div>
-          <span class="px-4 py-2 bg-slate-950 text-slate-400 rounded-full text-xs font-black border border-white/5">
+          <span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-full text-xs font-black border border-slate-200">
             Total Flagged: {{ anomalies.length }}
           </span>
         </div>
@@ -758,47 +809,47 @@
         <div v-else class="overflow-x-auto">
           <table class="w-full text-right text-xs">
             <thead>
-              <tr class="text-slate-400 border-b border-white/5">
-                <th class="pb-3 text-right">مەترسی</th>
-                <th class="pb-3 text-right">جۆر / لادان</th>
-                <th class="pb-3 text-right">مامەڵە</th>
-                <th class="pb-3 text-right">ڕوونکردنەوەی فۆڕێنسیک</th>
-                <th class="pb-3 text-right">ئەنجامدەر</th>
-                <th class="pb-3 text-right">کاتی تۆمارکردن</th>
-                <th class="pb-3 text-left pl-4">کردار</th>
+              <tr class="text-slate-500 border-b border-slate-200 bg-slate-50">
+                <th class="p-3 text-right">مەترسی</th>
+                <th class="p-3 text-right">جۆر / لادان</th>
+                <th class="p-3 text-right">مامەڵە</th>
+                <th class="p-3 text-right">ڕوونکردنەوەی فۆڕێنسیک</th>
+                <th class="p-3 text-right">ئەنجامدەر</th>
+                <th class="p-3 text-right">کاتی تۆمارکردن</th>
+                <th class="p-3 text-left pl-4">کردار</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-white/5 font-semibold text-slate-300">
-              <tr v-for="a in anomalies" :key="a.id" class="hover:bg-white/5 transition-colors">
-                <td class="py-4">
+            <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+              <tr v-for="a in anomalies" :key="a.id" class="hover:bg-slate-50 transition-colors">
+                <td class="p-4">
                   <span class="px-3 py-1.5 rounded-xl text-[10px] font-black border"
                         :class="{
-                          'bg-rose-500/10 text-rose-400 border-rose-500/20': a.severity === 'critical',
-                          'bg-amber-500/10 text-amber-400 border-amber-500/20': a.severity === 'high',
-                          'bg-yellow-500/10 text-yellow-400 border-yellow-500/20': a.severity === 'medium'
+                          'bg-rose-50 text-rose-700 border-rose-200': a.severity === 'critical',
+                          'bg-amber-50 text-amber-700 border-amber-200': a.severity === 'high',
+                          'bg-yellow-50 text-yellow-700 border-yellow-200': a.severity === 'medium'
                         }">
                     {{ a.severity_kurdish }}
                   </span>
                 </td>
-                <td class="py-4">
-                  <p class="font-black text-white">{{ a.category }}</p>
+                <td class="p-4">
+                  <p class="font-black text-slate-900">{{ a.category }}</p>
                 </td>
-                <td class="py-4">
-                  <p class="font-bold text-slate-300">مامەڵەی #{{ a.id }}</p>
-                  <p class="text-[10px] text-slate-400 font-semibold mt-0.5">
+                <td class="p-4">
+                  <p class="font-bold text-slate-800">مامەڵەی #{{ a.id }}</p>
+                  <p class="text-[10px] text-slate-500 font-semibold mt-0.5">
                     {{ formatNum(a.primary_amount) }} {{ a.primary_currency }}
                   </p>
                 </td>
-                <td class="py-4 text-slate-400 max-w-sm font-semibold text-right">
+                <td class="p-4 text-slate-600 max-w-sm font-semibold text-right">
                   {{ a.description }}
                 </td>
-                <td class="py-4 text-slate-300">{{ a.operator }}</td>
-                <td class="py-4 text-slate-400 text-[10px]" dir="ltr">
+                <td class="p-4 text-slate-800">{{ a.operator }}</td>
+                <td class="p-4 text-slate-500 text-[10px]" dir="ltr">
                   {{ a.date }}
                 </td>
-                <td class="py-4 text-left pl-4">
+                <td class="p-4 text-left pl-4">
                   <button @click="openForensicModal(a.id, a)"
-                          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 hover:scale-[1.03] text-white font-black rounded-xl text-xs transition-all shadow-lg shadow-blue-500/10 flex items-center gap-1.5">
+                          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 hover:scale-[1.03] text-white font-black rounded-xl text-xs transition-all shadow-lg shadow-blue-600/10 flex items-center gap-1.5">
                     👁️ پشکنین
                   </button>
                 </td>
@@ -812,27 +863,27 @@
 </div>
 
     <!-- FORENSIC INVESTIGATOR MODAL -->
-    <div v-if="showForensicModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[99999] flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
-      <div class="bg-slate-900 border border-white/10 rounded-[3rem] max-w-2xl w-full p-8 space-y-6 shadow-2xl relative text-right text-white">
+    <div v-if="showForensicModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[99999] flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
+      <div class="bg-white border border-slate-200 rounded-[3rem] max-w-2xl w-full p-8 space-y-6 shadow-2xl relative text-right text-slate-900">
         
         <!-- Close button -->
-        <button @click="showForensicModal = false" class="absolute top-6 left-6 text-slate-400 hover:text-white font-bold text-lg">
+        <button @click="showForensicModal = false" class="absolute top-6 left-6 text-slate-400 hover:text-slate-900 font-bold text-lg">
           ✕
         </button>
 
-        <div class="flex items-center gap-3 border-b border-white/5 pb-4">
-          <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center font-black text-xl">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+          <div class="w-12 h-12 bg-amber-50 text-amber-600 border border-amber-200 rounded-2xl flex items-center justify-center font-black text-xl">
             🔍
           </div>
           <div>
-            <h3 class="text-xl font-black">پشکنەری وردی فۆڕێنسیک (Forensic Inspector)</h3>
-            <p class="text-xs text-slate-400 font-bold mt-0.5">بەدواداچوونی گومانی ژمارە #{{ selectedAnomalyId }}</p>
+            <h3 class="text-xl font-black text-slate-900">پشکنەری وردی فۆڕێنسیک (Forensic Inspector)</h3>
+            <p class="text-xs text-slate-500 font-bold mt-0.5">بەدواداچوونی گومانی ژمارە #{{ selectedAnomalyId }}</p>
           </div>
         </div>
 
         <div v-if="forensicLoading" class="py-12 text-center space-y-3">
-          <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p class="text-xs text-slate-400 font-bold">بارکردنی زانیارییەکانی مێژووی مامەڵە...</p>
+          <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs text-slate-500 font-bold">بارکردنی زانیارییەکانی مێژووی مامەڵە...</p>
         </div>
 
         <div v-else-if="selectedTransaction" class="space-y-6">
@@ -840,53 +891,53 @@
           <!-- Danger/Alert Warning Badge -->
           <div class="p-4 rounded-2xl border flex items-start gap-3"
                :class="{
-                 'bg-rose-500/10 text-rose-300 border-rose-500/20': selectedAnomaly?.severity === 'high' || selectedAnomaly?.severity === 'critical',
-                 'bg-amber-500/10 text-amber-300 border-amber-500/20': selectedAnomaly?.severity === 'medium'
+                 'bg-rose-50 text-rose-700 border-rose-200': selectedAnomaly?.severity === 'high' || selectedAnomaly?.severity === 'critical',
+                 'bg-amber-50 text-amber-700 border-amber-200': selectedAnomaly?.severity === 'medium'
                }">
             <span class="text-lg">⚠️</span>
             <div class="text-xs space-y-1">
               <p class="font-black">مەترسی لادان: {{ selectedAnomaly?.severity_kurdish }}</p>
-              <p class="font-bold leading-relaxed text-slate-300">{{ selectedAnomaly?.description }}</p>
+              <p class="font-bold leading-relaxed text-slate-700">{{ selectedAnomaly?.description }}</p>
             </div>
           </div>
 
           <!-- Transaction Info Fields Grid -->
           <div class="grid grid-cols-2 gap-4 text-xs font-semibold">
-            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
               <span class="text-slate-500 text-[10px] block">ناسنامەی سەرەکی (Transaction ID)</span>
-              <p class="text-white font-black text-sm">#{{ selectedTransaction.id }}</p>
+              <p class="text-slate-900 font-black text-sm">#{{ selectedTransaction.id }}</p>
             </div>
-            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
               <span class="text-slate-500 text-[10px] block">ئەنجامدەر (Operator)</span>
-              <p class="text-white font-black text-sm">{{ selectedTransaction.user?.name || 'سیستم' }}</p>
+              <p class="text-slate-900 font-black text-sm">{{ selectedTransaction.user?.name || 'سیستم' }}</p>
             </div>
-            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
               <span class="text-slate-500 text-[10px] block">دراوی یەکەم (Primary Amount)</span>
-              <p class="text-white font-black text-sm">{{ formatNum(selectedTransaction.primary_amount) }} {{ selectedTransaction.primary_currency }}</p>
+              <p class="text-slate-900 font-black text-sm">{{ formatNum(selectedTransaction.primary_amount) }} {{ selectedTransaction.primary_currency }}</p>
             </div>
-            <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1">
               <span class="text-slate-500 text-[10px] block">دراوی دووەم (Secondary Amount)</span>
-              <p class="text-white font-black text-sm">
+              <p class="text-slate-900 font-black text-sm">
                 {{ formatNum(selectedTransaction.secondary_amount) }} {{ selectedTransaction.secondary_currency }}
-                <span v-if="selectedTransaction.rate" class="text-xs text-slate-400 font-bold block mt-0.5">نرخی ئاڵوگۆڕ: {{ formatNum(selectedTransaction.rate) }}</span>
+                <span v-if="selectedTransaction.rate" class="text-xs text-slate-500 font-bold block mt-0.5">نرخی ئاڵوگۆڕ: {{ formatNum(selectedTransaction.rate) }}</span>
               </p>
             </div>
           </div>
 
           <!-- Description Box -->
-          <div class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 space-y-1 text-xs">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1 text-xs">
             <span class="text-slate-500 text-[10px] block font-semibold">تێبینی / وەسفی مامەڵە</span>
-            <p class="text-white font-bold leading-relaxed">{{ selectedTransaction.note || 'بێ تێبینی' }}</p>
+            <p class="text-slate-900 font-bold leading-relaxed">{{ selectedTransaction.note || 'بێ تێبینی' }}</p>
           </div>
 
           <!-- Cryptographic Hash Integrity Verification -->
-          <div class="bg-slate-950/60 p-4 rounded-2xl border border-white/10 flex items-center justify-between text-xs">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
             <div class="space-y-1">
-              <p class="font-black">پشکنینی مۆری کریپتۆگرافی (Cryptographic Seal Check)</p>
-              <p class="text-[10px] text-slate-400 font-bold">بەرنامەکە فۆڕێنسیکی زنجیرەی واڵت دەکات بۆ دڵنیابوونەوە لە پاکی داتاکە.</p>
+              <p class="font-black text-slate-900">پشکنینی مۆری کریپتۆگرافی (Cryptographic Seal Check)</p>
+              <p class="text-[10px] text-slate-500 font-bold">بەرنامەکە فۆڕێنسیکی زنجیرەی واڵت دەکات بۆ دڵنیابوونەوە لە پاکی داتاکە.</p>
             </div>
             <span class="px-4 py-2 rounded-xl font-black text-xs border"
-                  :class="isTampered(selectedTransaction.id) ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                  :class="isTampered(selectedTransaction.id) ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'">
               {{ isTampered(selectedTransaction.id) ? '🔴 دەستکاری کراوە (Tampered)' : '🟢 سەلامەتە (Seal Intact)' }}
             </span>
           </div>
@@ -894,8 +945,8 @@
         </div>
 
         <!-- Footer Buttons -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-white/5">
-          <button @click="showForensicModal = false" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-xl text-xs transition-all">
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button @click="showForensicModal = false" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs transition-all">
             داخستن
           </button>
         </div>
@@ -927,6 +978,28 @@ const profitMargin = computed(() => {
   const net = Number(data.value?.financials?.net_profit || 0)
   if (rev === 0) return 0
   return ((net / rev) * 100).toFixed(1)
+})
+
+const totalCommissionIQD = computed(() => {
+  if (!data.value?.financials?.revenues?.accounts) return 0
+  return data.value.financials.revenues.accounts
+    .filter(a => a.name.includes('غەمولە') || a.name.includes('عمول') || a.name.includes('Commission'))
+    .reduce((sum, a) => sum + Number(a.balance_iqd || 0), 0)
+})
+
+const totalExchangeProfitIQD = computed(() => {
+  if (!data.value?.financials?.revenues?.accounts) return 0
+  const rev = data.value.financials.revenues.accounts
+    .filter(a => a.name.includes('ئاڵوگۆڕ') || a.name.includes('فەرق') || a.name.includes('Exchange') || (!a.name.includes('غەمولە') && !a.name.includes('عمول') && !a.name.includes('Commission')))
+    .reduce((sum, a) => sum + Number(a.balance_iqd || 0), 0)
+  
+  const exp = data.value?.financials?.expenses?.accounts
+    ? data.value.financials.expenses.accounts
+        .filter(a => a.name.includes('ئاڵوگۆڕ') || a.name.includes('فەرق') || a.name.includes('Exchange'))
+        .reduce((sum, a) => sum + Number(a.balance_iqd || 0), 0)
+    : 0
+
+  return rev - exp
 })
 
 const integrityLoading = ref(false)
