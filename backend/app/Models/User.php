@@ -22,9 +22,19 @@ class User extends Authenticatable
 
     protected $guard_name = 'api';
 
+    protected $appends = ['all_permissions'];
+
     public function branches()
     {
         return $this->belongsToMany(Branch::class);
+    }
+
+    public function getAllPermissionsAttribute()
+    {
+        if (!$this->relationLoaded('roles')) {
+            return $this->permissions->pluck('name');
+        }
+        return $this->getAllPermissions()->pluck('name');
     }
 
     /**

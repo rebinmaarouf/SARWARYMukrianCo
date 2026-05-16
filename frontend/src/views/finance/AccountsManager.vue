@@ -254,12 +254,26 @@ function onSearch() {
 }
 
 const filteredAccounts = computed(() => {
-  return accounts.value.filter(a => {
+  let filtered = accounts.value.filter(a => {
     const term = searchTerm.value.toLowerCase()
     const matchesSearch = a.name.toLowerCase().includes(term) || (a.code && a.code.toString().includes(term))
     const matchesType = filterType.value === 'all' || a.type === filterType.value
     return matchesSearch && matchesType
   })
+
+  // Advanced Sorting: Pin Vaults and Profit accounts to the top
+  return filtered.sort((a, b) => {
+    // 1. Vaults (صندوق) always at the very top
+    if (a.type === 'vault' && b.type !== 'vault') return -1;
+    if (a.type !== 'vault' && b.type === 'vault') return 1;
+    
+    // 2. Revenue / Profit accounts (داهات) next
+    if (a.type === 'revenue' && b.type !== 'revenue') return -1;
+    if (a.type !== 'revenue' && b.type === 'revenue') return 1;
+
+    // 3. Sort the rest alphabetically or by ID
+    return b.id - a.id; // Newest first for the rest
+  });
 })
 
 const typeCounts = computed(() => {

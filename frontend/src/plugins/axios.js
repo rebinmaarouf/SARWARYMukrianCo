@@ -21,11 +21,19 @@ instance.interceptors.request.use((config) => {
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+    if (error.response) {
+      const status = error.response.status
+      
+      if (status === 401) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+      } else if (status === 403) {
+        window.location.href = '/error/403'
+      } else if (status === 500) {
+        window.location.href = '/error/500'
       }
     }
     return Promise.reject(error)

@@ -75,7 +75,7 @@ class AccountController extends Controller
             'name' => 'required|string|max:255|unique:accounts,name',
             'mobile' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
-            'type' => 'required|string|in:vault,customer,expense,equity,revenue,general',
+            'type' => 'required|string|in:vault,client,expense,equity,revenue,general',
             'parent_id' => 'nullable|exists:accounts,id',
             'branch_id' => 'nullable|integer',
             'is_global' => 'nullable|boolean'

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Finance\AccountController;
 use App\Http\Controllers\Api\Finance\CurrencyController;
 use App\Http\Controllers\Api\Finance\TransferController;
 use App\Http\Controllers\Api\Finance\ExchangeController;
+use App\Http\Controllers\Api\Finance\VoucherController;
 use App\Http\Controllers\Api\Finance\RegistryController;
 use App\Http\Controllers\Api\Finance\AuditReportController;
 use App\Http\Controllers\Api\Finance\JournalController;
@@ -48,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('currencies/update-rate', [CurrencyController::class, 'updateRate']);
     Route::apiResource('currencies', CurrencyController::class);
     Route::apiResource('exchanges', ExchangeController::class);
+    Route::apiResource('vouchers', VoucherController::class);
     Route::get('journals', [JournalController::class, 'index']);
     Route::get('journals/{id}', [JournalController::class, 'show']);
     Route::delete('journals/{id}', [JournalController::class, 'destroy']);
@@ -59,7 +61,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::get('reports/profit', [ExchangeController::class, 'getProfitReport']);
     Route::get('reports/unified', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getUnifiedReport']);
-    Route::get('reports/liquidity', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getVaultLiquidity']);
+    Route::get('/dashboard/aging-debts', [\App\Http\Controllers\Api\Finance\AgingDebtController::class, 'index']);
+    Route::apiResource('vouchers', \App\Http\Controllers\Api\Finance\VoucherController::class)->except(['update']);
     
     // Multi-Branch Support
     Route::get('branches', [BranchController::class, 'index']);

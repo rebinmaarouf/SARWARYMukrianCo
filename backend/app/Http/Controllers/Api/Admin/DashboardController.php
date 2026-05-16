@@ -28,24 +28,7 @@ class DashboardController extends Controller
         $netProfitIQD = $revenueIQD - $expenseIQD;
 
         // 2. Real-time Vault Monitor (Branch-Aware)
-        $vaultBalances = JournalEntry::with(['account', 'currency'])
-            ->whereHas('account', function($q) {
-                $q->where('type', 'vault');
-            })
-            ->select(
-                'account_id',
-                'currency_id',
-                DB::raw('SUM(debit - credit) as balance')
-            )
-            ->groupBy('account_id', 'currency_id')
-            ->get()
-            ->map(function($entry) {
-                return [
-                    'account_name' => $entry->account->name,
-                    'currency_code' => $entry->currency->code,
-                    'balance' => $entry->balance
-                ];
-            });
+        $vaultBalances = $this->getVaultBalances();
 
         // 3. Time-Series Analytics (Revenue vs Expense)
         $chartData = $this->getChartData($period, $latestRate);
@@ -63,7 +46,10 @@ class DashboardController extends Controller
                 'exchange_rate' => $latestRate,
                 'period' => $period,
                 'total_accounts' => Account::count(),
-                'today_ops' => JournalEntry::where('date', Carbon::today()->toDateString())->count()
+                'today_ops' => JournalEntry::where('date', Carbon::today()->toDateString())
+                    ->when(auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin'), function($q) {
+                        return $q->where('branch_id', auth()->user()->branch_id);
+                    })->count()
             ]
         ]);
     }
@@ -72,13 +58,19 @@ class DashboardController extends Controller
     {
         if (!is_array($codePatterns)) $codePatterns = [$codePatterns];
 
-        $entries = JournalEntry::whereHas('account', function($q) use ($codePatterns) {
+        $query = JournalEntry::whereHas('account', function($q) use ($codePatterns) {
             $q->where(function($sub) use ($codePatterns) {
                 foreach($codePatterns as $pattern) {
                     $sub->orWhere('code', 'LIKE', $pattern);
                 }
             });
-        })->with('currency')->get();
+        });
+
+        if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
+            $query->where('branch_id', auth()->user()->branch_id);
+        }
+
+        $entries = $query->with('currency')->get();
 
         return $entries->reduce(function($acc, $entry) {
             $code = $entry->account->code;
@@ -109,15 +101,21 @@ class DashboardController extends Controller
             $startDate = $period === '1y' ? $date->startOfMonth()->toDateString() : $date->toDateString();
             $endDate = $period === '1y' ? $date->endOfMonth()->toDateString() : $date->toDateString();
 
-            $revenue = JournalEntry::whereBetween('date', [$startDate, $endDate])
-                ->whereHas('account', function($q) { $q->where('code', 'LIKE', '4%'); })
-                ->sum(DB::raw('credit - debit'));
+            $revQuery = JournalEntry::whereBetween('date', [$startDate, $endDate])
+                ->whereHas('account', function($q) { $q->where('code', 'LIKE', '4%'); });
 
-            $expense = JournalEntry::whereBetween('date', [$startDate, $endDate])
+            $expQuery = JournalEntry::whereBetween('date', [$startDate, $endDate])
                 ->whereHas('account', function($q) { 
                     $q->where('code', 'LIKE', '3%')->orWhere('code', 'LIKE', '5%'); 
-                })
-                ->sum(DB::raw('debit - credit'));
+                });
+
+            if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
+                $revQuery->where('branch_id', auth()->user()->branch_id);
+                $expQuery->where('branch_id', auth()->user()->branch_id);
+            }
+
+            $revenue = $revQuery->sum(DB::raw('credit - debit'));
+            $expense = $expQuery->sum(DB::raw('debit - credit'));
 
             $data[] = [
                 'label' => $date->format($format),
@@ -127,5 +125,31 @@ class DashboardController extends Controller
             ];
         }
         return $data;
+    }
+    private function getVaultBalances()
+    {
+        $vaultQuery = JournalEntry::with(['account', 'currency'])
+            ->whereHas('account', function($q) {
+                $q->where('type', 'vault');
+            });
+
+        if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
+            $vaultQuery->where('branch_id', auth()->user()->branch_id);
+        }
+
+        return $vaultQuery->select(
+                'account_id',
+                'currency_id',
+                DB::raw('SUM(debit - credit) as balance')
+            )
+            ->groupBy('account_id', 'currency_id')
+            ->get()
+            ->map(function($entry) {
+                return [
+                    'account_name' => $entry->account->name,
+                    'currency_code' => $entry->currency->code,
+                    'balance' => $entry->balance
+                ];
+            });
     }
 }

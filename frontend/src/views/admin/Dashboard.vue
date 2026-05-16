@@ -7,8 +7,13 @@
       
       <div class="flex items-center gap-6 relative z-10">
         <!-- Branded Logo Box -->
-        <div class="w-20 h-20 bg-white rounded-[1.8rem] border border-slate-200 flex items-center justify-center p-3 shadow-md">
+        <div class="w-20 h-20 bg-white rounded-[1.8rem] border border-slate-200 flex items-center justify-center p-3 shadow-md relative">
            <img src="/logo.png" class="max-w-full max-h-full object-contain" alt="Logo" />
+           
+           <!-- Red Bell Indicator -->
+           <div v-if="hasRedDebts" class="absolute -top-2 -right-2 w-8 h-8 bg-rose-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce z-20">
+              <span class="text-white text-[10px] font-black">{{ redDebtsCount }}</span>
+           </div>
         </div>
         <div>
            <div class="flex items-center gap-3 mb-2">
@@ -33,8 +38,8 @@
       </div>
     </header>
 
-    <!-- KEY PERFORMANCE INDICATORS (IUAS P&L) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+    <!-- KEY PERFORMANCE INDICATORS (IUAS P&L) - Hidden from Cashier -->
+    <div v-if="can('view_reports')" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
        <!-- Revenue -->
        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden group">
           <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی داهات (Revenue - 4)</span>
@@ -75,10 +80,67 @@
        </div>
     </div>
 
+    <!-- SMART AGING DEBTS (چاودێری قەرزەکان) - Hidden from Cashier -->
+    <div v-if="can('view_reports') && agingDebts.length > 0" class="bg-white rounded-[3.5rem] border border-slate-200/80 p-8 shadow-sm animate-fade-in">
+      <div class="flex items-center justify-between mb-8">
+         <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center border border-rose-200">
+               <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+               <h3 class="text-xl font-black text-slate-900 tracking-tight">چاودێری قەرزەکان (Smart Aging Debts)</h3>
+               <p class="text-xs text-slate-500 font-medium mt-1">ئەو کەسانەی کە قەرزداری کۆمپانیان و کاتی دانەوەیان نزیکە یان بەسەرچووە</p>
+            </div>
+         </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+         <div v-for="debt in agingDebts" :key="debt.account_id" 
+              class="relative overflow-hidden rounded-[2rem] border p-6 flex flex-col transition-all"
+              :class="{
+                 'bg-rose-50 border-rose-200 shadow-[0_4px_20px_-4px_rgba(225,29,72,0.15)]': debt.status === 'red',
+                 'bg-amber-50 border-amber-200': debt.status === 'yellow',
+                 'bg-slate-50 border-slate-200': debt.status === 'green'
+              }">
+              
+            <!-- Indicator Line -->
+            <div class="absolute right-0 top-0 bottom-0 w-1.5"
+                 :class="{
+                    'bg-rose-500': debt.status === 'red',
+                    'bg-amber-500': debt.status === 'yellow',
+                    'bg-emerald-500': debt.status === 'green'
+                 }"></div>
+                 
+            <div class="flex justify-between items-start mb-4">
+               <div>
+                  <h4 class="text-lg font-black text-slate-900">{{ debt.account_name }}</h4>
+                  <span class="text-[10px] font-black text-slate-500 uppercase font-mono tracking-widest mt-1 block">{{ debt.account_code || 'NO-CODE' }}</span>
+               </div>
+               <span v-if="debt.status === 'red'" class="px-3 py-1 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse shadow-md shadow-rose-600/30">بەسەرچوو</span>
+               <span v-else-if="debt.status === 'yellow'" class="px-3 py-1 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest rounded-full">نزیکە</span>
+               <span v-else class="px-3 py-1 bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest rounded-full">ئاسایی</span>
+            </div>
+            
+            <div class="space-y-2 mt-auto">
+               <div v-for="bal in debt.balances" :key="bal.currency" class="flex justify-between items-center bg-white/60 p-3 rounded-xl border border-white">
+                  <span class="text-xl font-black font-mono tracking-tighter" :class="{'text-rose-600': debt.status === 'red', 'text-slate-900': debt.status !== 'red'}">{{ formatNum(bal.balance) }}</span>
+                  <span class="text-[10px] font-black px-2 py-1 bg-white rounded shadow-xs text-slate-600 border border-slate-100">{{ bal.currency }}</span>
+               </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-slate-200/50 flex justify-between items-center text-[11px] font-bold">
+               <span class="text-slate-500">کاتی گەڕاندنەوە:</span>
+               <span v-if="debt.due_date" :class="{'text-rose-600 font-black': debt.status === 'red', 'text-slate-700': debt.status !== 'red'}">{{ formatDate(debt.due_date) }}</span>
+               <span v-else class="text-slate-400">دیاری نەکراوە</span>
+            </div>
+         </div>
+      </div>
+    </div>
+
     <!-- MAIN ANALYTICS CHART & VAULTS MONITOR -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-       <!-- SVG Advanced Multi-Stream Analytics Chart -->
-       <div class="lg:col-span-2 bg-white rounded-[3.5rem] border border-slate-200/80 p-10 relative overflow-hidden shadow-sm">
+       <!-- SVG Advanced Multi-Stream Analytics Chart - Hidden from Cashier -->
+       <div v-if="can('view_reports')" class="lg:col-span-2 bg-white rounded-[3.5rem] border border-slate-200/80 p-10 relative overflow-hidden shadow-sm">
           <div class="flex items-center justify-between mb-12 relative z-10">
              <div>
                 <h3 class="text-xl font-black text-slate-900">شیکاری دارایی (Financial Analytics)</h3>
@@ -141,8 +203,8 @@
           </div>
        </div>
 
-       <!-- Real-time Vault Balances Strip -->
-       <div class="bg-white rounded-[3.5rem] border border-slate-200/80 p-8 flex flex-col shadow-sm">
+       <!-- Real-time Vault Balances Strip - Hidden from Auditor -->
+       <div v-if="can('manage_vaults')" class="bg-white rounded-[3.5rem] border border-slate-200/80 p-8 flex flex-col shadow-sm">
           <div class="flex items-center justify-between mb-8">
              <h3 class="text-lg font-black tracking-tight text-slate-900">باڵانسی سندوقەکان</h3>
              <router-link to="/admin/accounts" class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 transition-all">
@@ -184,8 +246,8 @@
           </router-link>
        </div>
 
-       <!-- Real-time Event Feed -->
-       <div class="lg:col-span-3 bg-white rounded-[3rem] border border-slate-200/80 overflow-hidden shadow-sm">
+       <!-- Real-time Event Feed - Hidden from Cashier -->
+       <div v-if="can('view_reports')" class="lg:col-span-3 bg-white rounded-[3rem] border border-slate-200/80 overflow-hidden shadow-sm">
           <div class="p-8 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
              <h3 class="text-lg font-black tracking-tight text-slate-900">جوڵەی ڕۆژنامەی گشتی (Live Journal)</h3>
              <div class="flex items-center gap-2">
@@ -248,11 +310,21 @@
 <script setup>
 import { ref, onMounted, reactive, computed } from 'vue'
 import axios from '../../plugins/axios'
+import { useAuthStore } from '../../stores/auth'
+
+const auth = useAuthStore()
+function can(permission) {
+  return auth.isSuperAdmin || auth.permissions.includes(permission)
+}
 
 const user = ref(null)
 const stats = ref({ summary: {}, vault_balances: [], chart_data: [] })
 const journals = ref([])
+const agingDebts = ref([])
 const filters = reactive({ period: '7d' })
+
+const hasRedDebts = computed(() => agingDebts.value.some(d => d.status === 'red'))
+const redDebtsCount = computed(() => agingDebts.value.filter(d => d.status === 'red').length)
 
 const currentTime = ref('')
 const currentDate = ref('')
@@ -283,14 +355,16 @@ function generatePath(data, key, close) {
 
 async function fetchData() {
   try {
-    const [userRes, statsRes, journalsRes] = await Promise.all([
+    const [userRes, statsRes, journalsRes, agingRes] = await Promise.all([
       axios.get('/user'),
       axios.get('/dashboard/stats', { params: filters }),
-      axios.get('/journals', { params: { per_page: 8 } })
+      axios.get('/journals', { params: { per_page: 8 } }),
+      axios.get('/dashboard/aging-debts')
     ])
     user.value = userRes.data
     stats.value = statsRes.data
     journals.value = journalsRes.data.data
+    agingDebts.value = agingRes.data
   } catch (e) { console.error(e) }
 }
 

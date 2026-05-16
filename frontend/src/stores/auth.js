@@ -17,6 +17,9 @@ export const useAuthStore = defineStore('auth', {
       return state.user.roles.some(r => r === 'Super Admin' || r.name === 'Super Admin')
     },
     permissions: (state) => {
+      if (state.user?.all_permissions) {
+        return state.user.all_permissions
+      }
       if (!state.user?.permissions) return []
       return state.user.permissions.map(p => typeof p === 'string' ? p : p.name)
     }

@@ -55,6 +55,11 @@ const routes = [
         component: () => import('../views/finance/ExchangeManager.vue')
       },
       {
+        path: 'vouchers',
+        name: 'Vouchers',
+        component: () => import('../views/finance/VoucherManager.vue')
+      },
+      {
         path: 'general-ledger',
         name: 'GeneralLedger',
         component: () => import('../views/finance/DynamicRegistry.vue')
@@ -92,6 +97,15 @@ const routes = [
         component: () => import('../views/admin/RoleManager.vue')
       }
     ]
+  },
+  {
+    path: '/error/:code',
+    name: 'ErrorPage',
+    component: () => import('../views/errors/ErrorPage.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/error/404'
   }
 ]
 

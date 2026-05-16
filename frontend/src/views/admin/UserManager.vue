@@ -335,9 +335,29 @@ const saveUser = async () => {
     showModal.value = false
     fetchUsers()
   } catch (err) {
+    let errorMsg = 'کێشەیەک لە سێرڤەر ڕوویدا، تکایە دووبارە هەوڵ بدەرەوە';
+    
+    if (err.response?.status === 422 && err.response?.data?.errors) {
+      const errors = err.response.data.errors;
+      const errorList = Object.values(errors).flat();
+      
+      const translations = {
+        'The email has already been taken.': 'ئەم ئیمەیڵە پێشتر بەکارهاتووە.',
+        'The password must be at least 8 characters.': 'وشەی نهێنی دەبێت لانی کەم ٨ پیت بێت.',
+        'The name field is required.': 'ناوی کارمەند پێویستە.',
+        'The email field is required.': 'ئیمەیڵ پێویستە.',
+        'The branch id field is required.': 'هەڵبژاردنی لق پێویستە.',
+        'The roles field is required.': 'دیاریکردنی ڕۆڵ پێویستە.'
+      };
+
+      errorMsg = errorList.map(msg => translations[msg] || msg).join('\n');
+    } else if (err.response?.data?.message) {
+      errorMsg = err.response.data.message;
+    }
+
     PremiumAlert.fire({ 
       title: 'هەڵە ڕوویدا', 
-      text: err.response?.data?.message || 'کێشەیەک لە سێرڤەر ڕوویدا، تکایە دووبارە هەوڵ بدەرەوە', 
+      text: errorMsg, 
       icon: 'error' 
     })
   }
