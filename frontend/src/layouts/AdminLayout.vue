@@ -79,6 +79,11 @@
           <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">حسابەکان</span>
         </router-link>
 
+        <router-link v-if="auth.permissions.includes('view_closing_account') || auth.isSuperAdmin" to="/admin/closing-account" class="nav-link" :class="{ 'active': $route.path === '/admin/closing-account', 'collapsed': isCollapsed }" data-tip="Closing Account">
+          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+          <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">حساب خیتامی</span>
+        </router-link>
+
         <!-- Administration Category (Conditional) -->
         <template v-if="auth.isSuperAdmin || auth.permissions.includes('view_users') || auth.permissions.includes('view_roles')">
           <div v-if="!isCollapsed" class="pt-6 pb-1.5 px-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">Administration</div>

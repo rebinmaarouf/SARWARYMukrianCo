@@ -82,6 +82,12 @@ const routes = [
         meta: { permission: 'view_forensics' }
       },
       {
+        path: 'closing-account',
+        name: 'ClosingAccount',
+        component: () => import('../views/finance/ClosingAccount.vue'),
+        meta: { permission: 'view_closing_account' }
+      },
+      {
         path: 'registry/:currencyId?',
         name: 'DynamicRegistry',
         component: () => import('../views/finance/DynamicRegistry.vue')
