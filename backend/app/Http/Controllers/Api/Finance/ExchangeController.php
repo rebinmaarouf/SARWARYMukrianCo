@@ -48,6 +48,7 @@ class ExchangeController extends Controller
 
         $runningQty = 0.0;
         $runningCost = 0.0;
+        $currentWac = 0.0;
         $usdRate = Currency::where('code', 'USD')->first()?->current_rate ?: 1500;
 
         foreach ($txs as $tx) {
@@ -224,6 +225,11 @@ class ExchangeController extends Controller
         $vaultTo = Account::find($request->vault_to_id);
         $today = now();
 
+        $bridgingAccount = Account::where('code', '9999')->first();
+        if (!$bridgingAccount) {
+            throw new \Exception("Bridging account (code 9999) not found!");
+        }
+
         $profitAmount = (float) $transaction->profit;
 
         if ($request->primary_currency === 'IQD' && $request->secondary_currency === 'USD') {
@@ -232,17 +238,23 @@ class ExchangeController extends Controller
 
             if ($request->type === 'buy') {
                 // WE BUY IQD / WE GIVE USD
-                // Leg 1: Debit Destination Vault (IQD comes IN)
-                JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, 1.0);
                 
-                // Leg 2: Credit Source Vault (USD goes OUT)
+                // For IQD (Primary):
+                JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, 1.0);
+                JournalService::record($transaction, $bridgingAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "وەسیتی ئاڵوگۆڕ {$request->primary_currency} (#{$transaction->id})", $today, 1.0);
+                
+                // For USD (Secondary):
+                JournalService::record($transaction, $bridgingAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەسیتی ئاڵوگۆڕ {$request->secondary_currency} (#{$transaction->id})", $today, $systemRateOfUsd);
                 JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateOfUsd);
             } else {
                 // WE SELL IQD / WE RECEIVE USD
-                // Leg 1: Debit Destination Vault (USD comes IN)
+                
+                // For USD (Secondary):
                 JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateOfUsd);
-
-                // Leg 2: Credit Source Vault (IQD goes OUT)
+                JournalService::record($transaction, $bridgingAccount->id, $secondaryCurrency->id, 0, $request->secondary_amount, "وەسیتی ئاڵوگۆڕ {$request->secondary_currency} (#{$transaction->id})", $today, $systemRateOfUsd);
+                
+                // For IQD (Primary):
+                JournalService::record($transaction, $bridgingAccount->id, $primaryCurrency->id, $request->primary_amount, 0, "وەسیتی ئاڵوگۆڕ {$request->primary_currency} (#{$transaction->id})", $today, 1.0);
                 JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, 1.0);
             }
         } else {
@@ -269,11 +281,23 @@ class ExchangeController extends Controller
 
             if ($request->type === 'buy') {
                 // WE BUY Primary / WE GIVE Secondary
+                
+                // For Primary Currency:
                 JournalService::record($transaction, $vaultTo->id, $primaryCurrency->id, $request->primary_amount, 0, "وەرگرتنی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
+                JournalService::record($transaction, $bridgingAccount->id, $primaryCurrency->id, 0, $request->primary_amount, "وەسیتی ئاڵوگۆڕ {$request->primary_currency} (#{$transaction->id})", $today, $systemRateForPrimary);
+                
+                // For Secondary Currency:
+                JournalService::record($transaction, $bridgingAccount->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەسیتی ئاڵوگۆڕ {$request->secondary_currency} (#{$transaction->id})", $today);
                 JournalService::record($transaction, $vaultFrom->id, $secondaryCurrency->id, 0, $request->secondary_amount, "دانی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
             } else {
                 // WE SELL Primary / WE RECEIVE Secondary
+                
+                // For Secondary Currency:
                 JournalService::record($transaction, $vaultTo->id, $secondaryCurrency->id, $request->secondary_amount, 0, "وەرگرتنی {$request->secondary_currency} - {$request->client_name} (#{$transaction->id})", $today);
+                JournalService::record($transaction, $bridgingAccount->id, $secondaryCurrency->id, 0, $request->secondary_amount, "وەسیتی ئاڵوگۆڕ {$request->secondary_currency} (#{$transaction->id})", $today);
+                
+                // For Primary Currency:
+                JournalService::record($transaction, $bridgingAccount->id, $primaryCurrency->id, $request->primary_amount, 0, "وەسیتی ئاڵوگۆڕ {$request->primary_currency} (#{$transaction->id})", $today, $systemRateForPrimary);
                 JournalService::record($transaction, $vaultFrom->id, $primaryCurrency->id, 0, $request->primary_amount, "دانی {$request->primary_currency} - {$request->client_name} (#{$transaction->id})", $today, $systemRateForPrimary);
             }
         }
@@ -285,9 +309,13 @@ class ExchangeController extends Controller
                 if ($profitAmount > 0) {
                     // Gain goes to 484 (Credit - increases revenue)
                     JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, 0, $profitAmount, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
+                    // Debit bridging account to balance it!
+                    JournalService::record($transaction, $bridgingAccount->id, $secondaryCurrency->id, $profitAmount, 0, "قازانجی ئاڵوگۆڕ #{$transaction->id}", $today);
                 } else {
                     // Loss goes to 484 (Debit - decreases revenue)
                     JournalService::record($transaction, $profitAccount->id, $secondaryCurrency->id, abs($profitAmount), 0, "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
+                    // Credit bridging account to balance it!
+                    JournalService::record($transaction, $bridgingAccount->id, $secondaryCurrency->id, 0, abs($profitAmount), "زیانی ئاڵوگۆڕ #{$transaction->id}", $today);
                 }
             }
         }
@@ -342,8 +370,8 @@ class ExchangeController extends Controller
 
     public function destroy($id)
     {
-        if (!auth()->user()->can('delete journals')) {
-            abort(403, 'Unauthorized action. You do not have permission to delete journals.');
+        if (!auth()->user()->can('delete_records')) {
+            abort(403, 'Unauthorized action. You do not have permission to delete records.');
         }
 
         return DB::transaction(function () use ($id) {

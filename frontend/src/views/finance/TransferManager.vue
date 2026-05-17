@@ -21,28 +21,38 @@
           
           <!-- Accounts Selection Row -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="space-y-4">
+            <div class="space-y-4 relative">
               <label class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
                 <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
                 لە کوێوە دەڕوات (سەرچاوە)
               </label>
-              <select v-model="form.from_account_id" required 
-                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-rose-500 outline-none transition-all">
-                <option value="" disabled>هەڵبژاردنی حیساب...</option>
-                <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} ({{ acc.code }})</option>
-              </select>
+              <div class="relative">
+                <input v-model="fromAccountSearch" @focus="showResults = 'from'" @input="searchAccounts('from')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
+                  class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-rose-500 outline-none transition-all" />
+                <div v-if="showResults === 'from' && filteredAccountsFrom.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
+                  <button v-for="acc in filteredAccountsFrom" :key="acc.id" @click="selectAccount(acc, 'from')" type="button" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex justify-between items-center group">
+                    <span class="font-bold text-slate-900 text-sm group-hover:text-rose-600">{{ acc.name }}</span>
+                    <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ acc.code }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-4 relative">
               <label class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
                 <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
                 بۆ کوێ دەچێت (وەرگر)
               </label>
-              <select v-model="form.to_account_id" required 
-                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-emerald-500 outline-none transition-all">
-                <option value="" disabled>هەڵبژاردنی حیساب...</option>
-                <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} ({{ acc.code }})</option>
-              </select>
+              <div class="relative">
+                <input v-model="toAccountSearch" @focus="showResults = 'to'" @input="searchAccounts('to')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
+                  class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-emerald-500 outline-none transition-all" />
+                <div v-if="showResults === 'to' && filteredAccountsTo.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
+                  <button v-for="acc in filteredAccountsTo" :key="acc.id" @click="selectAccount(acc, 'to')" type="button" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex justify-between items-center group">
+                    <span class="font-bold text-slate-900 text-sm group-hover:text-emerald-600">{{ acc.name }}</span>
+                    <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ acc.code }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -385,6 +395,37 @@ const showPrintOptions = ref(false)
 const selectedTransferToPrint = ref(null)
 const printMode = ref('80mm')
 
+const fromAccountSearch = ref('')
+const toAccountSearch = ref('')
+const showResults = ref(null)
+
+const filteredAccountsFrom = computed(() => {
+  const q = fromAccountSearch.value.toLowerCase()
+  if (!q) return accounts.value.slice(0, 10)
+  return accounts.value.filter(a => a.name.toLowerCase().includes(q) || a.code.toString().includes(q)).slice(0, 8)
+})
+
+const filteredAccountsTo = computed(() => {
+  const q = toAccountSearch.value.toLowerCase()
+  if (!q) return accounts.value.slice(0, 10)
+  return accounts.value.filter(a => a.name.toLowerCase().includes(q) || a.code.toString().includes(q)).slice(0, 8)
+})
+
+function searchAccounts(type) {
+  showResults.value = type
+}
+
+function selectAccount(acc, type) {
+  if (type === 'from') {
+    form.value.from_account_id = acc.id
+    fromAccountSearch.value = acc.name
+  } else {
+    form.value.to_account_id = acc.id
+    toAccountSearch.value = acc.name
+  }
+  showResults.value = null
+}
+
 async function printReceipt(t) {
   selectedTransferToPrint.value = t
   showPrintOptions.value = true
@@ -473,6 +514,8 @@ async function submitTransfer() {
     Swal.fire({ icon: 'success', title: 'سەرکەوتوو بوو', background: '#0f172a', color: '#fff' })
     formText.value = { amount: '', commission_amount: '' }
     form.value = { from_account_id: '', to_account_id: '', currency_id: form.value.currency_id, amount: 0, commission_amount: 0, commission_currency_id: form.value.currency_id, notes: '' }
+    fromAccountSearch.value = ''
+    toAccountSearch.value = ''
     if (data.transfer) transfers.value.unshift(data.transfer)
   } catch (e) {
     Swal.fire({ icon: 'error', title: 'هەڵە', text: e.response?.data?.message, background: '#0f172a', color: '#fff' })
