@@ -27,7 +27,7 @@
                 لە کوێوە دەڕوات (سەرچاوە)
               </label>
               <div class="relative">
-                <input v-model="fromAccountSearch" @focus="showResults = 'from'" @input="searchAccounts('from')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
+                <input ref="fromAccountInput" v-model="fromAccountSearch" @focus="showResults = 'from'" @input="searchAccounts('from')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-rose-500 outline-none transition-all" />
                 <div v-if="showResults === 'from' && filteredAccountsFrom.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
                   <button v-for="acc in filteredAccountsFrom" :key="acc.id" @click="selectAccount(acc, 'from')" type="button" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex justify-between items-center group">
@@ -44,7 +44,7 @@
                 بۆ کوێ دەچێت (وەرگر)
               </label>
               <div class="relative">
-                <input v-model="toAccountSearch" @focus="showResults = 'to'" @input="searchAccounts('to')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
+                <input ref="toAccountInput" v-model="toAccountSearch" @focus="showResults = 'to'" @input="searchAccounts('to')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-emerald-500 outline-none transition-all" />
                 <div v-if="showResults === 'to' && filteredAccountsTo.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
                   <button v-for="acc in filteredAccountsTo" :key="acc.id" @click="selectAccount(acc, 'to')" type="button" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex justify-between items-center group">
@@ -72,7 +72,7 @@
                </div>
                <div class="space-y-4">
                   <label class="text-xs font-black text-blue-700 uppercase tracking-[0.2em] px-2">بڕی پارە</label>
-                  <input :value="formText.amount" @input="e => updateAmount('amount', e.target.value)" type="text" required placeholder="0"
+                  <input ref="amountInput" :value="formText.amount" @input="e => updateAmount('amount', e.target.value)" @blur="validateAmount('amount')" type="text" required placeholder="0"
                     class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-3xl focus:border-blue-600 outline-none shadow-xs" />
                </div>
              </div>
@@ -399,6 +399,10 @@ const fromAccountSearch = ref('')
 const toAccountSearch = ref('')
 const showResults = ref(null)
 
+const fromAccountInput = ref(null)
+const toAccountInput = ref(null)
+const amountInput = ref(null)
+
 const filteredAccountsFrom = computed(() => {
   const q = fromAccountSearch.value.toLowerCase()
   if (!q) return accounts.value.slice(0, 10)
@@ -419,9 +423,15 @@ function selectAccount(acc, type) {
   if (type === 'from') {
     form.value.from_account_id = acc.id
     fromAccountSearch.value = acc.name
+    nextTick(() => {
+      toAccountInput.value?.focus()
+    })
   } else {
     form.value.to_account_id = acc.id
     toAccountSearch.value = acc.name
+    nextTick(() => {
+      amountInput.value?.focus()
+    })
   }
   showResults.value = null
 }
@@ -493,6 +503,16 @@ function updateAmount(field, value) {
   }
 }
 
+const amountError = ref(false)
+
+function validateAmount(field) {
+  if (formText.value[field] === '') { if (field === 'amount') amountError.value = false; return }
+  const val = form.value[field];
+  if (field === 'amount') {
+    amountError.value = (val <= 0)
+  }
+}
+
 function formatNumber(val) { return new Intl.NumberFormat().format(val || 0) }
 function formatTime(dateStr) { return new Date(dateStr).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) }
 function getCurrencyCode(id) { return currencies.value.find(c => c.id === id)?.code || '' }
@@ -508,6 +528,15 @@ async function fetchData() {
 }
 
 async function submitTransfer() {
+  if (form.value.from_account_id === form.value.to_account_id) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'ناتوانیت هەمان حیساب هەڵبژێریت بۆ ناردن و وەرگرتن!', background: '#0f172a', color: '#fff' })
+    return
+  }
+  if (form.value.amount <= 0) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'بڕی پارە دەبێت گەورەتر بێت لە سفر!', background: '#0f172a', color: '#fff' })
+    return
+  }
+
   loading.value = true
   try {
     const { data } = await axios.post('/transfers', form.value)
@@ -522,7 +551,12 @@ async function submitTransfer() {
   } finally { loading.value = false }
 }
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchData()
+  nextTick(() => {
+    fromAccountInput.value?.focus()
+  })
+})
 </script>
 
 <style scoped>

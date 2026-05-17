@@ -128,6 +128,10 @@ class ExchangeController extends Controller
                     } else { // sell
                         // Profit = Revenue - Moving Average Cost
                         $wacInIqd = $this->getMovingAverageCost($request->primary_currency);
+                        if ($wacInIqd <= 0) {
+                            $primaryCurrModel = Currency::where('code', $request->primary_currency)->first();
+                            $wacInIqd = $primaryCurrModel ? $primaryCurrModel->current_rate : 1500;
+                        }
                         $costInIqd = $request->primary_amount * $wacInIqd;
                         
                         $revenueInSecondary = $request->secondary_amount;

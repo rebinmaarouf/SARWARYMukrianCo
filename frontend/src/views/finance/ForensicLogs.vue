@@ -107,18 +107,18 @@
             <div class="space-y-4">
               <h3 class="text-[10px] font-black text-rose-600 uppercase tracking-widest px-2">داتای پێشتر (Before)</h3>
               <div class="bg-slate-50 p-6 rounded-3xl border border-rose-200 text-xs font-mono space-y-2 max-h-96 overflow-auto shadow-inner">
-                <div v-for="(val, key) in selectedLog.before" :key="key" class="flex justify-between border-b border-slate-200 pb-1">
-                  <span class="text-slate-500">{{ key }}:</span>
-                  <span class="text-rose-600 font-bold">{{ val }}</span>
+                <div v-for="(val, key) in selectedLog.before" :key="key" class="flex flex-col border-b border-slate-200 pb-2">
+                  <span class="text-slate-500 text-[10px] font-black">{{ translateKey(key) }}</span>
+                  <span class="text-rose-600 font-bold break-all">{{ val }}</span>
                 </div>
               </div>
             </div>
             <div class="space-y-4">
               <h3 class="text-[10px] font-black text-emerald-700 uppercase tracking-widest px-2">داتای ئێستا (After)</h3>
               <div class="bg-slate-50 p-6 rounded-3xl border border-emerald-200 text-xs font-mono space-y-2 max-h-96 overflow-auto shadow-inner">
-                <div v-for="(val, key) in selectedLog.after" :key="key" class="flex justify-between border-b border-slate-200 pb-1">
-                  <span class="text-slate-500">{{ key }}:</span>
-                  <span class="text-emerald-700 font-bold">{{ val }}</span>
+                <div v-for="(val, key) in selectedLog.after" :key="key" class="flex flex-col border-b border-slate-200 pb-2">
+                  <span class="text-slate-500 text-[10px] font-black">{{ translateKey(key) }}</span>
+                  <span class="text-emerald-700 font-bold break-all">{{ val }}</span>
                 </div>
               </div>
             </div>
@@ -128,9 +128,9 @@
           <div v-else class="space-y-4">
             <h3 class="text-[10px] font-black text-blue-700 uppercase tracking-widest px-2">داتای پاشکەوتکراو</h3>
             <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-200 text-xs font-mono grid grid-cols-2 gap-4 shadow-inner">
-              <div v-for="(val, key) in (selectedLog.after || selectedLog.before)" :key="key" class="flex justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-xs">
-                <span class="text-slate-500">{{ key }}:</span>
-                <span class="text-slate-900 font-bold">{{ val }}</span>
+              <div v-for="(val, key) in (selectedLog.after || selectedLog.before)" :key="key" class="flex flex-col bg-white p-3 rounded-xl border border-slate-100 shadow-xs">
+                <span class="text-slate-500 text-[10px] font-black">{{ translateKey(key) }}</span>
+                <span class="text-slate-900 font-bold break-all">{{ val }}</span>
               </div>
             </div>
           </div>
@@ -161,6 +161,29 @@ const logs = ref([])
 const users = ref([])
 const selectedLog = ref(null)
 const filters = ref({ user_id: null, action: null, date_from: null, date_to: null })
+
+function translateKey(key) {
+  const translations = {
+    'id': 'ناسنامە (ID)',
+    'account_id': 'حیساب',
+    'currency_id': 'دراو',
+    'debit': 'قەرزدار (Debit)',
+    'credit': 'قەرز (Credit)',
+    'rate_at_time': 'نرخی کاتی مامەڵە',
+    'base_amount': 'بڕ بە دراوی سەرەکی',
+    'entryable_type': 'بەش (Model)',
+    'entryable_id': 'ناسنامەی بەش',
+    'branch_id': 'لق',
+    'user_id': 'بەکارهێنەر',
+    'description': 'ڕوونکردنەوە',
+    'date': 'بەروار',
+    'hash': 'هاشی ئەمنی (Hash)',
+    'previous_hash': 'هاشی پێشوو',
+    'created_at': 'کاتی دروستکردن',
+    'updated_at': 'کاتی دەستکاریکردن'
+  }
+  return translations[key] || key
+}
 
 async function fetchLogs() {
   try {

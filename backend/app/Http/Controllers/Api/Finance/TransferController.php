@@ -82,25 +82,24 @@ class TransferController extends Controller
 
             // 4. Handle Commission Journal Entries
             if ($commissionAmount > 0) {
-                // Deduct commission from Sender (Credit)
+                // Debit commission from Sender (Increase asset or customer debt)
                 \App\Services\JournalService::record(
                     $transfer,
                     $validated['from_account_id'],
                     $commissionCurrencyId,
-                    0,
-                    $commissionAmount,
+                    $commissionAmount, // DEBIT
+                    0,                 // CREDIT
                     'کۆمسیۆنی حەواڵەی #' . $transfer->id,
                     now()->format('Y-m-d')
                 );
-
-                // Add to Revenue Account (Debit/Credit depending on revenue type, but we credit income)
-                // In accounting, Income is Credited.
+ 
+                // Add to Revenue Account (Credit)
                 \App\Services\JournalService::record(
                     $transfer,
                     $commissionAccountId,
                     $commissionCurrencyId,
-                    0,
-                    $commissionAmount,
+                    0,                 // DEBIT
+                    $commissionAmount, // CREDIT
                     'قازانجی حەواڵەی #' . $transfer->id,
                     now()->format('Y-m-d')
                 );

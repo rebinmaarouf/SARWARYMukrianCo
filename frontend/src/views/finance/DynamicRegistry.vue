@@ -73,7 +73,7 @@
                </td>
                <td class="px-2 py-4 relative">
                  <div class="relative group">
-                   <input v-model="newEntry.amount" type="number" placeholder="0.00" class="w-full bg-white border border-rose-300 text-rose-600 text-2xl font-black rounded-2xl px-5 py-4 focus:border-rose-500 outline-none text-center shadow-xs tracking-tight" />
+                   <input ref="amountInput" v-model="newEntry.amount" @keydown.enter="focusDebtor" @blur="validateAmount" type="number" placeholder="0.00" class="w-full bg-white border border-rose-300 text-rose-600 text-2xl font-black rounded-2xl px-5 py-4 focus:border-rose-500 outline-none text-center shadow-xs tracking-tight" />
                    <div v-if="newEntry.amount" class="absolute -top-14 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-5 py-2.5 rounded-2xl font-black text-xl shadow-lg animate-bounce whitespace-nowrap z-[110] border border-rose-500">
                      {{ formatNum(newEntry.amount) }} {{ activeCurrencyCode }}
                      <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-rose-600 rotate-45 border-b border-r border-rose-500"></div>
@@ -82,7 +82,7 @@
                </td>
                 <td class="px-2 py-4 relative group/debtor">
                   <div class="relative">
-                    <input v-model="debtorSearch" @input="searchAccounts('debtor')" @focus="showDebtorDropdown = true" @blur="onBlur('debtor')"
+                    <input ref="debtorSearchInput" v-model="debtorSearch" @input="searchAccounts('debtor')" @focus="showDebtorDropdown = true" @blur="onBlur('debtor')"
                       class="w-full min-w-[200px] bg-white border border-emerald-300 text-slate-900 rounded-2xl py-4 pr-5 pl-14 text-sm font-bold focus:border-emerald-600 outline-none transition-all shadow-xs" 
                       placeholder="بگەڕێ بۆ حیسابی مەدین..." dir="rtl" />
                     <div v-if="newEntry.debtor_account_id" class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded-lg font-black border border-emerald-300">
@@ -109,7 +109,7 @@
                 </td>
                 <td class="px-2 py-4 relative group/creditor">
                   <div class="relative">
-                    <input v-model="creditorSearch" @input="searchAccounts('creditor')" @focus="showCreditorDropdown = true" @blur="onBlur('creditor')"
+                    <input ref="creditorSearchInput" v-model="creditorSearch" @input="searchAccounts('creditor')" @focus="showCreditorDropdown = true" @blur="onBlur('creditor')"
                       class="w-full min-w-[200px] bg-white border border-blue-300 text-slate-900 rounded-2xl py-4 pr-5 pl-14 text-sm font-bold focus:border-blue-600 outline-none transition-all shadow-xs" 
                       placeholder="بگەڕێ بۆ حیسابی داین..." dir="rtl" />
                     <div v-if="newEntry.creditor_account_id" class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] bg-blue-100 text-blue-800 px-2 py-1 rounded-lg font-black border border-blue-300">
@@ -135,7 +135,7 @@
                  <input v-model="newEntry.commission_2" type="number" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-4 text-sm text-amber-600 font-bold text-center outline-none focus:border-amber-500 shadow-xs" placeholder="0" />
                </td>
                <td class="px-2 py-4">
-                 <input v-model="newEntry.notes" type="text" placeholder="تێبینی مامەڵە..." class="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm text-slate-900 focus:border-emerald-500 outline-none shadow-xs" @keydown.enter="submitNewEntry" />
+                 <input ref="notesInput" v-model="newEntry.notes" type="text" placeholder="تێبینی مامەڵە..." class="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm text-slate-900 focus:border-emerald-500 outline-none shadow-xs" @keydown.enter="submitNewEntry" />
                </td>
                <td class="px-2 py-4">
                  <button @click="submitNewEntry" :disabled="!newEntry.amount || loading" class="w-full py-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-600/10 disabled:opacity-30 flex items-center justify-center">
@@ -658,6 +658,15 @@ const showCreditorDropdown = ref(false)
 const selectedDebtorCode = ref('')
 const selectedCreditorCode = ref('')
 
+const amountInput = ref(null)
+const debtorSearchInput = ref(null)
+const creditorSearchInput = ref(null)
+const notesInput = ref(null)
+
+function focusDebtor() {
+  debtorSearchInput.value?.focus()
+}
+
 const today = new Date().toISOString().split('T')[0]
 const newEntry = ref({ entry_date: today, currency_id: null, amount: '', debtor_account_id: null, creditor_account_id: null, commission_1: '', commission_2: '', notes: '' })
 
@@ -700,18 +709,51 @@ async function searchAccounts(type) {
 }
 
 function selectAccount(type, acc) {
-  if (type === 'debtor') { newEntry.value.debtor_account_id = acc.id; debtorSearch.value = acc.name; selectedDebtorCode.value = acc.code; showDebtorDropdown.value = false }
-  else { newEntry.value.creditor_account_id = acc.id; creditorSearch.value = acc.name; selectedCreditorCode.value = acc.code; showCreditorDropdown.value = false }
+  if (type === 'debtor') { 
+    newEntry.value.debtor_account_id = acc.id; 
+    debtorSearch.value = acc.name; 
+    selectedDebtorCode.value = acc.code; 
+    showDebtorDropdown.value = false 
+    nextTick(() => {
+      creditorSearchInput.value?.focus()
+    })
+  } else { 
+    newEntry.value.creditor_account_id = acc.id; 
+    creditorSearch.value = acc.name; 
+    selectedCreditorCode.value = acc.code; 
+    showCreditorDropdown.value = false 
+    nextTick(() => {
+      notesInput.value?.focus()
+    })
+  }
 }
 
 function onBlur(type) { setTimeout(() => { if (type === 'debtor') showDebtorDropdown.value = false; else showCreditorDropdown.value = false }, 250) }
 
+const amountError = ref(false)
+
+function validateAmount() {
+  if (newEntry.value.amount === '') { amountError.value = false; return }
+  const val = parseFloat(newEntry.value.amount)
+  amountError.value = (isNaN(val) || val <= 0)
+}
+
 async function submitNewEntry() {
-  if (!newEntry.value.amount || !newEntry.value.debtor_account_id || !newEntry.value.creditor_account_id) return
+  const amount = parseFloat(newEntry.value.amount)
+  if (isNaN(amount) || amount <= 0) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'بڕی پارە دەبێت گەورەتر بێت لە سفر!', background: '#090d16', color: '#fff', confirmButtonColor: '#ef4444' })
+    return
+  }
+  if (!newEntry.value.debtor_account_id || !newEntry.value.creditor_account_id) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'تکایە حیسابی مەدین و داین هەڵبژێرە!', background: '#090d16', color: '#fff', confirmButtonColor: '#ef4444' })
+    return
+  }
+  
   loading.value = true
   try {
     const payload = {
       ...newEntry.value,
+      amount: amount,
       currency_id: newEntry.value.currency_id || currencyId.value,
       commission_1: newEntry.value.commission_1 === '' ? 0 : newEntry.value.commission_1,
       commission_2: newEntry.value.commission_2 === '' ? 0 : newEntry.value.commission_2
@@ -756,7 +798,13 @@ function formatNum(n) { return new Intl.NumberFormat().format(n || 0) }
 function formatDate(d) { return new Date(d).toLocaleDateString('ku-IQ', { year: 'numeric', month: 'short', day: 'numeric' }) }
 
 watch(() => route.params.currencyId, fetchEntries)
-onMounted(() => { fetchCurrencies(); fetchEntries() })
+onMounted(() => {
+  fetchCurrencies()
+  fetchEntries()
+  nextTick(() => {
+    amountInput.value?.focus()
+  })
+})
 </script>
 
 <style scoped>

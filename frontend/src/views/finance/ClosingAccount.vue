@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 animate-fade-in text-slate-800 font-sans p-6">
+  <div class="space-y-8 animate-fade-in text-slate-800 font-sans p-6 printable-area">
     <!-- Header -->
     <div class="flex flex-col md:flex-row items-center justify-between bg-white/90 backdrop-blur-md p-8 rounded-[2.5rem] border border-slate-200 shadow-lg">
       <div class="text-right order-2 md:order-1">
@@ -8,7 +8,16 @@
       </div>
       
       <!-- Filters -->
-      <div class="flex flex-wrap items-center gap-4 order-1 md:order-2 mb-4 md:mb-0">
+      <div class="flex flex-wrap items-center gap-4 order-1 md:order-2 mb-4 md:mb-0 no-print">
+        <!-- Print Button -->
+        <button 
+          @click="printReport" 
+          class="bg-white border border-slate-200 text-slate-700 rounded-2xl px-5 py-3 hover:bg-slate-50 transition-all font-bold outline-none shadow-xs flex items-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h6z"/></svg>
+          پرنت
+        </button>
+
         <!-- Currency Toggle -->
         <div class="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
           <button 
@@ -27,14 +36,47 @@
           </button>
         </div>
 
-        <!-- Date Picker -->
+        <!-- Filter Type -->
         <div class="relative">
+          <select 
+            v-model="filterType" 
+            @change="onFilterTypeChange"
+            class="bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-5 py-3 focus:border-emerald-600 transition-all font-bold outline-none shadow-xs"
+          >
+            <option value="cumulative">کەڵەکەبوو (تا بەروار)</option>
+            <option value="daily">ڕۆژانە</option>
+            <option value="monthly">مانگانە</option>
+            <option value="yearly">ساڵانە</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Date/Month/Year Picker -->
+        <div class="relative" v-if="filterType === 'cumulative' || filterType === 'daily'">
           <input 
             type="date" 
             v-model="selectedDate" 
             @change="fetchData"
             class="bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-5 py-3 focus:border-emerald-600 transition-all font-bold outline-none shadow-xs"
           />
+        </div>
+        
+        <div class="relative" v-else-if="filterType === 'monthly'">
+          <input 
+            type="month" 
+            v-model="selectedMonth" 
+            @change="onMonthChange"
+            class="bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-5 py-3 focus:border-emerald-600 transition-all font-bold outline-none shadow-xs"
+          />
+        </div>
+
+        <div class="relative" v-else-if="filterType === 'yearly'">
+          <select 
+            v-model="selectedYear" 
+            @change="onYearChange"
+            class="bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-5 py-3 focus:border-emerald-600 transition-all font-bold outline-none shadow-xs"
+          >
+            <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
+          </select>
         </div>
 
         <!-- Branch Select (Optional for Super Admin) -->
@@ -134,11 +176,50 @@ import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const isLoading = ref(false)
+const filterType = ref('cumulative')
 const selectedDate = ref(new Date().toISOString().substr(0, 10))
+const selectedMonth = ref(new Date().toISOString().substr(0, 7)) // YYYY-MM
+const selectedYear = ref(new Date().getFullYear())
 const selectedBranch = ref('')
 const activeCurrency = ref('USD')
 const rawData = ref([])
 const branches = ref([])
+
+const years = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const list = []
+  for (let i = currentYear; i >= currentYear - 5; i--) {
+    list.push(i)
+  }
+  return list
+})
+
+const onFilterTypeChange = () => {
+  if (filterType.value === 'cumulative' || filterType.value === 'daily') {
+    selectedDate.value = new Date().toISOString().substr(0, 10)
+  } else if (filterType.value === 'monthly') {
+    onMonthChange()
+    return // onMonthChange calls fetchData
+  } else if (filterType.value === 'yearly') {
+    onYearChange()
+    return // onYearChange calls fetchData
+  }
+  fetchData()
+}
+
+const onMonthChange = () => {
+  if (!selectedMonth.value) return
+  const [year, month] = selectedMonth.value.split('-')
+  const lastDay = new Date(year, month, 0).getDate()
+  selectedDate.value = `${year}-${month}-${lastDay}`
+  fetchData()
+}
+
+const onYearChange = () => {
+  if (!selectedYear.value) return
+  selectedDate.value = `${selectedYear.value}-12-31`
+  fetchData()
+}
 
 const fetchData = async () => {
   isLoading.value = true
@@ -179,6 +260,10 @@ const formatNumber = (num) => {
   return new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(num)
 }
 
+const printReport = () => {
+  window.print()
+}
+
 onMounted(() => {
   fetchData()
   if (auth.user?.roles?.some(r => r.name === 'Super Admin')) {
@@ -201,5 +286,48 @@ onMounted(() => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
+}
+
+@media print {
+  /* Hide everything except the printable area */
+  body * {
+    visibility: hidden;
+  }
+  .printable-area, .printable-area * {
+    visibility: visible;
+  }
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Hide filters and buttons during print */
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Reset backgrounds for clean printing */
+  .bg-white\/90, .bg-white\/80 {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+  
+  /* Ensure proper layout on A4 */
+  .grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+  }
+  
+  /* Prevent cutting off content */
+  .overflow-y-auto {
+    overflow: visible !important;
+    max-height: none !important;
+  }
 }
 </style>

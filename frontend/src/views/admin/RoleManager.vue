@@ -73,22 +73,20 @@
             <h3 class="text-2xl font-black text-slate-900">رێکخستنی ڕۆڵ</h3>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 font-semibold">
-            <div class="space-y-8">
-              <div>
-                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-4">ناوی ڕۆڵ</label>
-                <input v-model="form.name" type="text" class="w-full bg-slate-50 border border-slate-200 text-slate-900 p-5 rounded-[1.5rem] outline-none font-bold focus:border-emerald-600 transition-all shadow-xs">
-              </div>
-            </div>
+          <!-- Role Name at the Top -->
+          <div class="mb-8 font-semibold">
+            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-4">ناوی ڕۆڵ</label>
+            <input v-model="form.name" type="text" class="w-full bg-slate-50 border border-slate-200 text-slate-900 p-5 rounded-[1.5rem] outline-none font-bold focus:border-emerald-600 transition-all shadow-xs">
+          </div>
 
-            <div>
-              <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-6">دەسەڵاتە دیاریکراوەکان</label>
-              <div class="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar font-semibold">
-                <label v-for="p in allPermissions" :key="p.id" class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors shadow-xs">
-                  <span class="text-xs font-black text-slate-800 uppercase tracking-tight">{{ permissionLabels[p.name] || p.name.replace(/_/g, ' ') }}</span>
-                  <input type="checkbox" v-model="form.permissions" :value="p.name" class="w-5 h-5 rounded-lg text-emerald-600 bg-white border-slate-300 focus:ring-emerald-600 cursor-pointer">
-                </label>
-              </div>
+          <!-- Permissions Below in a 2-Column Grid -->
+          <div class="font-semibold">
+            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-6">دەسەڵاتە دیاریکراوەکان</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+              <label v-for="p in allPermissions" :key="p.id" class="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors shadow-xs">
+                <span class="text-xs font-black text-slate-800 uppercase tracking-tight">{{ permissionLabels[p.name] || p.name.replace(/_/g, ' ') }}</span>
+                <input type="checkbox" v-model="form.permissions" :value="p.name" class="w-5 h-5 rounded-lg text-emerald-600 bg-white border-slate-300 focus:ring-emerald-600 cursor-pointer">
+              </label>
             </div>
           </div>
 

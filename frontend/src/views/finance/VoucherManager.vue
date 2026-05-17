@@ -59,8 +59,8 @@
               چەند پارە {{ activeTab === 'receipt' ? 'وەردەگریت؟' : 'دەدەیت؟' }}
             </label>
             <div class="relative">
-              <input v-model="form.amount" type="text" required placeholder="بڕی پارەکە بە ژمارە"
-                @input="formatInputAmount"
+              <input ref="amountInput" v-model="form.amount" type="text" required placeholder="بڕی پارەکە بە ژمارە"
+                @input="formatInputAmount" @blur="validateAmount"
                 class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-2xl text-slate-900 font-mono font-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner" />
             </div>
           </div>
@@ -106,7 +106,7 @@
             
             <div class="relative">
                <!-- Simple search dropdown for accounts -->
-               <input type="text" v-model="accountSearch" @focus="showAccountDropdown = true" placeholder="گەڕان بۆ حساب..." 
+               <input ref="accountSearchInput" type="text" v-model="accountSearch" @focus="showAccountDropdown = true" placeholder="گەڕان بۆ حساب..." 
                  class="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none shadow-sm transition-all" />
                
                <div v-if="showAccountDropdown && accountSearch" class="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto">
@@ -141,7 +141,7 @@
           </div>
           <div class="space-y-3" :class="activeTab === 'receipt' ? 'lg:col-span-2' : ''">
             <label class="text-sm font-black text-slate-700">بەیان (تێبینی بۆ سەر پسوڵەکە)</label>
-            <input v-model="form.notes" type="text" required placeholder="بۆ نموونە: دانەوەی قەرزی مانگی پێشوو..."
+            <input ref="notesInput" v-model="form.notes" type="text" required placeholder="بۆ نموونە: دانەوەی قەرزی مانگی پێشوو..."
               class="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-slate-900 font-bold focus:border-blue-500 outline-none shadow-sm" />
           </div>
           <!-- Due Date (Only for Payment/Sarf) -->
@@ -430,6 +430,10 @@ const accountSearch = ref('')
 const showAccountDropdown = ref(false)
 const selectedAccountName = ref('')
 
+const amountInput = ref(null)
+const accountSearchInput = ref(null)
+const notesInput = ref(null)
+
 const filteredAccounts = computed(() => {
   const nonVaults = allAccounts.value.filter(a => a.type !== 'vault')
   if (!accountSearch.value) return nonVaults.slice(0, 10) // Show top 10 immediately when clicked
@@ -446,6 +450,9 @@ function selectAccount(acc) {
   selectedAccountName.value = acc.name
   accountSearch.value = ''
   showAccountDropdown.value = false
+  nextTick(() => {
+    notesInput.value?.focus()
+  })
 }
 
 function clearAccount() {
@@ -471,6 +478,14 @@ function formatInputAmount() {
       form.value.amount = new Intl.NumberFormat('en-US').format(val)
     }
   }
+}
+
+const amountError = ref(false)
+
+function validateAmount() {
+  if (form.value.amount === '') { amountError.value = false; return }
+  const val = parseFloat(form.value.amount.replace(/,/g, ''))
+  amountError.value = (isNaN(val) || val <= 0)
 }
 
 function formatNum(val) {
@@ -500,11 +515,17 @@ async function fetchData() {
 }
 
 async function submitVoucher() {
+  const amount = parseFloat(form.value.amount.replace(/,/g, ''))
+  if (isNaN(amount) || amount <= 0) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'بڕی پارە دەبێت گەورەتر بێت لە سفر!', background: '#ffffff', color: '#0f172a', confirmButtonColor: '#dc2626' })
+    return
+  }
+
   loading.value = true
   try {
     const payload = {
       type: activeTab.value,
-      amount: parseFloat(form.value.amount.replace(/,/g, '')),
+      amount: amount,
       currency_id: form.value.currency_id,
       vault_id: form.value.vault_id,
       account_id: form.value.account_id,

@@ -62,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::get('reports/profit', [ExchangeController::class, 'getProfitReport']);
     Route::get('reports/unified', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getUnifiedReport']);
+    Route::get('reports/liquidity', [App\Http\Controllers\Api\Finance\FinancialReportController::class, 'getVaultLiquidity']);
     Route::get('/dashboard/aging-debts', [\App\Http\Controllers\Api\Finance\AgingDebtController::class, 'index']);
     Route::apiResource('vouchers', VoucherController::class)->except(['update']);
     

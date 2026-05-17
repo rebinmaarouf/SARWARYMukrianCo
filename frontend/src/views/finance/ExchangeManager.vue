@@ -82,7 +82,7 @@
             <div class="space-y-2">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بڕی {{ activePair.primary }}</label>
               <div class="relative">
-                <input v-model="forms[tradeType].primary_text" @input="calculate(tradeType, 'primary')" type="text" placeholder="0.00"
+                <input :ref="el => { amountRefs[tradeType] = el }" v-model="forms[tradeType].primary_text" @input="calculate(tradeType, 'primary')" @blur="validateField(tradeType, 'amount')" type="text" placeholder="0.00"
                   class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-5 text-3xl font-black text-slate-900 focus:border-blue-600 outline-none transition-all shadow-xs" />
                 <span class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm uppercase">{{ activePair.primary }}</span>
               </div>
@@ -92,7 +92,7 @@
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{{ activePair.rateLabel }}</label>
                 <div class="relative">
-                  <input v-model="forms[tradeType].rate_text" @input="calculate(tradeType, 'rate')" type="text"
+                  <input :ref="el => { rateRefs[tradeType] = el }" v-model="forms[tradeType].rate_text" @input="calculate(tradeType, 'rate')" @blur="validateField(tradeType, 'rate')" type="text"
                     class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-5 text-3xl font-black text-blue-600 focus:border-blue-600 outline-none transition-all shadow-xs" />
                 </div>
               </div>
@@ -502,6 +502,19 @@ const forms = ref({
   sell: { primary_text: '', rate_text: '', secondary_text: '', rate_vs_usd: '', profit: 0, vault_from_id: null, vault_to_id: null, account_id: null, account_search: '', client_name: '' }
 })
 
+const amountRefs = ref({ buy: null, sell: null })
+const rateRefs = ref({ buy: null, sell: null })
+
+const errors = ref({ buy: { amount: false, rate: false }, sell: { amount: false, rate: false } })
+
+function validateField(type, field) {
+  const f = forms.value[type]
+  const valStr = f[field === 'amount' ? 'primary_text' : 'rate_text'] || ''
+  if (valStr === '') { errors.value[type][field] = false; return }
+  const val = parseFloat(valStr.replace(/,/g, ''))
+  errors.value[type][field] = (isNaN(val) || val <= 0)
+}
+
 function getSystemRateDisplay() {
   const pRate = pairs.value.find(p => p.id === activePair.value.id)?.official_rate || 1
   if (pRate <= 1 && activePair.value.primary !== 'IQD') return 'دیاری نەکراوە'
@@ -767,6 +780,17 @@ function selectAccount(acc, type) {
 
 async function submitTrade(type) {
   const f = forms.value[type]
+  const primaryAmount = parseFloat(f.primary_text.replace(/,/g, ''))
+  const rate = parseFloat(f.rate_text.replace(/,/g, ''))
+  
+  if (isNaN(primaryAmount) || primaryAmount <= 0) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'بڕی دراو دەبێت گەورەتر بێت لە سفر!', background: '#0f172a', color: '#fff' })
+    return
+  }
+  if (isNaN(rate) || rate <= 0) {
+    Swal.fire({ icon: 'error', title: 'هەڵە', text: 'نرخی گۆڕینەوە دەبێت گەورەتر بێت لە سفر!', background: '#0f172a', color: '#fff' })
+    return
+  }
   
   loading.value = true
   try {
@@ -776,8 +800,8 @@ async function submitTrade(type) {
       pair: `${activePair.value.primary}/${activePair.value.secondary}`,
       primary_currency: activePair.value.primary,
       secondary_currency: activePair.value.secondary,
-      primary_amount: parseFloat(f.primary_text.replace(/,/g, '')),
-      rate: parseFloat(f.rate_text.replace(/,/g, '')),
+      primary_amount: primaryAmount,
+      rate: rate,
       secondary_amount: parseFloat(f.secondary_text.replace(/,/g, '')),
       vault_from_id: f.vault_from_id,
       vault_to_id: f.vault_to_id,

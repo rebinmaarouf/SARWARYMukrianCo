@@ -54,9 +54,13 @@ class VoucherController extends Controller
         return DB::transaction(function () use ($request, $currency) {
             // Generate Voucher Number
             $prefix = $request->type === 'receipt' ? 'RV-' : 'PV-';
-            $latest = Voucher::where('type', $request->type)->latest('id')->first();
-            $nextId = $latest ? $latest->id + 1 : 1;
-            $voucherNumber = $prefix . date('ymd') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+            $today = date('Y-m-d');
+            $countToday = Voucher::withTrashed()
+                ->where('type', $request->type)
+                ->whereDate('created_at', $today)
+                ->count();
+            $nextSeq = $countToday + 1;
+            $voucherNumber = $prefix . date('ymd') . '-' . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
 
             // Determine branch
             $branchId = $request->branch_id ?? auth()->user()->branch_id;
