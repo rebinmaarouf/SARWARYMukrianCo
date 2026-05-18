@@ -19,7 +19,7 @@ class VoucherController extends Controller
             ->orderBy('id', 'desc');
 
         // Apply Branch Scope manually if user has branch_id and no global permission
-        if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('super-admin')) {
+        if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
             $query->where('branch_id', auth()->user()->branch_id);
         }
 
@@ -55,7 +55,8 @@ class VoucherController extends Controller
             // Generate Voucher Number
             $prefix = $request->type === 'receipt' ? 'RV-' : 'PV-';
             $today = date('Y-m-d');
-            $countToday = Voucher::withTrashed()
+            $countToday = Voucher::withoutGlobalScopes()
+                ->withTrashed()
                 ->where('type', $request->type)
                 ->whereDate('created_at', $today)
                 ->count();
@@ -103,7 +104,18 @@ class VoucherController extends Controller
                 JournalService::record($voucher, $voucher->vault_id, $currency->id, 0, $voucher->amount, $description, $voucher->date, $systemRate, $branchId);
             }
 
-            return response()->json($voucher->load(['account', 'vault', 'currency', 'user']));
+            $currentBalance = \App\Models\JournalEntry::where('account_id', $voucher->account_id)
+                ->where('currency_id', $voucher->currency_id)
+                ->sum(\DB::raw('debit - credit'));
+
+            $balanceBefore = $request->type === 'receipt' ? $currentBalance + $voucher->amount : $currentBalance - $voucher->amount;
+            $balanceAfter = $currentBalance;
+
+            return response()->json([
+                'voucher' => $voucher->load(['account', 'vault', 'currency', 'user']),
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter
+            ]);
         });
     }
 

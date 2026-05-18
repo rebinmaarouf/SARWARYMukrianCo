@@ -306,6 +306,14 @@
                      <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">سندوق / VAULT</span>
                      <span class="font-black text-base text-black">{{ printingTx.vault?.name }}</span>
                    </div>
+                   <div v-if="printingTx.balance_before !== undefined" class="flex justify-between items-center border-b border-dashed border-slate-300 pb-3">
+                     <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">باڵانسی پێشتر / PREVIOUS BALANCE</span>
+                     <span class="font-black text-base text-black">{{ formatNum(printingTx.balance_before) }} {{ printingTx.currency?.code }}</span>
+                   </div>
+                   <div v-if="printingTx.balance_after !== undefined" class="flex justify-between items-center border-b border-dashed border-slate-300 pb-3">
+                     <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">باڵانسی نوێ / NEW BALANCE</span>
+                     <span class="font-black text-base text-black">{{ formatNum(printingTx.balance_after) }} {{ printingTx.currency?.code }}</span>
+                   </div>
                    <div class="flex justify-between items-center pb-1">
                      <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">بەیان / NOTES</span>
                      <span class="font-black text-sm text-left max-w-[70%] line-clamp-2 leading-tight text-black">{{ printingTx.notes || 'بێ تێبینی' }}</span>
@@ -535,8 +543,14 @@ async function submitVoucher() {
       notes: form.value.notes
     }
 
-    await axios.post('/vouchers', payload)
+    const res = await axios.post('/vouchers', payload)
     
+    const createdVoucher = {
+      ...res.data.voucher,
+      balance_before: res.data.balance_before,
+      balance_after: res.data.balance_after
+    }
+
     Swal.fire({
       icon: 'success',
       title: 'سەرکەوتوو بوو',
@@ -553,9 +567,9 @@ async function submitVoucher() {
     form.value.notes = ''
     clearAccount()
     
-    // Refresh List
-    const vouchRes = await axios.get('/vouchers')
-    vouchers.value = vouchRes.data.data
+    // Add to list (preserving balances for print!)
+    vouchers.value.unshift(createdVoucher)
+    if (vouchers.value.length > 50) vouchers.value.pop()
 
   } catch (e) {
     let errorHtml = 'نەتوانرا پسوڵەکە تۆمار بکرێت'

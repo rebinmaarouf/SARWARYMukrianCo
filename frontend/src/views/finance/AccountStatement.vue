@@ -113,6 +113,7 @@
               <th class="px-6 py-5">Description / وردەکاری</th>
               <th class="px-6 py-5 text-center text-emerald-700">Debit / مەدین (+)</th>
               <th class="px-6 py-5 text-center text-rose-600">Credit / داین (-)</th>
+              <th class="px-6 py-5 text-center text-slate-700">Balance / ڕەسید</th>
               <th class="px-6 py-5 text-center">Currency / دراو</th>
               <th class="px-6 py-5 text-right">Account / حیساب</th>
             </tr>
@@ -133,6 +134,9 @@
               <td class="px-6 py-5 text-center">
                  <span v-if="entry.credit > 0" class="text-lg font-black text-rose-600 font-mono print-text-black">{{ formatNum(entry.credit) }}</span>
                  <span v-else class="text-slate-300 print-opacity-0">—</span>
+              </td>
+              <td class="px-6 py-5 text-center">
+                 <span class="text-lg font-black font-mono print-text-black" :class="entry.running_balance >= 0 ? 'text-emerald-700' : 'text-rose-600'">{{ formatNum(entry.running_balance) }}</span>
               </td>
               <td class="px-6 py-5 text-center">
                  <span class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[9px] font-black text-slate-700 uppercase print-border-black font-mono shadow-xs">
@@ -229,6 +233,18 @@ async function fetchStatement() {
     const accountRes = await axios.get(`/accounts/${filters.account_id}`)
     selectedAccount.value = accountRes.data
     summaries.value = accountRes.data.summaries || []
+
+    // Calculate running balance per currency (backwards from current total)
+    const balances = {};
+    summaries.value.forEach(s => {
+        balances[s.currency_id] = parseFloat(s.total_debit) - parseFloat(s.total_credit);
+    });
+
+    entries.value.forEach(entry => {
+        const curId = entry.currency_id;
+        entry.running_balance = balances[curId] || 0;
+        balances[curId] = (balances[curId] || 0) - (parseFloat(entry.debit) - parseFloat(entry.credit));
+    });
   } catch (e) { console.error(e) } finally { loading.value = false }
 }
 
@@ -505,12 +521,13 @@ onMounted(() => fetchAccounts())
   }
 
   /* STRICT COLUMN WIDTH ALIGNMENT */
-  th:nth-child(1), td:nth-child(1) { width: 14% !important; text-align: right !important; } /* Date */
-  th:nth-child(2), td:nth-child(2) { width: 36% !important; text-align: right !important; } /* Description */
-  th:nth-child(3), td:nth-child(3) { width: 14% !important; text-align: center !important; } /* Debit */
-  th:nth-child(4), td:nth-child(4) { width: 14% !important; text-align: center !important; } /* Credit */
-  th:nth-child(5), td:nth-child(5) { width: 8% !important; text-align: center !important; } /* Currency */
-  th:nth-child(6), td:nth-child(6) { width: 14% !important; text-align: right !important; } /* Account */
+  th:nth-child(1), td:nth-child(1) { width: 12% !important; text-align: right !important; } /* Date */
+  th:nth-child(2), td:nth-child(2) { width: 30% !important; text-align: right !important; } /* Description */
+  th:nth-child(3), td:nth-child(3) { width: 12% !important; text-align: center !important; } /* Debit */
+  th:nth-child(4), td:nth-child(4) { width: 12% !important; text-align: center !important; } /* Credit */
+  th:nth-child(5), td:nth-child(5) { width: 12% !important; text-align: center !important; } /* Balance */
+  th:nth-child(6), td:nth-child(6) { width: 8% !important; text-align: center !important; } /* Currency */
+  th:nth-child(7), td:nth-child(7) { width: 14% !important; text-align: right !important; } /* Account */
 
   tbody td p {
     color: #0f172a !important;
