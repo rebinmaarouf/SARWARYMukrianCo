@@ -220,7 +220,7 @@
               <td class="px-6 py-4 font-mono font-black text-lg" :class="v.type === 'receipt' ? 'text-emerald-600' : 'text-rose-600'">
                 {{ formatNum(v.amount) }} <span class="text-xs">{{ v.currency?.code }}</span>
               </td>
-              <td class="px-6 py-4 text-slate-500">{{ v.date }}</td>
+              <td class="px-6 py-4 text-slate-500">{{ formatFullTime(v.created_at) }}</td>
               <td class="px-6 py-4 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div class="flex items-center gap-2">
                   <!-- Print Button -->
@@ -260,6 +260,7 @@
                    <div>
                       <h1 class="text-2xl font-black text-black leading-none mb-1">کۆمپانیای سەروەری موکریان</h1>
                       <p class="text-[11px] font-bold text-black uppercase tracking-widest">SARWARY MUKRIAN / VOUCHER</p>
+                      <p class="text-[12px] font-black text-slate-700 mt-1">لقی: {{ printingTx.branch?.name || '---' }}</p>
                    </div>
                 </div>
                 <div class="text-left" dir="ltr">
@@ -557,13 +558,22 @@ async function submitVoucher() {
     vouchers.value = vouchRes.data.data
 
   } catch (e) {
+    let errorHtml = 'نەتوانرا پسوڵەکە تۆمار بکرێت'
+    if (e.response?.data?.errors) {
+      const errors = Object.values(e.response.data.errors).flat()
+      errorHtml = `<ul class="text-right list-disc list-inside space-y-2 mt-2">${errors.map(err => `<li class="text-rose-600 font-bold">${err}</li>`).join('')}</ul>`
+    } else if (e.response?.data?.message) {
+      errorHtml = `<p class="text-rose-600 font-bold">${e.response.data.message}</p>`
+    }
+
     Swal.fire({
       icon: 'error',
-      title: 'هەڵە ڕوویدا',
-      text: e.response?.data?.message || 'نەتوانرا پسوڵەکە تۆمار بکرێت',
+      title: 'شکستهێنان لە تۆمارکردن',
+      html: errorHtml,
       background: '#ffffff',
       color: '#0f172a',
       confirmButtonColor: '#dc2626',
+      confirmButtonText: 'تێگەیشتم',
       customClass: { popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl' }
     })
   } finally {

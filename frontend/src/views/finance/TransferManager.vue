@@ -31,7 +31,10 @@
                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-rose-500 outline-none transition-all" />
                 <div v-if="showResults === 'from' && filteredAccountsFrom.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
                   <button v-for="acc in filteredAccountsFrom" :key="acc.id" @click="selectAccount(acc, 'from')" type="button" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex justify-between items-center group">
-                    <span class="font-bold text-slate-900 text-sm group-hover:text-rose-600">{{ acc.name }}</span>
+                    <div class="flex flex-col text-right">
+                      <span class="font-bold text-slate-900 text-sm group-hover:text-rose-600">{{ acc.name }}</span>
+                      <span v-if="acc.branch" class="text-[10px] text-slate-500 font-medium">{{ acc.branch.name }}</span>
+                    </div>
                     <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ acc.code }}</span>
                   </button>
                 </div>
@@ -48,7 +51,10 @@
                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-emerald-500 outline-none transition-all" />
                 <div v-if="showResults === 'to' && filteredAccountsTo.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
                   <button v-for="acc in filteredAccountsTo" :key="acc.id" @click="selectAccount(acc, 'to')" type="button" class="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex justify-between items-center group">
-                    <span class="font-bold text-slate-900 text-sm group-hover:text-emerald-600">{{ acc.name }}</span>
+                    <div class="flex flex-col text-right">
+                      <span class="font-bold text-slate-900 text-sm group-hover:text-emerald-600">{{ acc.name }}</span>
+                      <span v-if="acc.branch" class="text-[10px] text-slate-500 font-medium">{{ acc.branch.name }}</span>
+                    </div>
                     <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ acc.code }}</span>
                   </button>
                 </div>
@@ -169,6 +175,7 @@
             <h1 class="text-base font-black tracking-tight text-black">کۆمپانیای سەروەری موکریان</h1>
          </div>
          <p class="text-[9px] font-bold text-black opacity-70">پسوڵەی فەرمی گواستنەوەی ناوخۆیی</p>
+         <p class="text-[9px] font-bold text-slate-700 mt-0.5">{{ printingTransfer.from_account?.branch?.name || '---' }} ➔ {{ printingTransfer.to_account?.branch?.name || '---' }}</p>
          <p class="text-[8px] text-slate-500 font-mono">Ref ID: #TR-{{ printingTransfer.id }}</p>
       </div>
 
@@ -244,6 +251,7 @@
             <div>
                <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
                <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / INTERNAL MONEY TRANSFER</p>
+               <p class="text-[10px] font-bold text-slate-700 mt-0.5">لقی: {{ printingTransfer.from_account?.branch?.name || '---' }} ➔ {{ printingTransfer.to_account?.branch?.name || '---' }}</p>
             </div>
          </div>
          <div class="text-left" dir="ltr">
@@ -406,13 +414,21 @@ const amountInput = ref(null)
 const filteredAccountsFrom = computed(() => {
   const q = fromAccountSearch.value.toLowerCase()
   if (!q) return accounts.value.slice(0, 10)
-  return accounts.value.filter(a => a.name.toLowerCase().includes(q) || a.code.toString().includes(q)).slice(0, 8)
+  return accounts.value.filter(a => 
+    a.name.toLowerCase().includes(q) || 
+    a.code.toString().includes(q) ||
+    (a.branch && a.branch.name.toLowerCase().includes(q))
+  ).slice(0, 8)
 })
 
 const filteredAccountsTo = computed(() => {
   const q = toAccountSearch.value.toLowerCase()
   if (!q) return accounts.value.slice(0, 10)
-  return accounts.value.filter(a => a.name.toLowerCase().includes(q) || a.code.toString().includes(q)).slice(0, 8)
+  return accounts.value.filter(a => 
+    a.name.toLowerCase().includes(q) || 
+    a.code.toString().includes(q) ||
+    (a.branch && a.branch.name.toLowerCase().includes(q))
+  ).slice(0, 8)
 })
 
 function searchAccounts(type) {
@@ -519,7 +535,7 @@ function getCurrencyCode(id) { return currencies.value.find(c => c.id === id)?.c
 
 async function fetchData() {
   try {
-    const [accRes, curRes, transRes] = await Promise.all([axios.get('/accounts?per_page=1000'), axios.get('/currencies'), axios.get('/transfers')])
+    const [accRes, curRes, transRes] = await Promise.all([axios.get('/accounts?per_page=1000&all_branches=true'), axios.get('/currencies'), axios.get('/transfers')])
     accounts.value = accRes.data.data || accRes.data
     currencies.value = curRes.data
     transfers.value = transRes.data.data || transRes.data
@@ -547,7 +563,26 @@ async function submitTransfer() {
     toAccountSearch.value = ''
     if (data.transfer) transfers.value.unshift(data.transfer)
   } catch (e) {
-    Swal.fire({ icon: 'error', title: 'هەڵە', text: e.response?.data?.message, background: '#0f172a', color: '#fff' })
+    let errorHtml = 'تۆمار نەکرا'
+    if (e.response?.data?.errors) {
+      const errors = Object.values(e.response.data.errors).flat()
+      errorHtml = `<ul class="text-right list-disc list-inside space-y-2 mt-2">${errors.map(err => `<li class="text-rose-400 font-bold">${err}</li>`).join('')}</ul>`
+    } else if (e.response?.data?.message) {
+      errorHtml = `<p class="text-rose-400 font-bold">${e.response.data.message}</p>`
+    }
+
+    Swal.fire({ 
+      icon: 'error', 
+      title: 'شکستهێنان لە تۆمارکردن', 
+      html: errorHtml, 
+      background: '#0f172a', 
+      color: '#fff',
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'تێگەیشتم',
+      customClass: {
+        popup: 'rounded-[2.5rem] border border-slate-700 shadow-2xl'
+      }
+    })
   } finally { loading.value = false }
 }
 

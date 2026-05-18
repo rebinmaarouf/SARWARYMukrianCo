@@ -16,7 +16,7 @@ class RegistryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = RegistryEntry::with(['currency', 'debtorAccount', 'creditorAccount', 'user']);
+        $query = RegistryEntry::with(['currency', 'debtorAccount.branch', 'creditorAccount.branch', 'user']);
 
         if ($currencyId = $request->input('currency_id')) {
             $query->where('currency_id', $currencyId);
@@ -111,7 +111,7 @@ class RegistryController extends Controller
             }
 
             return response()->json(
-                $entry->load(['currency', 'debtorAccount', 'creditorAccount', 'user']),
+                $entry->load(['currency', 'debtorAccount.branch', 'creditorAccount.branch', 'user']),
                 201
             );
         });
@@ -123,7 +123,7 @@ class RegistryController extends Controller
     public function show(RegistryEntry $registry)
     {
         return response()->json(
-            $registry->load(['currency', 'debtorAccount', 'creditorAccount', 'user'])
+            $registry->load(['currency', 'debtorAccount.branch', 'creditorAccount.branch', 'user'])
         );
     }
 
@@ -187,7 +187,7 @@ class RegistryController extends Controller
             }
 
             return response()->json(
-                $registry->load(['currency', 'debtorAccount', 'creditorAccount', 'user'])
+                $registry->load(['currency', 'debtorAccount.branch', 'creditorAccount.branch', 'user'])
             );
         });
     }

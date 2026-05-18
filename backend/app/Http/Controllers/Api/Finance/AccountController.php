@@ -15,7 +15,11 @@ class AccountController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Account::with('parent');
+        if ($request->has('all_branches')) {
+            $query = Account::withoutGlobalScope('branch')->with(['parent', 'branch']);
+        } else {
+            $query = Account::with(['parent', 'branch']);
+        }
 
         if ($search = $request->input('search')) {
             $query->search($search);

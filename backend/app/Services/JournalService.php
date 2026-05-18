@@ -26,6 +26,19 @@ class JournalService
     ): JournalEntry {
         $date = $date ?? now()->format('Y-m-d');
         
+        // Check balance for Vault accounts
+        $account = \App\Models\Account::find($accountId);
+        if ($account && $account->type === 'vault') {
+            $currentBalance = $account->getBalance($currencyId);
+            // Vault is an Asset: Debit increases (+), Credit decreases (-)
+            $newBalance = $currentBalance + $debit - $credit;
+            if ($newBalance < 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'balance' => ['باڵانسی سندوقەکە بەشی ئەم مامەڵەیە ناکات! باڵانسی ئێستا: ' . number_format($currentBalance, 2)]
+                ]);
+            }
+        }
+
         // 1. Determine the rate
         if ($rate === null) {
             $currency = Currency::find($currencyId);

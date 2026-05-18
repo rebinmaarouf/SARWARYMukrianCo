@@ -264,6 +264,7 @@
                 <h2 class="text-base font-black tracking-tight text-black">کۆمپانیای سەروەری موکریان</h2>
              </div>
              <p class="text-[9px] font-bold text-black opacity-70">نوسینگەی فەرمی ئاڵوگۆڕی دراوەکان</p>
+             <p class="text-[9px] font-bold text-slate-700 mt-0.5">لقی: {{ printingTx.branch?.name || '---' }}</p>
              <p class="text-[8px] text-slate-500 font-mono">Ref ID: #TX-{{ printingTx.id }}</p>
           </div>
 
@@ -334,6 +335,7 @@
                    <div>
                       <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
                       <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / EXCHANGE VOUCHER</p>
+                      <p class="text-[10px] font-bold text-slate-700 mt-0.5">لقی: {{ printingTx.branch?.name || '---' }}</p>
                    </div>
                 </div>
                 <div class="text-left" dir="ltr">
@@ -812,7 +814,26 @@ async function submitTrade(type) {
     f.primary_text = ''; f.secondary_text = ''; f.profit = 0; f.rate_vs_usd = ''
     Swal.fire({ icon: 'success', title: 'تۆمارکرا', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#10b981', color: '#fff' })
   } catch (e) {
-    Swal.fire({ icon: 'error', title: 'هەڵە', text: e.response?.data?.error || 'تۆمار نەکرا', background: '#0f172a', color: '#fff' })
+    let errorHtml = 'تۆمار نەکرا'
+    if (e.response?.data?.errors) {
+      const errors = Object.values(e.response.data.errors).flat()
+      errorHtml = `<ul class="text-right list-disc list-inside space-y-2 mt-2">${errors.map(err => `<li class="text-rose-400 font-bold">${err}</li>`).join('')}</ul>`
+    } else if (e.response?.data?.error) {
+      errorHtml = `<p class="text-rose-400 font-bold">${e.response.data.error}</p>`
+    }
+
+    Swal.fire({ 
+      icon: 'error', 
+      title: 'شکستهێنان لە تۆمارکردن', 
+      html: errorHtml, 
+      background: '#0f172a', 
+      color: '#fff',
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'تێگەیشتم',
+      customClass: {
+        popup: 'rounded-[2.5rem] border border-slate-700 shadow-2xl'
+      }
+    })
   } finally { loading.value = false }
 }
 

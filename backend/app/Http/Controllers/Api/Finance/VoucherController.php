@@ -15,7 +15,7 @@ class VoucherController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Voucher::with(['account', 'vault', 'currency', 'user'])
+        $query = Voucher::with(['account', 'vault', 'currency', 'user', 'branch'])
             ->orderBy('id', 'desc');
 
         // Apply Branch Scope manually if user has branch_id and no global permission

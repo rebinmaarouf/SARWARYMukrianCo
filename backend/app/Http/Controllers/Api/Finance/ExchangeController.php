@@ -14,7 +14,7 @@ class ExchangeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaction::with(['account', 'user', 'vault_from', 'vault_to'])->latest();
+        $query = Transaction::with(['account', 'user', 'vault_from', 'vault_to', 'branch'])->latest();
 
         if ($request->has('from') && $request->has('to')) {
             $query->whereBetween('created_at', [$request->from, $request->to]);
@@ -216,6 +216,8 @@ class ExchangeController extends Controller
 
                 return response()->json($transaction->load('account'), 201);
             });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

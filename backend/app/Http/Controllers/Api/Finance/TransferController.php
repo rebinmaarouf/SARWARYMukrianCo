@@ -12,9 +12,26 @@ class TransferController extends Controller
 {
     public function index()
     {
-        return Transfer::with(['fromAccount', 'toAccount', 'currency'])
-            ->latest()
-            ->paginate(50);
+        $user = auth()->user();
+        $query = Transfer::with([
+            'fromAccount' => function($q) { $q->withoutGlobalScopes()->with('branch'); },
+            'toAccount' => function($q) { $q->withoutGlobalScopes()->with('branch'); },
+            'currency'
+        ]);
+
+        // If user belongs to a branch, only show transfers involving their branch
+        if ($user->branch_id) {
+            $query->where(function($q) use ($user) {
+                $q->whereHas('fromAccount', function($sq) use ($user) {
+                    $sq->withoutGlobalScopes()->where('branch_id', $user->branch_id);
+                })
+                ->orWhereHas('toAccount', function($sq) use ($user) {
+                    $sq->withoutGlobalScopes()->where('branch_id', $user->branch_id);
+                });
+            });
+        }
+
+        return $query->latest()->paginate(50);
     }
 
     public function store(Request $request)
@@ -42,8 +59,11 @@ class TransferController extends Controller
                       ->orWhere('code', 'LIKE', '4%');
                 })
                 ->first();
-            
             $commissionAccountId = $commissionAccount ? $commissionAccount->id : 7; 
+
+            // Fetch accounts without global scopes to ensure we can read names across branches
+            $fromAccount = \App\Models\Account::withoutGlobalScopes()->findOrFail($validated['from_account_id']);
+            $toAccount = \App\Models\Account::withoutGlobalScopes()->findOrFail($validated['to_account_id']);
 
             // 1. Record the Transfer object
             $transfer = Transfer::create([
@@ -65,7 +85,7 @@ class TransferController extends Controller
                 $validated['currency_id'],
                 0,
                 $validated['amount'],
-                'حەواڵە بۆ: ' . $transfer->toAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
+                'حەواڵە بۆ: ' . $toAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
                 now()->format('Y-m-d')
             );
 
@@ -76,7 +96,7 @@ class TransferController extends Controller
                 $validated['currency_id'],
                 $validated['amount'],
                 0,
-                'حەواڵە لە: ' . $transfer->fromAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
+                'حەواڵە لە: ' . $fromAccount->name . ($validated['notes'] ? ' - ' . $validated['notes'] : ''),
                 now()->format('Y-m-d')
             );
 
@@ -107,7 +127,11 @@ class TransferController extends Controller
 
             return response()->json([
                 'message' => 'حەواڵەکە بە سەرکەوتوویی ئەنجامدرا',
-                'transfer' => $transfer->load(['fromAccount', 'toAccount'])
+                'transfer' => $transfer->load([
+                    'fromAccount' => function($q) { $q->withoutGlobalScopes()->with('branch'); },
+                    'toAccount' => function($q) { $q->withoutGlobalScopes()->with('branch'); },
+                    'currency'
+                ])
             ]);
         });
     }

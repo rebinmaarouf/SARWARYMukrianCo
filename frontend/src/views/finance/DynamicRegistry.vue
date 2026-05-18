@@ -302,6 +302,7 @@
                 <h2 class="text-base font-black tracking-tight text-black">کۆمپانیای سەروەری موکریان</h2>
              </div>
              <p class="text-[9px] font-bold text-black opacity-75">تۆماری گشتی / GENERAL LEDGER REGISTRY</p>
+             <p class="text-[9px] font-bold text-slate-700 mt-0.5">{{ printingEntry.debtor_account?.branch?.name || '---' }} ➔ {{ printingEntry.creditor_account?.branch?.name || '---' }}</p>
              <p class="text-[8px] text-slate-500 font-mono">Ref ID: #REG-{{ printingEntry.id }}</p>
           </div>
 
@@ -379,6 +380,7 @@
                    <div>
                       <h1 class="text-base font-black text-black">کۆمپانیای سەروەری موکریان</h1>
                       <p class="text-[10px] font-bold text-black uppercase">SARWARY MUKRIAN / GENERAL LEDGER REGISTRY</p>
+                      <p class="text-[10px] font-bold text-slate-700 mt-0.5">لقی: {{ printingEntry.debtor_account?.branch?.name || '---' }} ➔ {{ printingEntry.creditor_account?.branch?.name || '---' }}</p>
                    </div>
                 </div>
                 <div class="text-left" dir="ltr">
@@ -767,15 +769,17 @@ async function submitNewEntry() {
     console.error(e)
     if (e.response && e.response.status === 422) {
       const errors = e.response.data.errors || {}
-      const errorMsg = Object.values(errors).flat().join('<br/>')
+      const errorList = Object.values(errors).flat()
+      const errorHtml = `<ul class="text-right list-disc list-inside space-y-2 mt-2">${errorList.map(err => `<li class="text-rose-400 font-bold">${err}</li>`).join('')}</ul>`
       Swal.fire({
         icon: 'error',
-        title: 'هەڵەی زانیاری داخڵکراو',
-        html: `<div dir="rtl" class="text-right text-xs leading-relaxed font-bold text-slate-300">${errorMsg}</div>`,
-        confirmButtonText: 'زۆر باشە',
+        title: 'شکستهێنان لە تۆمارکردن',
+        html: errorHtml,
+        confirmButtonText: 'تێگەیشتم',
         confirmButtonColor: '#ef4444',
         background: '#090d16',
-        color: '#fff'
+        color: '#fff',
+        customClass: { popup: 'rounded-[2.5rem] border border-slate-200 shadow-2xl' }
       })
     } else {
       Swal.fire({ icon: 'error', title: 'کێشەیەک ڕوویدا', text: 'شکستی هێنا لە تۆمارکردنی مامەڵە.', confirmButtonText: 'داخستن', confirmButtonColor: '#ef4444', background: '#090d16', color: '#fff' })

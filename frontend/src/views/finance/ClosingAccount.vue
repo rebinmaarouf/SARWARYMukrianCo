@@ -1,7 +1,22 @@
 <template>
   <div class="space-y-8 animate-fade-in text-slate-800 font-sans p-6 printable-area">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row items-center justify-between bg-white/90 backdrop-blur-md p-8 rounded-[2.5rem] border border-slate-200 shadow-lg">
+    <!-- Print-Only Header -->
+    <div class="hidden print:flex flex-row items-center justify-between border-b-2 border-slate-800 pb-4 mb-6 w-full">
+      <div class="flex items-center gap-4">
+        <img src="/logo.png" alt="Logo" class="w-16 h-16 object-contain" />
+        <div class="text-right">
+          <h1 class="text-xl font-black text-slate-900">سەروەری مۆکریان</h1>
+          <p class="text-xs text-slate-500">بۆ ئاڵوگۆڕی دراو و حەواڵە</p>
+        </div>
+      </div>
+      <div class="text-left">
+        <h2 class="text-2xl font-black text-slate-900">حساب خیتامی</h2>
+        <p class="text-xs text-slate-500">بەروار: {{ new Date().toLocaleDateString('en-GB') }}</p>
+      </div>
+    </div>
+
+    <!-- Regular Header (Hidden on Print) -->
+    <div class="flex flex-col md:flex-row items-center justify-between bg-white/90 backdrop-blur-md p-8 rounded-[2.5rem] border border-slate-200 shadow-lg print:hidden">
       <div class="text-right order-2 md:order-1">
         <h2 class="text-3xl font-black text-slate-900 mb-2">حساب خیتامی (تەرازووی پێداچوونەوە)</h2>
         <p class="text-slate-600 font-medium">بینینی باڵانسی سەرجەم حیسابات بە شێوەیەکی گشتی</p>
@@ -289,42 +304,73 @@ onMounted(() => {
 }
 
 @media print {
-  /* Hide everything except the printable area */
-  body * {
-    visibility: hidden;
-  }
-  .printable-area, .printable-area * {
-    visibility: visible;
-  }
-  .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  
-  /* Hide filters and buttons during print */
-  .no-print {
+  /* Hide sidebar, header, and other non-print elements */
+  aside, header, .no-print, button {
     display: none !important;
   }
   
-  /* Reset backgrounds for clean printing */
-  .bg-white\/90, .bg-white\/80 {
+  /* Reset main layout for full width printing */
+  body, html {
     background: white !important;
+    color: black !important;
+  }
+  
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  .printable-area {
+    width: 100% !important;
+    padding: 20px !important;
+    margin: 0 !important;
+  }
+  
+  .printable-area * {
+    color: black !important;
+  }
+  
+  /* Reset backgrounds and borders for clean printing */
+  .bg-white\/90, .bg-white\/80, .bg-slate-50, .dark\:bg-slate-950 {
+    background: white !important;
+    color: black !important;
     box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
+    border: none !important;
   }
   
-  /* Ensure proper layout on A4 */
+  /* Remove rounded corners on print */
+  .rounded-\[2\.5rem\], .rounded-2xl, .rounded-xl {
+    border-radius: 0 !important;
+  }
+  
+  /* Stack tables vertically on print */
   .grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 1.5rem !important;
+    display: block !important;
   }
   
-  /* Prevent cutting off content */
+  .grid > div {
+    margin-bottom: 30px !important;
+    page-break-inside: avoid;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 15px !important;
+  }
+  
+  /* Make table headers bolder */
+  th {
+    border-bottom: 2px solid #000 !important;
+    font-weight: 900 !important;
+    color: black !important;
+  }
+  
+  /* Ensure table rows are readable */
+  td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+  
+  /* Prevent cutting off content on print */
   .overflow-y-auto {
     overflow: visible !important;
     max-height: none !important;

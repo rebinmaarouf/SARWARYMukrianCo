@@ -53,13 +53,15 @@ class ClosingAccountController extends Controller
             
             // Separate into Debits and Credits
             $debits = $items->filter(function ($item) {
-                // Assets, Expenses, or positive balance
-                return $item['balance'] > 0 || in_array($item['account_type'], ['vault', 'expense']);
+                if ($item['balance'] > 0) return true;
+                if ($item['balance'] == 0 && in_array($item['account_type'], ['vault', 'expense'])) return true;
+                return false;
             })->values();
 
             $credits = $items->filter(function ($item) {
-                // Liabilities, Equity, Revenue, or negative balance
-                return $item['balance'] < 0 || in_array($item['account_type'], ['equity', 'revenue']);
+                if ($item['balance'] < 0) return true;
+                if ($item['balance'] == 0 && in_array($item['account_type'], ['equity', 'revenue'])) return true;
+                return false;
             })->map(function ($item) {
                 $item['balance'] = abs($item['balance']); // Make positive for display
                 return $item;

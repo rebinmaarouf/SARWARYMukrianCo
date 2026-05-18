@@ -42,40 +42,40 @@
     <div v-if="can('view_reports')" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
        <!-- Revenue -->
        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden group">
-          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی داهات (Revenue - 4)</span>
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی داهاتەکان</span>
           <h3 class="text-3xl font-black text-emerald-600 font-mono tracking-tighter">{{ formatNum(stats.summary?.revenue_iqd) }} <span class="text-xs text-slate-500">IQD</span></h3>
           <div class="mt-4 flex items-center gap-2">
              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></div>
-             <span class="text-[8px] text-slate-500 font-black uppercase">Live Updates</span>
+             <span class="text-[8px] text-slate-500 font-black uppercase">نوێبوونەوەی ڕاستەوخۆ</span>
           </div>
        </div>
 
        <!-- Expenses -->
        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden">
-          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی خەرجی (Expenses - 3)</span>
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی خەرجییەکان</span>
           <h3 class="text-3xl font-black text-rose-600 font-mono tracking-tighter">{{ formatNum(stats.summary?.expense_iqd) }} <span class="text-xs text-slate-500">IQD</span></h3>
-          <p class="text-[8px] text-slate-500 font-black mt-4 uppercase">Operational Overhead</p>
+          <p class="text-[8px] text-slate-500 font-black mt-4 uppercase">تێچووی کارکردن و بەڕێوەبردن</p>
        </div>
 
        <!-- Net Profit (USD) -->
        <div class="bg-emerald-600 p-8 rounded-[2.5rem] shadow-emerald-600/20 shadow-xl text-white flex flex-col justify-between">
           <div>
-            <span class="text-[9px] font-black opacity-80 uppercase tracking-widest block mb-2">Estimated Net Profit</span>
+            <span class="text-[9px] font-black opacity-80 uppercase tracking-widest block mb-2">قازانجی گشتیی خەمڵێنراو</span>
             <div class="flex items-baseline gap-1">
                <span class="text-xl font-black">$</span>
                <h3 class="text-5xl font-black font-mono tracking-tighter">{{ formatNum(stats.summary?.net_profit_usd) }}</h3>
             </div>
           </div>
-          <p class="text-[9px] font-black mt-4 uppercase opacity-80 tracking-widest">Global Valuation Mode</p>
+          <p class="text-[9px] font-black mt-4 uppercase opacity-80 tracking-widest">بەپێی بەهای گشتیی دراوەکان</p>
        </div>
 
        <!-- Period Toggles (Quick Select) -->
        <div class="bg-slate-100 p-4 rounded-[2.5rem] border border-slate-200 flex flex-col gap-2">
-          <h4 class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2 text-center">Analytics Period</h4>
+          <h4 class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2 text-center">ماوەی کاتیی داتاکان</h4>
           <button v-for="p in ['7d', '30d', '1y']" :key="p" @click="changePeriod(p)"
             class="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all"
             :class="filters.period === p ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'">
-            {{ p }} View
+            {{ p === '7d' ? '٧ ڕۆژی ڕابردوو' : p === '30d' ? '٣٠ ڕۆژی ڕابردوو' : '١ ساڵی ڕابردوو' }}
           </button>
        </div>
     </div>
