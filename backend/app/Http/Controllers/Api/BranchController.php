@@ -21,8 +21,8 @@ class BranchController extends Controller
 
         $user = $request->user();
 
-        // Security: Check if user is allowed in this branch
-        if ($request->branch_id && $user->email !== 'rebin.maaruf@gmail.com') {
+        // Security: Check if user is allowed in this branch (Super Admins are always allowed)
+        if ($request->branch_id && !$user->hasRole('Super Admin') && $user->email !== 'rebin.maaruf@gmail.com') {
              $isAllowed = $user->branches()->where('branches.id', $request->branch_id)->exists();
              if (!$isAllowed) {
                  return response()->json(['error' => 'You are not authorized for this branch'], 403);

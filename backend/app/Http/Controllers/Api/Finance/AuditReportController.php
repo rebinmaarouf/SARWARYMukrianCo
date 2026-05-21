@@ -16,7 +16,17 @@ class AuditReportController extends Controller
     {
         $fromDate = $request->input('from_date', Carbon::today()->startOfMonth()->toDateString());
         $toDate = $request->input('to_date', Carbon::today()->toDateString());
-        $branchId = $request->input('branch_id'); // null or 'all' for consolidated
+        
+        $user = auth()->user();
+        $activeBranch = $user->branch_id ? \App\Models\Branch::find($user->branch_id) : null;
+        
+        // Secure Scoping: Sub-branch users are strictly restricted to their own branch
+        if ($activeBranch && !$activeBranch->is_main) {
+            $branchId = $activeBranch->id;
+        } else {
+            // Main branch / HQ auditors can view all or filter by specific branch
+            $branchId = $request->input('branch_id'); // null or 'all' for consolidated
+        }
         
         // Get latest market rate for USD (Currency ID 2)
         $latestRate = DB::table('exchange_rates')->where('currency_id', 2)->latest()->value('rate') ?? 1500;
@@ -127,14 +137,16 @@ class AuditReportController extends Controller
         if (!is_array($patterns)) $patterns = [$patterns];
 
         $accountQuery = Account::withoutGlobalScopes()->where(function($q) use ($patterns) {
-            foreach($patterns as $p) {
-                $q->orWhere('code', 'LIKE', $p);
+            $q->where(function($sub) use ($patterns) {
+                foreach($patterns as $p) {
+                    $sub->orWhere('code', 'LIKE', $p);
+                }
+            });
+
+            if (in_array('1%', $patterns)) {
+                $q->orWhere('type', 'vault');
             }
         });
-
-        if (in_array('1%', $patterns)) {
-            $accountQuery->orWhere('type', 'vault');
-        }
 
         if ($branchId && $branchId !== 'all') {
             $accountQuery->where('branch_id', $branchId);

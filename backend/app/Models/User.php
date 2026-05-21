@@ -11,18 +11,21 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
-use App\Traits\BelongsToBranch;
-
 #[Fillable(['name', 'email', 'password', 'two_factor_code', 'two_factor_expires_at', 'branch_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles, HasApiTokens, BelongsToBranch;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
     protected $guard_name = 'api';
 
     protected $appends = ['all_permissions'];
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function branches()
     {

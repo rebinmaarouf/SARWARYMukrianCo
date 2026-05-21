@@ -28,10 +28,19 @@
       </div>
       <div class="space-y-2">
         <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2">دیاریکردنی لق</label>
-        <select v-model="filters.branch_id" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white font-bold outline-none focus:border-emerald-600/50 dark:focus:border-emerald-500/50 transition-all appearance-none">
-          <option value="all">هەموو لقەکان (Consolidated)</option>
-          <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
+        <div class="relative">
+          <select 
+            v-model="filters.branch_id" 
+            :disabled="isBranchLocked"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-slate-900 dark:text-white font-bold outline-none focus:border-emerald-600/50 dark:focus:border-emerald-500/50 transition-all appearance-none disabled:opacity-75 disabled:cursor-not-allowed"
+          >
+            <option v-if="!isBranchLocked" value="all">هەموو لقەکان (Consolidated)</option>
+            <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+          </select>
+          <div v-if="isBranchLocked" class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[9px] bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1.5 rounded-xl font-black">
+            🔒 قفڵکراوە بۆ لقی خۆت
+          </div>
+        </div>
       </div>
       <div class="flex items-end">
         <button @click="fetchData" :disabled="loading" class="w-full py-4 bg-emerald-600 dark:bg-emerald-500 text-white font-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-600/20 dark:shadow-none disabled:opacity-50">
@@ -973,6 +982,11 @@ const canVerifyIntegrity = computed(() => {
          authStore.user?.email === 'rebin.maaruf@gmail.com'
 })
 
+const isBranchLocked = computed(() => {
+  const activeBranch = branches.value.find(b => b.id == authStore.user?.branch_id)
+  return activeBranch ? !activeBranch.is_main : false
+})
+
 const profitMargin = computed(() => {
   const rev = Number(data.value?.financials?.revenues?.total_iqd || 0)
   const net = Number(data.value?.financials?.net_profit || 0)
@@ -1151,6 +1165,13 @@ async function fetchBranches() {
   try {
     const { data: res } = await axios.get('/branches')
     branches.value = res
+    
+    const activeBranch = res.find(b => b.id == authStore.user?.branch_id)
+    if (activeBranch && !activeBranch.is_main) {
+      filters.value.branch_id = activeBranch.id
+    } else {
+      filters.value.branch_id = 'all'
+    }
   } catch (e) { console.error(e) }
 }
 
@@ -1174,9 +1195,9 @@ function printReport() {
 
 function formatNum(n) { return new Intl.NumberFormat().format(n || 0) }
 
-onMounted(() => {
-  fetchBranches()
-  fetchData()
+onMounted(async () => {
+  await fetchBranches()
+  await fetchData()
 })
 </script>
 
