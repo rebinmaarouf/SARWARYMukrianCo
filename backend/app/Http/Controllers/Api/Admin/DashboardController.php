@@ -128,28 +128,23 @@ class DashboardController extends Controller
     }
     private function getVaultBalances()
     {
-        $vaultQuery = JournalEntry::with(['account', 'currency'])
-            ->whereHas('account', function($q) {
-                $q->where('type', 'vault');
-            });
+        $vaultQuery = Account::with('summaries.currency')
+            ->where('type', 'vault');
 
         if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
             $vaultQuery->where('branch_id', auth()->user()->branch_id);
         }
 
-        return $vaultQuery->select(
-                'account_id',
-                'currency_id',
-                DB::raw('SUM(debit - credit) as balance')
-            )
-            ->groupBy('account_id', 'currency_id')
-            ->get()
-            ->map(function($entry) {
-                return [
-                    'account_name' => $entry->account->name,
-                    'currency_code' => $entry->currency->code,
-                    'balance' => $entry->balance
-                ];
-            });
+        $balances = collect();
+        foreach ($vaultQuery->get() as $account) {
+            foreach ($account->summaries as $summary) {
+                $balances->push([
+                    'account_name' => $account->name,
+                    'currency_code' => $summary->currency->code,
+                    'balance' => $summary->total_debit - $summary->total_credit
+                ]);
+            }
+        }
+        return $balances;
     }
 }

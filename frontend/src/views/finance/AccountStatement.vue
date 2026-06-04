@@ -64,6 +64,13 @@
           </select>
        </div>
        <div class="flex flex-col px-6 border-l border-slate-100">
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Filter By Currency</span>
+          <select v-model="filters.currency_id" @change="fetchStatement" class="bg-transparent border-none p-0 text-sm font-black text-slate-900 focus:ring-0 cursor-pointer outline-none">
+            <option :value="null">هەموو دراوەکان (All)</option>
+            <option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }} - {{ c.name }}</option>
+          </select>
+       </div>
+       <div class="flex flex-col px-6 border-l border-slate-100">
           <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Filter From Date</span>
           <input v-model="filters.start_date" type="date" class="bg-transparent border-none p-0 text-sm font-black text-slate-900 focus:ring-0 cursor-pointer outline-none" />
        </div>
@@ -203,6 +210,7 @@ import axios from '../../plugins/axios'
 
 const route = useRoute()
 const accounts = ref([])
+const currencies = ref([])
 const entries = ref([])
 const summaries = ref([])
 const selectedAccount = ref(null)
@@ -222,6 +230,11 @@ const totalIqdNet = computed(() => {
 async function fetchAccounts() {
   const { data } = await axios.get('/accounts?per_page=1000'); accounts.value = data.data || data
   if (route.query.id) { filters.account_id = parseInt(route.query.id); fetchStatement(); }
+}
+
+async function fetchCurrencies() {
+  const { data } = await axios.get('/currencies');
+  currencies.value = data.data || data;
 }
 
 async function fetchStatement() {
@@ -252,7 +265,7 @@ function getBalanceValue(summary) { return parseFloat(summary.total_debit) - par
 function formatNum(val) { return new Intl.NumberFormat().format(parseFloat(val || 0)) }
 function formatDate(d) { return new Date(d).toLocaleDateString('ku-IQ', { year: 'numeric', month: 'short', day: 'numeric' }) }
 function printReport() { window.print() }
-onMounted(() => fetchAccounts())
+onMounted(() => { fetchAccounts(); fetchCurrencies(); })
 </script>
 
 <style>

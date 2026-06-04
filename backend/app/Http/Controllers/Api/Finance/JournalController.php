@@ -20,10 +20,10 @@ class JournalController extends Controller
         if ($accountId = $request->input('account_id')) {
             $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
             
-            // If it's a global account (branch_id is null), we show all transactions across branches
-            if ($account && is_null($account->branch_id)) {
-                $query->withoutGlobalScopes();
-            }
+            // In an Account Statement, we MUST see all transactions that hit this account
+            // regardless of which branch created the transaction. Otherwise, the running 
+            // balance and the statement rows will be mismatched.
+            $query->withoutGlobalScope('branch');
 
             // Check if this account has children
             $childIds = \App\Models\Account::withoutGlobalScopes()->where('parent_id', $accountId)->pluck('id');

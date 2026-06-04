@@ -106,6 +106,13 @@
              </div>
           </div>
 
+          <!-- Notes Section -->
+          <div class="p-8 rounded-[2rem] bg-slate-50/50 border border-slate-100 space-y-4">
+             <label class="text-xs font-black text-slate-700 uppercase tracking-[0.2em] px-2">بەیان / تێبینی (ئارەزوومەندانە)</label>
+             <input v-model="form.notes" type="text" placeholder="بۆ نموونە: حەواڵەکردنەوەی پارەی زیادەی لق بۆ سەرەکی..."
+               class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-5 text-slate-700 font-bold text-lg focus:border-blue-600 outline-none shadow-xs" />
+          </div>
+
           <button type="submit" :disabled="loading"
             class="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white font-black text-2xl rounded-2xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-4">
             <span v-if="loading" class="animate-spin rounded-full h-6 w-6 border-4 border-white/20 border-t-white"></span>

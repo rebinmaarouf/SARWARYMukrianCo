@@ -55,6 +55,7 @@
         <table class="w-full text-right border-collapse min-w-[1300px]" dir="rtl">
           <thead>
             <tr class="bg-slate-50 text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase border-b border-slate-200">
+              <th class="px-6 py-5 w-20 text-center">ژمارە</th>
               <th class="px-6 py-5 w-32">بەروار</th>
               <th class="px-6 py-5 w-48 text-rose-600">بڕی دراو</th>
               <th class="px-6 py-5 text-center text-emerald-600">حیسابی قەرزار (Debtor)</th>
@@ -68,6 +69,7 @@
           <tbody>
             <!-- Entry Input Row -->
             <tr class="bg-emerald-50/50 border-b-2 border-emerald-200 relative z-50 transition-all group">
+               <td class="px-2 py-4 text-center text-slate-400 font-black text-xs">—</td>
                <td class="px-2 py-4">
                  <input v-model="newEntry.entry_date" type="date" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-3.5 text-xs text-slate-900 focus:border-emerald-500/50 outline-none font-bold shadow-xs" />
                </td>
@@ -209,6 +211,7 @@
         <table class="hidden lg:table w-full text-right border-collapse min-w-[1300px]" dir="rtl">
           <tbody>
             <tr v-for="entry in entries" :key="entry.id" class="border-b border-slate-100 hover:bg-slate-50 group transition-all font-semibold">
+              <td class="px-6 py-5 text-center font-black text-slate-400 font-mono text-sm">#{{ entry.id }}</td>
               <td class="px-6 py-5 text-[10px] font-black text-slate-500 uppercase tracking-tighter w-32">{{ formatDate(entry.entry_date) }}</td>
               <td class="px-6 py-5 text-center w-48">
                 <div class="flex flex-col items-center">
@@ -252,8 +255,11 @@
            <div v-for="entry in entries" :key="entry.id" class="p-6 space-y-4 hover:bg-slate-50 transition-all font-semibold">
               <div class="flex justify-between items-start">
                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2 mb-1">
+                       <span class="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md">#{{ entry.id }}</span>
+                       <span class="text-[10px] font-black text-slate-500 uppercase">{{ formatDate(entry.entry_date) }}</span>
+                    </div>
                     <span class="text-2xl font-black text-rose-600 font-mono tracking-tight">{{ formatNum(entry.amount) }} <span class="text-[10px] text-slate-500">{{ entry.currency?.code }}</span></span>
-                    <span class="text-[10px] font-black text-slate-500 uppercase">{{ formatDate(entry.entry_date) }}</span>
                  </div>
                  <div class="flex gap-2">
                     <button @click="printInvoice(entry)" class="p-3 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl shadow-xs">
