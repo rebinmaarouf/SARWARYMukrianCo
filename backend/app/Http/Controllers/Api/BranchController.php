@@ -8,9 +8,13 @@ use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Branch::all());
+        $user = $request->user();
+        if ($user->hasRole('Super Admin') || $user->email === 'rebin.maaruf@gmail.com') {
+            return response()->json(Branch::all());
+        }
+        return response()->json($user->branches);
     }
 
     public function switch(Request $request)

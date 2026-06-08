@@ -136,8 +136,8 @@
                 
                 <div class="h-6 w-px bg-slate-200 mx-1"></div>
 
-                <!-- Global Branch Switcher (Super Admin Only) -->
-                <div v-if="auth.user?.email === 'rebin.maaruf@gmail.com' || auth.isSuperAdmin" class="relative group/branch">
+                <!-- Global Branch Switcher (Dynamic based on authorized branches) -->
+                <div v-if="branches && branches.length > 1" class="relative group/branch">
                    <button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 shadow-sm rounded-xl transition-all group">
                       <span class="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse shadow-[0_0_8px_#3b82f6]"></span>
                       <span class="flex flex-col items-start text-right">

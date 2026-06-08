@@ -46,10 +46,7 @@ class DashboardController extends Controller
                 'exchange_rate' => $latestRate,
                 'period' => $period,
                 'total_accounts' => Account::count(),
-                'today_ops' => JournalEntry::where('date', Carbon::today()->toDateString())
-                    ->when(auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin'), function($q) {
-                        return $q->where('branch_id', auth()->user()->branch_id);
-                    })->count()
+                'today_ops' => JournalEntry::where('date', Carbon::today()->toDateString())->count()
             ]
         ]);
     }
@@ -65,10 +62,6 @@ class DashboardController extends Controller
                 }
             });
         });
-
-        if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
-            $query->where('branch_id', auth()->user()->branch_id);
-        }
 
         $entries = $query->with('currency')->get();
 
@@ -109,11 +102,6 @@ class DashboardController extends Controller
                     $q->where('code', 'LIKE', '3%')->orWhere('code', 'LIKE', '5%'); 
                 });
 
-            if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
-                $revQuery->where('branch_id', auth()->user()->branch_id);
-                $expQuery->where('branch_id', auth()->user()->branch_id);
-            }
-
             $revenue = $revQuery->sum(DB::raw('credit - debit'));
             $expense = $expQuery->sum(DB::raw('debit - credit'));
 
@@ -130,10 +118,6 @@ class DashboardController extends Controller
     {
         $vaultQuery = Account::with('summaries.currency')
             ->where('type', 'vault');
-
-        if (auth()->check() && auth()->user()->branch_id && !auth()->user()->hasRole('Super Admin')) {
-            $vaultQuery->where('branch_id', auth()->user()->branch_id);
-        }
 
         $balances = collect();
         foreach ($vaultQuery->get() as $account) {

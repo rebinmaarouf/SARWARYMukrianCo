@@ -15,13 +15,11 @@ trait BelongsToBranch
     protected static function bootBelongsToBranch()
     {
         static::addGlobalScope('branch', function (Builder $builder) {
-            // Only apply if user is authenticated
-            if (Auth::check()) {
+            // Only apply if user is authenticated and not running in console
+            if (Auth::check() && !app()->runningInConsole()) {
                 $user = Auth::user();
                 
-                // Super Admin with specific email can see everything if they want, 
-                // but usually we want to see the ACTIVE branch context.
-                // We will use the branch_id stored on the user session/model.
+                // If the user has explicitly selected a branch (Active branch context)
                 if ($user->branch_id) {
                     $builder->where(function($q) use ($builder, $user) {
                         $q->where($builder->getModel()->getTable() . '.branch_id', $user->branch_id);
@@ -33,8 +31,19 @@ trait BelongsToBranch
                     });
                 } else {
                     // If branch_id is null, it means "All Branches" (Consolidated View)
-                    // Only allowed for Super Admin/Owner. 
-                    // Regular users should always have a branch_id assigned.
+                    // If the user is NOT a Super Admin, restrict them to their authorized branches ONLY
+                    if (!$user->hasRole('Super Admin') && $user->email !== 'rebin.maaruf@gmail.com') {
+                        $authorizedBranchIds = $user->branches()->pluck('branches.id')->toArray();
+                        $builder->where(function($q) use ($builder, $authorizedBranchIds) {
+                            $q->whereIn($builder->getModel()->getTable() . '.branch_id', $authorizedBranchIds);
+                            
+                            // Allow Global Accounts to be seen in Consolidated View
+                            if ($builder->getModel() instanceof \App\Models\Account) {
+                                $q->orWhere('is_global', true);
+                            }
+                        });
+                    }
+                    // For Super Admins, we don't apply any restriction so they see EVERYTHING
                 }
             }
         });
