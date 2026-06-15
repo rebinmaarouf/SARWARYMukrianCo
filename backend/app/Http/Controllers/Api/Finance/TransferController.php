@@ -43,12 +43,17 @@ class TransferController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'commission_amount' => 'nullable|numeric|min:0',
             'commission_currency_id' => 'nullable|exists:currencies,id',
+            'commission_amount_2' => 'nullable|numeric|min:0',
+            'commission_currency_2_id' => 'nullable|exists:currencies,id',
             'notes' => 'nullable|string',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
-            $commissionAmount = $request->input('commission_amount', 0);
+            $commissionAmount = $request->input('commission_amount', 0) ?: 0;
             $commissionCurrencyId = $request->input('commission_currency_id', $validated['currency_id']);
+            
+            $commissionAmount2 = $request->input('commission_amount_2', 0) ?: 0;
+            $commissionCurrency2Id = $request->input('commission_currency_2_id', $validated['currency_id']);
             
             // Commission Revenue Account (IUAS 4x) scoped strictly to the active user's branch
             $userBranchId = auth()->user()?->branch_id ?? 1;
@@ -73,6 +78,8 @@ class TransferController extends Controller
                 'amount' => $validated['amount'],
                 'commission_amount' => $commissionAmount,
                 'commission_currency_id' => $commissionCurrencyId,
+                'commission_amount_2' => $commissionAmount2,
+                'commission_currency_2_id' => $commissionCurrency2Id,
                 'commission_account_id' => $commissionAccountId,
                 'notes' => $validated['notes'] ?? null,
                 'user_id' => $request->user()->id,
@@ -101,26 +108,49 @@ class TransferController extends Controller
             );
 
             // 4. Handle Commission Journal Entries
+            // Usually commissions are in the same currency, but we record them strictly
+            
             if ($commissionAmount > 0) {
-                // Debit commission from Sender (Increase asset or customer debt)
+                // Debit Commission 1 from Sender (Increase asset or customer debt)
                 \App\Services\JournalService::record(
                     $transfer,
                     $validated['from_account_id'],
                     $commissionCurrencyId,
                     $commissionAmount, // DEBIT
                     0,                 // CREDIT
-                    'کۆمسیۆنی حەواڵەی #' . $transfer->id,
+                    'عمولەی وەرگیراو - حەواڵەی #' . $transfer->id,
                     now()->format('Y-m-d')
                 );
- 
-                // Add to Revenue Account (Credit)
+            }
+            
+            if ($commissionAmount2 > 0) {
+                // Credit Commission 2 to Receiver (Increase our debt to agent)
+                \App\Services\JournalService::record(
+                    $transfer,
+                    $validated['to_account_id'],
+                    $commissionCurrency2Id,
+                    0,                 // DEBIT
+                    $commissionAmount2, // CREDIT
+                    'عمولەی دراو (بڕاو) - حەواڵەی #' . $transfer->id,
+                    now()->format('Y-m-d')
+                );
+            }
+
+            // Calculate Net Commission to go to Revenue Account
+            // Assuming same currency for commission 1 and 2 in Hawaei
+            $netCommission = (float)$commissionAmount - (float)$commissionAmount2;
+            
+            if ($netCommission != 0) {
+                $debit = $netCommission < 0 ? abs($netCommission) : 0;
+                $credit = $netCommission > 0 ? $netCommission : 0;
+                
                 \App\Services\JournalService::record(
                     $transfer,
                     $commissionAccountId,
-                    $commissionCurrencyId,
-                    0,                 // DEBIT
-                    $commissionAmount, // CREDIT
-                    'قازانجی حەواڵەی #' . $transfer->id,
+                    $commissionCurrencyId, // Default to comm 1 currency
+                    $debit,                // DEBIT
+                    $credit,               // CREDIT
+                    'قازانجی سافی حەواڵەی #' . $transfer->id,
                     now()->format('Y-m-d')
                 );
             }

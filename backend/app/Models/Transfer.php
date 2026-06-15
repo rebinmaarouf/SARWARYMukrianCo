@@ -18,6 +18,8 @@ class Transfer extends Model
         'amount',
         'commission_amount',
         'commission_currency_id',
+        'commission_amount_2',
+        'commission_currency_2_id',
         'commission_account_id',
         'notes',
         'user_id',

@@ -108,12 +108,12 @@
 
           <!-- Commission Section -->
           <div class="p-8 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 space-y-6">
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                <div class="space-y-4">
                   <label class="text-xs font-black text-emerald-700 uppercase tracking-[0.2em] px-2">دراوی عومولە</label>
                   <div class="flex gap-2 p-1 bg-white rounded-2xl border border-slate-200">
                     <button v-for="c in currencies" :key="c.id" type="button"
-                      @click="form.commission_currency_id = c.id"
+                      @click="form.commission_currency_id = c.id; form.commission_currency_2_id = c.id"
                       class="flex-1 py-5 rounded-xl text-sm font-black uppercase transition-all"
                       :class="form.commission_currency_id === c.id ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900'">
                       {{ c.code }}
@@ -121,10 +121,22 @@
                   </div>
                </div>
                <div class="space-y-4">
-                  <label class="text-xs font-black text-emerald-700 uppercase tracking-[0.2em] px-2">بڕی عومولە</label>
+                  <label class="text-xs font-black text-emerald-700 uppercase tracking-[0.2em] px-2">وەرگیراو (لە نێرەر)</label>
                   <input :value="formText.commission_amount" @input="e => updateAmount('commission', e.target.value)" type="text" placeholder="0"
                     class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-5 text-emerald-600 font-black text-3xl focus:border-emerald-600 outline-none shadow-xs" />
                </div>
+               <div class="space-y-4">
+                  <label class="text-xs font-black text-rose-700 uppercase tracking-[0.2em] px-2">دراو (بە وەرگر)</label>
+                  <input :value="formText.commission_amount_2" @input="e => updateAmount('commission_2', e.target.value)" type="text" placeholder="0"
+                    class="w-full bg-white border border-slate-200 rounded-2xl px-6 py-5 text-rose-600 font-black text-3xl focus:border-rose-600 outline-none shadow-xs" />
+               </div>
+             </div>
+             <!-- Net Profit Display -->
+             <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-emerald-100 shadow-sm" v-if="(form.commission_amount > 0 || form.commission_amount_2 > 0)">
+                <span class="text-sm font-black text-slate-500">قازانجی سافی پێشبینیکراو:</span>
+                <span class="text-xl font-black" :class="(form.commission_amount - form.commission_amount_2) >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+                  {{ formatNumber(form.commission_amount - form.commission_amount_2) }} {{ getCurrencyCode(form.commission_currency_id) }}
+                </span>
              </div>
           </div>
 
@@ -174,8 +186,11 @@
                 <span class="text-slate-500 text-[10px] mr-2 font-black">{{ t.currency?.code }}</span>
               </td>
               <td class="px-8 py-6 text-center">
-                 <span v-if="t.commission_amount > 0" class="text-emerald-600 font-black">{{ formatNumber(t.commission_amount) }} {{ getCurrencyCode(t.commission_currency_id) }}</span>
-                 <span v-else class="text-slate-400">---</span>
+                 <div class="flex flex-col items-center justify-center gap-1" v-if="t.commission_amount > 0 || t.commission_amount_2 > 0">
+                    <span v-if="t.commission_amount > 0" class="text-emerald-600 font-black text-[10px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100 w-full">+ {{ formatNumber(t.commission_amount) }}</span>
+                    <span v-if="t.commission_amount_2 > 0" class="text-rose-600 font-black text-[10px] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 w-full">- {{ formatNumber(t.commission_amount_2) }}</span>
+                 </div>
+                 <span v-else class="text-slate-400 font-bold">---</span>
               </td>
               <td class="px-8 py-6">
                 <div class="flex items-center justify-center gap-3">
@@ -239,10 +254,14 @@
             <span class="text-[9px] font-black text-black">بڕی گواستراوە:</span>
             <span class="text-base font-black font-mono text-black">{{ formatNumber(printingTransfer.amount) }} {{ printingTransfer.currency?.code }}</span>
          </div>
-         <div class="flex justify-between items-center text-emerald-600" v-if="printingTransfer.commission_amount > 0">
-            <span class="text-[9px] font-bold">عومولە / کرێ:</span>
-            <span class="text-xs font-black font-mono">+ {{ formatNumber(printingTransfer.commission_amount) }} {{ getCurrencyCode(printingTransfer.commission_currency_id) }}</span>
-         </div>
+          <div class="flex justify-between items-center text-emerald-600" v-if="printingTransfer.commission_amount > 0">
+             <span class="text-[9px] font-bold">عومولەی وەرگیراو:</span>
+             <span class="text-xs font-black font-mono">+ {{ formatNumber(printingTransfer.commission_amount) }} {{ getCurrencyCode(printingTransfer.commission_currency_id) }}</span>
+          </div>
+          <div class="flex justify-between items-center text-rose-600 mt-1" v-if="printingTransfer.commission_amount_2 > 0">
+             <span class="text-[9px] font-bold">عومولەی دراو:</span>
+             <span class="text-xs font-black font-mono">- {{ formatNumber(printingTransfer.commission_amount_2) }} {{ getCurrencyCode(printingTransfer.commission_currency_2_id) }}</span>
+          </div>
       </div>
 
       <!-- Notes -->
@@ -567,8 +586,8 @@ async function deleteTransfer(id) {
   }
 }
 
-const formText = ref({ amount: '', commission_amount: '' })
-const form = ref({ from_account_id: '', to_account_id: '', currency_id: '', amount: 0, commission_amount: 0, commission_currency_id: '', notes: '' })
+const formText = ref({ amount: '', commission_amount: '', commission_amount_2: '' })
+const form = ref({ from_account_id: '', to_account_id: '', currency_id: '', amount: 0, commission_amount: 0, commission_currency_id: '', commission_amount_2: 0, commission_currency_2_id: '', notes: '' })
 
 function formatWithCommas(str) {
   if (!str) return '';
@@ -583,9 +602,12 @@ function updateAmount(field, value) {
   if (field === 'amount') {
     formText.value.amount = formatWithCommas(clean);
     form.value.amount = parseFloat(clean) || 0;
-  } else {
+  } else if (field === 'commission') {
     formText.value.commission_amount = formatWithCommas(clean);
     form.value.commission_amount = parseFloat(clean) || 0;
+  } else if (field === 'commission_2') {
+    formText.value.commission_amount_2 = formatWithCommas(clean);
+    form.value.commission_amount_2 = parseFloat(clean) || 0;
   }
 }
 
@@ -609,7 +631,7 @@ async function fetchData() {
     accounts.value = accRes.data.data || accRes.data
     currencies.value = curRes.data
     transfers.value = transRes.data.data || transRes.data
-    if (currencies.value.length > 0) { form.value.currency_id = currencies.value[0].id; form.value.commission_currency_id = currencies.value[0].id; }
+    if (currencies.value.length > 0) { form.value.currency_id = currencies.value[0].id; form.value.commission_currency_id = currencies.value[0].id; form.value.commission_currency_2_id = currencies.value[0].id; }
   } catch (e) { console.error(e) }
 }
 
@@ -627,8 +649,8 @@ async function submitTransfer() {
   try {
     const { data } = await axios.post('/transfers', form.value)
     Swal.fire({ icon: 'success', title: 'سەرکەوتوو بوو', background: '#0f172a', color: '#fff' })
-    formText.value = { amount: '', commission_amount: '' }
-    form.value = { from_account_id: '', to_account_id: '', currency_id: form.value.currency_id, amount: 0, commission_amount: 0, commission_currency_id: form.value.currency_id, notes: '' }
+    formText.value = { amount: '', commission_amount: '', commission_amount_2: '' }
+    form.value = { from_account_id: '', to_account_id: '', currency_id: form.value.currency_id, amount: 0, commission_amount: 0, commission_currency_id: form.value.currency_id, commission_amount_2: 0, commission_currency_2_id: form.value.currency_id, notes: '' }
     fromAccountSearch.value = ''
     toAccountSearch.value = ''
     sourceType.value = 'debt'
