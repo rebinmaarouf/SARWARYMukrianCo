@@ -91,7 +91,7 @@
                   <label class="text-xs font-black text-blue-700 uppercase tracking-[0.2em] px-2">دراوی حەواڵە</label>
                   <div class="flex gap-2 p-1 bg-white rounded-2xl border border-slate-200">
                     <button v-for="c in currencies" :key="c.id" type="button"
-                      @click="form.currency_id = c.id"
+                      @click="form.currency_id = c.id; form.commission_currency_id = c.id; form.commission_currency_2_id = c.id"
                       class="flex-1 py-5 rounded-xl text-sm font-black uppercase transition-all"
                       :class="form.currency_id === c.id ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-slate-900'">
                       {{ c.code }}
