@@ -8,6 +8,10 @@
           <p class="text-slate-500 text-sm font-medium mt-3 leading-relaxed">
             ئەم پەیجە تایبەتە بە بەڕێوەبردنی گشت جوڵە داراییەکانی کۆمپانیا. لێرەدا دەتوانیت حەواڵە بۆ مشتەری بنێریت یان پارە لە نێوان سندوقەکانتدا بگوازیتەوە.
           </p>
+          <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-3 rounded-xl text-xs font-black border border-blue-100">
+             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+             <span>تێبینی: ئەم بەشە شاکارە بۆ (گواستنەوەی نەقد، حەواڵەی قەرز، سافکردنی حیسابات). بۆ (حەواڵەی هەوایی کە کڕیار کاش دەهێنێت) تکایە تۆماری گشتی بەکاربهێنە.</span>
+          </div>
         </div>
         <div class="p-4 bg-blue-50 text-blue-700 rounded-3xl border border-blue-200 shadow-xs">
           <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
