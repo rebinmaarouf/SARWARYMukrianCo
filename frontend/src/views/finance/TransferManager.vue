@@ -26,7 +26,14 @@
                 <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
                 لە کوێوە دەڕوات (سەرچاوە)
               </label>
-              <div class="relative">
+              
+              <!-- Smart Toggle -->
+              <div class="flex gap-2 p-1 bg-slate-100 rounded-2xl">
+                 <button type="button" @click="applySourceType('cash')" :class="sourceType === 'cash' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-600 hover:bg-slate-200'" class="flex-1 py-3 text-sm font-black rounded-xl transition-all">لە قاصەوە (نەقد)</button>
+                 <button type="button" @click="applySourceType('debt')" :class="sourceType === 'debt' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-600 hover:bg-slate-200'" class="flex-1 py-3 text-sm font-black rounded-xl transition-all">لە وەکیلەوە (قەرز)</button>
+              </div>
+
+              <div class="relative" v-if="sourceType === 'debt'">
                 <input ref="fromAccountInput" v-model="fromAccountSearch" @focus="showResults = 'from'" @input="searchAccounts('from')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-rose-500 outline-none transition-all" />
                 <div v-if="showResults === 'from' && filteredAccountsFrom.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
@@ -39,6 +46,10 @@
                   </button>
                 </div>
               </div>
+              <div v-else class="w-full bg-rose-50 border border-rose-200 rounded-2xl px-6 py-5 flex items-center justify-between cursor-not-allowed opacity-90">
+                 <span class="text-rose-700 font-black text-lg">{{ fromAccountSearch || 'سندوق هەڵنەبژێردراوە' }}</span>
+                 <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
             </div>
 
             <div class="space-y-4 relative">
@@ -46,7 +57,14 @@
                 <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
                 بۆ کوێ دەچێت (وەرگر)
               </label>
-              <div class="relative">
+
+              <!-- Smart Toggle -->
+              <div class="flex gap-2 p-1 bg-slate-100 rounded-2xl">
+                 <button type="button" @click="applyDestType('cash')" :class="destType === 'cash' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-600 hover:bg-slate-200'" class="flex-1 py-3 text-sm font-black rounded-xl transition-all">بۆ قاصە (نەقد)</button>
+                 <button type="button" @click="applyDestType('debt')" :class="destType === 'debt' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-600 hover:bg-slate-200'" class="flex-1 py-3 text-sm font-black rounded-xl transition-all">بۆ وەکیل (قەرز)</button>
+              </div>
+
+              <div class="relative" v-if="destType === 'debt'">
                 <input ref="toAccountInput" v-model="toAccountSearch" @focus="showResults = 'to'" @input="searchAccounts('to')" type="text" placeholder="بگەڕێ بۆ ناو یان کۆد..."
                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-slate-900 font-black text-lg focus:border-emerald-500 outline-none transition-all" />
                 <div v-if="showResults === 'to' && filteredAccountsTo.length" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl z-50 shadow-2xl p-2 space-y-1 max-h-60 overflow-y-auto">
@@ -58,6 +76,10 @@
                     <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ acc.code }}</span>
                   </button>
                 </div>
+              </div>
+              <div v-else class="w-full bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-5 flex items-center justify-between cursor-not-allowed opacity-90">
+                 <span class="text-emerald-700 font-black text-lg">{{ toAccountSearch || 'سندوق هەڵنەبژێردراوە' }}</span>
+                 <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
               </div>
             </div>
           </div>
@@ -400,6 +422,7 @@
 import { ref, onMounted, computed, nextTick } from 'vue'
 import axios from '../../plugins/axios'
 import Swal from 'sweetalert2/dist/sweetalert2.esm.all.js'
+import { useAuthStore } from '../../stores/auth'
 
 const accounts = ref([])
 const currencies = ref([])
@@ -409,6 +432,46 @@ const printingTransfer = ref(null)
 const showPrintOptions = ref(false)
 const selectedTransferToPrint = ref(null)
 const printMode = ref('80mm')
+
+const auth = useAuthStore()
+const sourceType = ref('debt')
+const destType = ref('debt')
+
+function applySourceType(type) {
+  sourceType.value = type
+  if (type === 'cash') {
+    const vault = accounts.value.find(a => a.type === 'vault' && a.branch_id === auth.user?.branch_id)
+    if (vault) {
+      form.value.from_account_id = vault.id
+      fromAccountSearch.value = vault.name
+      showResults.value = null
+    } else {
+      Swal.fire({icon: 'error', title: 'سندوق نەدۆزرایەوە', text: 'سندوقی ئەم لقە بوونی نییە!', background: '#0f172a', color: '#fff'})
+      sourceType.value = 'debt'
+    }
+  } else {
+    form.value.from_account_id = ''
+    fromAccountSearch.value = ''
+  }
+}
+
+function applyDestType(type) {
+  destType.value = type
+  if (type === 'cash') {
+    const vault = accounts.value.find(a => a.type === 'vault' && a.branch_id === auth.user?.branch_id)
+    if (vault) {
+      form.value.to_account_id = vault.id
+      toAccountSearch.value = vault.name
+      showResults.value = null
+    } else {
+      Swal.fire({icon: 'error', title: 'سندوق نەدۆزرایەوە', text: 'سندوقی ئەم لقە بوونی نییە!', background: '#0f172a', color: '#fff'})
+      destType.value = 'debt'
+    }
+  } else {
+    form.value.to_account_id = ''
+    toAccountSearch.value = ''
+  }
+}
 
 const fromAccountSearch = ref('')
 const toAccountSearch = ref('')
@@ -568,6 +631,8 @@ async function submitTransfer() {
     form.value = { from_account_id: '', to_account_id: '', currency_id: form.value.currency_id, amount: 0, commission_amount: 0, commission_currency_id: form.value.currency_id, notes: '' }
     fromAccountSearch.value = ''
     toAccountSearch.value = ''
+    sourceType.value = 'debt'
+    destType.value = 'debt'
     if (data.transfer) transfers.value.unshift(data.transfer)
   } catch (e) {
     let errorHtml = 'تۆمار نەکرا'
