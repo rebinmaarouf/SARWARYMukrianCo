@@ -660,9 +660,6 @@ async function submitTransfer() {
 
 onMounted(() => {
   fetchData()
-  nextTick(() => {
-    fromAccountInput.value?.focus()
-  })
 })
 </script>
 
