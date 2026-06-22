@@ -12,7 +12,7 @@
           <!-- Header (Compact) -->
           <div class="flex justify-between items-center border-b border-emerald-600 pb-2 mb-2">
             <div class="flex items-center gap-3">
-              <img :src="'http://sarwary-api.test/img/logo.jpg'" @error="(e) => e.target.style.display='none'" class="w-12 h-12 object-contain" alt="Logo">
+              <img :src="'/img/logo.jpg'" @error="(e) => e.target.style.display='none'" class="w-12 h-12 object-contain" alt="Logo">
               <div>
                 <h1 class="text-xl font-black text-emerald-800 leading-tight">کۆمپانیای سەروەر موکریان</h1>
                 <p class="text-[8px] font-bold text-slate-500 uppercase">بۆ ئاڵوگۆڕی دراو و حەواڵە</p>

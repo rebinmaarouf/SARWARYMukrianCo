@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const instance = axios.create({
-  baseURL: 'http://sarwary-api.test/api',
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://sarwary-api.test/api'),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
