@@ -1,0 +1,314 @@
+{
+  "_axios-DX1cMT0G.js": {
+    "file": "assets/axios-DX1cMT0G.js",
+    "name": "axios"
+  },
+  "_logo-BPnaJCgy.js": {
+    "file": "assets/logo-BPnaJCgy.js",
+    "name": "logo"
+  },
+  "_runtime-core.esm-bundler-C2LAf-Le.js": {
+    "file": "assets/runtime-core.esm-bundler-C2LAf-Le.js",
+    "name": "runtime-core.esm-bundler"
+  },
+  "_sweetalert2.esm.all-CQTNl7Xj.js": {
+    "file": "assets/sweetalert2.esm.all-CQTNl7Xj.js",
+    "name": "sweetalert2.esm.all"
+  },
+  "index.html": {
+    "file": "assets/index-BfUZ8Ufq.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js"
+    ],
+    "dynamicImports": [
+      "src/views/auth/Login.vue",
+      "src/views/auth/TwoFactorVerify.vue",
+      "src/views/LandingPage.vue",
+      "src/views/admin/Dashboard.vue",
+      "src/views/finance/CurrencyManager.vue",
+      "src/views/finance/AccountStatement.vue",
+      "src/views/finance/TransferManager.vue",
+      "src/views/finance/AccountsManager.vue",
+      "src/views/finance/ExchangeManager.vue",
+      "src/views/finance/VoucherManager.vue",
+      "src/views/finance/DynamicRegistry.vue",
+      "src/views/finance/AuditCenter.vue",
+      "src/views/finance/AuditAdvanced.vue",
+      "src/views/finance/ForensicLogs.vue",
+      "src/views/finance/ClosingAccount.vue",
+      "src/views/admin/UserManager.vue",
+      "src/views/admin/RoleManager.vue",
+      "src/views/errors/ErrorPage.vue"
+    ],
+    "css": [
+      "assets/index-B4z-ZPxo.css"
+    ]
+  },
+  "src/views/LandingPage.vue": {
+    "file": "assets/LandingPage-C33P1JPE.js",
+    "name": "LandingPage",
+    "src": "src/views/LandingPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_runtime-core.esm-bundler-C2LAf-Le.js"
+    ],
+    "css": [
+      "assets/LandingPage-Cu0NRSFM.css"
+    ]
+  },
+  "src/views/admin/Dashboard.vue": {
+    "file": "assets/Dashboard-LYd6ARWn.js",
+    "name": "Dashboard",
+    "src": "src/views/admin/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/Dashboard-DwLaFVqF.css"
+    ]
+  },
+  "src/views/admin/RoleManager.vue": {
+    "file": "assets/RoleManager-C3AWK6Ft.js",
+    "name": "RoleManager",
+    "src": "src/views/admin/RoleManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js"
+    ],
+    "css": [
+      "assets/RoleManager-Cgg8YeXR.css"
+    ]
+  },
+  "src/views/admin/UserManager.vue": {
+    "file": "assets/UserManager-DkMBoTZU.js",
+    "name": "UserManager",
+    "src": "src/views/admin/UserManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js"
+    ],
+    "css": [
+      "assets/UserManager-D8nc1t0j.css"
+    ]
+  },
+  "src/views/auth/Login.vue": {
+    "file": "assets/Login-b04MHvLm.js",
+    "name": "Login",
+    "src": "src/views/auth/Login.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_runtime-core.esm-bundler-C2LAf-Le.js"
+    ],
+    "css": [
+      "assets/Login-DX6cOInv.css"
+    ]
+  },
+  "src/views/auth/TwoFactorVerify.vue": {
+    "file": "assets/TwoFactorVerify-C7fktyDB.js",
+    "name": "TwoFactorVerify",
+    "src": "src/views/auth/TwoFactorVerify.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_runtime-core.esm-bundler-C2LAf-Le.js"
+    ],
+    "css": [
+      "assets/TwoFactorVerify-CGipQK6M.css"
+    ]
+  },
+  "src/views/errors/ErrorPage.vue": {
+    "file": "assets/ErrorPage-D0Clb3NA.js",
+    "name": "ErrorPage",
+    "src": "src/views/errors/ErrorPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_runtime-core.esm-bundler-C2LAf-Le.js"
+    ],
+    "css": [
+      "assets/ErrorPage-D75oUJjJ.css"
+    ]
+  },
+  "src/views/finance/AccountStatement.vue": {
+    "file": "assets/AccountStatement-DUbVdlcE.js",
+    "name": "AccountStatement",
+    "src": "src/views/finance/AccountStatement.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/AccountStatement-Dd_MmtOg.css"
+    ]
+  },
+  "src/views/finance/AccountsManager.vue": {
+    "file": "assets/AccountsManager-DgmCcwQn.js",
+    "name": "AccountsManager",
+    "src": "src/views/finance/AccountsManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js"
+    ],
+    "css": [
+      "assets/AccountsManager-CjZOeCZ-.css"
+    ]
+  },
+  "src/views/finance/AuditAdvanced.vue": {
+    "file": "assets/AuditAdvanced-Ct8uDqIt.js",
+    "name": "AuditAdvanced",
+    "src": "src/views/finance/AuditAdvanced.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/AuditAdvanced-C5kjGwoX.css"
+    ]
+  },
+  "src/views/finance/AuditCenter.vue": {
+    "file": "assets/AuditCenter-C485LWL3.js",
+    "name": "AuditCenter",
+    "src": "src/views/finance/AuditCenter.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js"
+    ],
+    "css": [
+      "assets/AuditCenter-SwTB9KMW.css"
+    ]
+  },
+  "src/views/finance/ClosingAccount.vue": {
+    "file": "assets/ClosingAccount-CLDdu7t1.js",
+    "name": "ClosingAccount",
+    "src": "src/views/finance/ClosingAccount.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/ClosingAccount-DZZp6I5t.css"
+    ]
+  },
+  "src/views/finance/CurrencyManager.vue": {
+    "file": "assets/CurrencyManager-DGUewWyX.js",
+    "name": "CurrencyManager",
+    "src": "src/views/finance/CurrencyManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js"
+    ],
+    "css": [
+      "assets/CurrencyManager-B0bL0muT.css"
+    ]
+  },
+  "src/views/finance/DynamicRegistry.vue": {
+    "file": "assets/DynamicRegistry-53DQz09h.js",
+    "name": "DynamicRegistry",
+    "src": "src/views/finance/DynamicRegistry.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/DynamicRegistry-_SMpzHEz.css"
+    ]
+  },
+  "src/views/finance/ExchangeManager.vue": {
+    "file": "assets/ExchangeManager-fIsz9Ex1.js",
+    "name": "ExchangeManager",
+    "src": "src/views/finance/ExchangeManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/ExchangeManager-CSvijCfi.css"
+    ]
+  },
+  "src/views/finance/ForensicLogs.vue": {
+    "file": "assets/ForensicLogs-DeJJ4nGi.js",
+    "name": "ForensicLogs",
+    "src": "src/views/finance/ForensicLogs.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js"
+    ],
+    "css": [
+      "assets/ForensicLogs-DTu_8WJp.css"
+    ]
+  },
+  "src/views/finance/TransferManager.vue": {
+    "file": "assets/TransferManager-D-6nlDuS.js",
+    "name": "TransferManager",
+    "src": "src/views/finance/TransferManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js",
+      "_logo-BPnaJCgy.js"
+    ],
+    "css": [
+      "assets/TransferManager-BmYGRPks.css"
+    ]
+  },
+  "src/views/finance/VoucherManager.vue": {
+    "file": "assets/VoucherManager-D5ttRq5M.js",
+    "name": "VoucherManager",
+    "src": "src/views/finance/VoucherManager.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_axios-DX1cMT0G.js",
+      "_runtime-core.esm-bundler-C2LAf-Le.js",
+      "_sweetalert2.esm.all-CQTNl7Xj.js",
+      "_logo-BPnaJCgy.js"
+    ]
+  }
+}

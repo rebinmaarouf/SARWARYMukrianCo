@@ -1,0 +1,1 @@
+var e=`/build/logo.png`;export{e as t};
