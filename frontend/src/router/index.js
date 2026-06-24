@@ -17,7 +17,9 @@ const routes = [
   },
   {
     path: '/',
-    redirect: '/admin'
+    name: 'Landing',
+    component: () => import('../views/LandingPage.vue'),
+    meta: { guest: true }
   },
   {
     path: '/admin',
