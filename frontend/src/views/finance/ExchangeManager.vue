@@ -76,9 +76,9 @@
           </div>
         </div>
 
-        <div class="space-y-6 relative z-10" dir="rtl">
+        <div class="space-y-4 md:space-y-6 relative z-10" dir="rtl">
           <!-- Input Grid -->
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
             <div class="space-y-2">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بڕی {{ activePair.primary }}</label>
               <div class="relative">
@@ -112,11 +112,11 @@
           </div>
 
           <!-- Total Result Panel -->
-          <div class="bg-slate-50 p-10 rounded-[3rem] border border-slate-200 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group/total">
-             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 z-10">کۆی گشتی بە {{ activePair.secondary }} {{ activePair.secondary === 'USD' ? '(دۆلار)' : '(دینار)' }}</label>
-             <div class="flex items-baseline gap-3 z-10">
-                <span class="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter">{{ forms[tradeType].secondary_text || '0' }}</span>
-                <span class="text-xl font-black text-slate-600">{{ activePair.secondary }}</span>
+          <div class="bg-slate-50 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-slate-200 shadow-inner flex flex-col items-center justify-center relative overflow-hidden group/total">
+             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 md:mb-4 z-10">کۆی گشتی بە {{ activePair.secondary }} {{ activePair.secondary === 'USD' ? '(دۆلار)' : '(دینار)' }}</label>
+             <div class="flex items-baseline gap-2 md:gap-3 z-10">
+                <span class="text-4xl md:text-7xl font-black text-slate-900 tracking-tighter">{{ forms[tradeType].secondary_text || '0' }}</span>
+                <span class="text-lg md:text-xl font-black text-slate-600">{{ activePair.secondary }}</span>
              </div>
              <!-- Estimated Profit Indicator -->
              <div v-if="forms[tradeType].profit != 0" class="mt-4 px-6 py-2 rounded-full text-[11px] font-black flex items-center gap-2 z-10 animate-pulse"
@@ -127,7 +127,7 @@
           </div>
 
           <!-- Vault & Client Selection -->
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
              <div class="space-y-2">
                 <span class="text-[9px] font-black text-slate-500 uppercase px-3 tracking-widest">پارە بدە لە (سەرچاوە)</span>
                 <select v-model="forms[tradeType].vault_from_id" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-bold text-slate-900 outline-none focus:border-blue-600 transition-all appearance-none">
@@ -142,7 +142,7 @@
              </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
              <div class="space-y-2 relative">
                 <span class="text-[9px] font-black text-slate-500 uppercase px-3 tracking-widest">حیسابی مشتەری (ئەگەر قەرز بوو)</span>
                 <div class="relative">
@@ -199,8 +199,8 @@
         </div>
       </div>
       
-      <div class="overflow-x-auto">
-        <table class="w-full text-right" dir="rtl">
+      <div class="overflow-x-auto scrollbar-thin">
+        <table class="w-full text-right min-w-[1100px]" dir="rtl">
           <thead>
             <tr class="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-[0.3em] border-b border-slate-200 dark:border-white/5 transition-colors">
               <th class="px-8 py-6 text-right">ناسنامە #</th>

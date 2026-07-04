@@ -55,8 +55,8 @@
     <!-- Universal Ledger Card Container -->
     <div class="bg-white border border-slate-200 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-sm relative no-print">
       <!-- Ledger Content Table -->
-      <div ref="headerScrollContainer" @scroll="syncScroll('header')" class="hidden lg:block overflow-x-auto scrollbar-none">
-        <table class="w-full text-right border-collapse min-w-[1300px]" dir="rtl">
+      <div ref="headerScrollContainer" @scroll="syncScroll('header')" class="hidden lg:block overflow-x-auto scrollbar-none w-full">
+        <table class="w-full text-right border-collapse min-w-[1000px] xl:min-w-[1300px]" dir="rtl">
           <thead>
             <tr class="bg-slate-50 text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase border-b border-slate-200">
               <th class="px-6 py-5 w-20 text-center">ژمارە</th>
@@ -158,11 +158,11 @@
       </div>
 
       <!-- Mobile/Tablet Registry List -->
-      <div class="lg:hidden p-6 space-y-6 border-b border-slate-200 bg-slate-50/50">
-         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="lg:hidden p-4 md:p-6 space-y-4 md:space-y-6 border-b border-slate-200 bg-slate-50/50">
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div class="space-y-2">
                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بڕی مامەڵە</span>
-               <input v-model="newEntry.amount" type="number" placeholder="0.00" class="w-full bg-white border border-rose-300 text-rose-600 text-3xl font-black rounded-2xl p-6 focus:border-rose-500 outline-none shadow-xs text-center" />
+               <input v-model="newEntry.amount" type="number" placeholder="0.00" class="w-full bg-white border border-rose-300 text-rose-600 text-2xl md:text-3xl font-black rounded-2xl p-4 md:p-6 focus:border-rose-500 outline-none shadow-xs text-center" />
             </div>
             <div class="space-y-2">
                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">بەرواری مامەڵە</span>
@@ -211,8 +211,8 @@
       </div>
 
       <!-- Execution Log -->
-      <div ref="bodyScrollContainer" @scroll="syncScroll('body')" class="overflow-x-auto scrollbar-thin">
-        <table class="hidden lg:table w-full text-right border-collapse min-w-[1300px]" dir="rtl">
+      <div ref="bodyScrollContainer" @scroll="syncScroll('body')" class="overflow-x-auto scrollbar-thin w-full">
+        <table class="hidden lg:table w-full text-right border-collapse min-w-[1000px] xl:min-w-[1300px]" dir="rtl">
           <tbody>
             <tr v-for="entry in entries" :key="entry.id" class="border-b border-slate-100 hover:bg-slate-50 group transition-all font-semibold">
               <td class="px-6 py-5 text-center font-black text-slate-400 font-mono text-sm">#{{ entry.id }}</td>
@@ -255,9 +255,9 @@
         </table>
 
         <!-- Mobile Execution List -->
-        <div class="lg:hidden divide-y divide-slate-100" dir="rtl">
-           <div v-for="entry in entries" :key="entry.id" class="p-6 space-y-4 hover:bg-slate-50 transition-all font-semibold">
-              <div class="flex justify-between items-start">
+        <div class="lg:hidden divide-y divide-slate-100 w-full" dir="rtl">
+           <div v-for="entry in entries" :key="entry.id" class="p-4 md:p-6 space-y-3 md:space-y-4 hover:bg-slate-50 transition-all font-semibold">
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                  <div class="flex flex-col">
                     <div class="flex items-center gap-2 mb-1">
                        <span class="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md">#{{ entry.id }}</span>

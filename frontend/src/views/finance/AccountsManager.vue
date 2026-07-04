@@ -38,8 +38,8 @@
         </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-right border-collapse" dir="rtl">
+      <div class="overflow-x-auto scrollbar-thin">
+        <table class="w-full text-right border-collapse min-w-[1000px]" dir="rtl">
           <thead>
             <tr class="bg-slate-50 text-slate-500 uppercase text-[10px] font-black tracking-[0.2em] border-b border-slate-200">
               <th class="px-8 py-5">کۆد</th>
@@ -128,7 +128,7 @@
             </div>
 
             <form @submit.prevent="editingAccount ? updateAccount() : submitAccount()" class="space-y-6" dir="rtl">
-              <div class="grid grid-cols-2 gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div class="space-y-2">
                   <label class="text-xs font-black text-slate-500 uppercase tracking-widest px-2">ناوی حیساب</label>
                   <input v-model="activeForm.name" required type="text" placeholder="بۆ نموونە: کۆمپانیای ناترۆن" 

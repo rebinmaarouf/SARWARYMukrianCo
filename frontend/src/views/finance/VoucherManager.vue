@@ -195,8 +195,8 @@
           </div>
         </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-right border-collapse" dir="rtl">
+      <div class="overflow-x-auto scrollbar-thin">
+        <table class="w-full text-right border-collapse min-w-[900px]" dir="rtl">
           <thead>
             <tr class="bg-white text-slate-500 uppercase text-[10px] font-black tracking-widest border-b border-slate-200">
               <th class="px-6 py-4">ژمارەی پسوڵە</th>

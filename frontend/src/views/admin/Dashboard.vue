@@ -1,13 +1,13 @@
 <template>
-  <div class="p-4 md:p-8 lg:p-10 space-y-8 max-w-[1900px] mx-auto pb-40 text-slate-900 font-sans" dir="rtl">
+  <div class="p-2 md:p-8 lg:p-10 space-y-4 md:space-y-8 max-w-[1900px] mx-auto pb-40 text-slate-900 font-sans" dir="rtl">
     
     <!-- PREMIUM SYSTEM HEADER (The Global Terminal) -->
-    <header class="bg-white backdrop-blur-3xl p-8 rounded-[3rem] border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-8">
+    <header class="bg-white backdrop-blur-3xl p-4 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
       <div class="absolute inset-0 bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none"></div>
       
-      <div class="flex items-center gap-6 relative z-10">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 relative z-10 w-full">
         <!-- Branded Logo Box -->
-        <div class="w-20 h-20 bg-white rounded-[1.8rem] border border-slate-200 flex items-center justify-center p-3 shadow-md relative">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-[1.2rem] sm:rounded-[1.8rem] border border-slate-200 flex items-center justify-center p-2 sm:p-3 shadow-md relative shrink-0">
            <img src="/logo.png" class="max-w-full max-h-full object-contain" alt="Logo" />
            
            <!-- Red Bell Indicator -->
@@ -19,18 +19,18 @@
            <div class="flex items-center gap-3 mb-2">
               <span class="px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-black uppercase tracking-widest rounded-full animate-pulse">Global Terminal Active</span>
            </div>
-           <h1 class="text-4xl font-black tracking-tight text-slate-900 leading-none">بەخێربێیتەوە، {{ user?.name?.split(' ')[0] || 'بەڕێز' }}</h1>
+           <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 leading-tight md:leading-none">بەخێربێیتەوە، {{ user?.name?.split(' ')[0] || 'بەڕێز' }}</h1>
         </div>
       </div>
 
       <!-- Real-time Clock & System Status -->
-      <div class="flex gap-4 relative z-10">
-         <div class="bg-slate-50 p-5 rounded-[2rem] border border-slate-200 flex items-center gap-8 shadow-xs">
-            <div class="text-left px-4 border-l border-slate-200">
+      <div class="flex flex-col sm:flex-row gap-4 relative z-10 w-full xl:w-auto">
+         <div class="bg-slate-50 p-4 sm:p-5 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 shadow-xs w-full">
+            <div class="text-left sm:px-4 border-b sm:border-b-0 sm:border-l border-slate-200 w-full sm:w-auto pb-2 sm:pb-0">
                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">System Time</span>
-               <p class="text-2xl font-black text-slate-900 font-mono">{{ currentTime }}</p>
+               <p class="text-xl sm:text-2xl font-black text-slate-900 font-mono">{{ currentTime }}</p>
             </div>
-            <div class="text-left px-4">
+            <div class="text-left sm:px-4 w-full sm:w-auto">
                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Market Date</span>
                <p class="text-xs font-black text-slate-600 uppercase">{{ currentDate }}</p>
             </div>
@@ -41,37 +41,37 @@
     <!-- KEY PERFORMANCE INDICATORS (IUAS P&L) - Hidden from Cashier -->
     <div v-if="can('view_reports')" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
        <!-- Revenue -->
-       <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden group">
-          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی داهاتەکان</span>
-          <h3 class="text-3xl font-black text-emerald-600 font-mono tracking-tighter">{{ formatNum(stats.summary?.revenue_iqd) }} <span class="text-xs text-slate-500">IQD</span></h3>
-          <div class="mt-4 flex items-center gap-2">
+       <div class="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden group">
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-2 md:mb-4">کۆی داهاتەکان</span>
+          <h3 class="text-2xl md:text-3xl font-black text-emerald-600 font-mono tracking-tighter break-all">{{ formatNum(stats.summary?.revenue_iqd) }} <span class="text-[10px] md:text-xs text-slate-500">IQD</span></h3>
+          <div class="mt-2 md:mt-4 flex items-center gap-2">
              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></div>
              <span class="text-[8px] text-slate-500 font-black uppercase">نوێبوونەوەی ڕاستەوخۆ</span>
           </div>
        </div>
 
        <!-- Expenses -->
-       <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden">
-          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-4">کۆی خەرجییەکان</span>
-          <h3 class="text-3xl font-black text-rose-600 font-mono tracking-tighter">{{ formatNum(stats.summary?.expense_iqd) }} <span class="text-xs text-slate-500">IQD</span></h3>
-          <p class="text-[8px] text-slate-500 font-black mt-4 uppercase">تێچووی کارکردن و بەڕێوەبردن</p>
+       <div class="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-200/80 shadow-sm relative overflow-hidden">
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-2 md:mb-4">کۆی خەرجییەکان</span>
+          <h3 class="text-2xl md:text-3xl font-black text-rose-600 font-mono tracking-tighter break-all">{{ formatNum(stats.summary?.expense_iqd) }} <span class="text-[10px] md:text-xs text-slate-500">IQD</span></h3>
+          <p class="text-[8px] text-slate-500 font-black mt-2 md:mt-4 uppercase">تێچووی کارکردن و بەڕێوەبردن</p>
        </div>
 
        <!-- Net Profit (USD) -->
-       <div class="bg-emerald-600 p-8 rounded-[2.5rem] shadow-emerald-600/20 shadow-xl text-white flex flex-col justify-between">
+       <div class="bg-emerald-600 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-emerald-600/20 shadow-xl text-white flex flex-col justify-between">
           <div>
-            <span class="text-[9px] font-black opacity-80 uppercase tracking-widest block mb-2">قازانجی گشتیی خەمڵێنراو</span>
+            <span class="text-[9px] font-black opacity-80 uppercase tracking-widest block mb-1 md:mb-2">قازانجی گشتیی خەمڵێنراو</span>
             <div class="flex items-baseline gap-1">
-               <span class="text-xl font-black">$</span>
-               <h3 class="text-5xl font-black font-mono tracking-tighter">{{ formatNum(stats.summary?.net_profit_usd) }}</h3>
+               <span class="text-lg md:text-xl font-black">$</span>
+               <h3 class="text-4xl md:text-5xl font-black font-mono tracking-tighter break-all">{{ formatNum(stats.summary?.net_profit_usd) }}</h3>
             </div>
           </div>
-          <p class="text-[9px] font-black mt-4 uppercase opacity-80 tracking-widest">بەپێی بەهای گشتیی دراوەکان</p>
+          <p class="text-[9px] font-black mt-2 md:mt-4 uppercase opacity-80 tracking-widest">بەپێی بەهای گشتیی دراوەکان</p>
        </div>
 
        <!-- Period Toggles (Quick Select) -->
-       <div class="bg-slate-100 p-4 rounded-[2.5rem] border border-slate-200 flex flex-col gap-2">
-          <h4 class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-2 text-center">ماوەی کاتیی داتاکان</h4>
+       <div class="bg-slate-100 p-3 md:p-4 rounded-[2rem] md:rounded-[2.5rem] border border-slate-200 flex flex-col gap-2">
+          <h4 class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] mb-1 md:mb-2 text-center">ماوەی کاتیی داتاکان</h4>
           <button v-for="p in ['7d', '30d', '1y']" :key="p" @click="changePeriod(p)"
             class="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all"
             :class="filters.period === p ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'">

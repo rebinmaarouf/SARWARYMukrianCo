@@ -93,7 +93,7 @@
              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                <div class="space-y-4">
                   <label class="text-xs font-black text-blue-700 uppercase tracking-[0.2em] px-2">دراوی حەواڵە</label>
-                  <div class="flex gap-2 p-1 bg-white rounded-2xl border border-slate-200">
+                  <div class="flex flex-wrap gap-2 p-1 bg-white rounded-2xl border border-slate-200">
                     <button v-for="c in currencies" :key="c.id" type="button"
                       @click="form.currency_id = c.id; form.commission_currency_id = c.id; form.commission_currency_2_id = c.id"
                       class="flex-1 py-5 rounded-xl text-sm font-black uppercase transition-all"
@@ -115,7 +115,7 @@
              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                <div class="space-y-4">
                   <label class="text-xs font-black text-emerald-700 uppercase tracking-[0.2em] px-2">دراوی عومولە</label>
-                  <div class="flex gap-2 p-1 bg-white rounded-2xl border border-slate-200">
+                  <div class="flex flex-wrap gap-2 p-1 bg-white rounded-2xl border border-slate-200">
                     <button v-for="c in currencies" :key="c.id" type="button"
                       @click="form.commission_currency_id = c.id; form.commission_currency_2_id = c.id"
                       class="flex-1 py-5 rounded-xl text-sm font-black uppercase transition-all"
@@ -168,8 +168,8 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </button>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-right" dir="rtl">
+      <div class="overflow-x-auto scrollbar-thin">
+        <table class="w-full text-right min-w-[1000px]" dir="rtl">
           <thead>
             <tr class="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-slate-200">
               <th class="px-8 py-5">کات</th>

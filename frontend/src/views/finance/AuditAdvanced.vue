@@ -114,7 +114,8 @@
           <span class="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping"></span>
           <h3 class="text-md font-black text-rose-400">لیستی مامەڵە دەستکاری کراوە دۆزراوەکان (Tampered Rows Found)</h3>
         </div>
-        <table class="w-full text-right text-xs">
+        <div class="overflow-x-auto scrollbar-thin">
+          <table class="w-full text-right text-xs min-w-[700px]">
           <thead>
             <tr class="text-slate-400 border-b border-white/5">
               <th class="pb-2">کۆدی دێڕ (ID)</th>
@@ -136,6 +137,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </template>
 
@@ -362,7 +364,8 @@
             <div class="w-2 h-6 bg-blue-600 dark:bg-blue-500 rounded-full print:h-4"></div>
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter print:text-[10px] italic">ووردبینی جوڵەی سندوقەکان (Vault Analytics)</h3>
           </div>
-          <table class="w-full text-right border-collapse print:text-[9px]">
+          <div class="overflow-x-auto scrollbar-thin">
+            <table class="w-full text-right border-collapse print:text-[9px] min-w-[800px]">
             <thead>
               <tr class="bg-slate-100 dark:bg-slate-900 text-[8px] font-black uppercase text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-white/5 print:text-[7px]">
                 <th class="px-4 py-2 print:py-1">سندوق</th>
@@ -430,16 +433,17 @@
                         هیچ جوڵەیەکی حیسابی بەردەست نییە بۆ ئەم سندوق و دراوە لەم بەروارەدا.
                       </div>
                       
-                      <table v-else class="w-full text-right text-[10px] border-collapse">
-                        <thead>
-                          <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
-                            <th class="pb-3 text-right">ڕێکەوت و کات</th>
-                            <th class="pb-3 text-right">ناو / جۆری مامەڵە</th>
-                            <th class="pb-3 text-right text-emerald-400">هاتوو (+)</th>
-                            <th class="pb-3 text-right text-rose-400">ڕۆیشتوو (-)</th>
-                            <th class="pb-3 text-left">ئەنجامدەر</th>
-                          </tr>
-                        </thead>
+                      <div v-else class="overflow-x-auto scrollbar-thin">
+                        <table class="w-full text-right text-[10px] border-collapse min-w-[500px]">
+                          <thead>
+                            <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
+                              <th class="pb-3 text-right">ڕێکەوت و کات</th>
+                              <th class="pb-3 text-right">ناو / جۆری مامەڵە</th>
+                              <th class="pb-3 text-right text-emerald-400">هاتوو (+)</th>
+                              <th class="pb-3 text-right text-rose-400">ڕۆیشتوو (-)</th>
+                              <th class="pb-3 text-left">ئەنجامدەر</th>
+                            </tr>
+                          </thead>
                         <tbody class="divide-y divide-white/5 font-semibold">
                           <tr v-for="d in getRowDetails(f)" :key="d.id" class="hover:bg-white/[0.02] transition-colors">
                             <td class="py-3 text-slate-400 font-bold">{{ d.date }}</td>
@@ -450,12 +454,14 @@
                           </tr>
                         </tbody>
                       </table>
+                      </div>
                     </div>
                   </td>
                 </tr>
               </template>
             </tbody>
           </table>
+          </div>
         </section>
 
         <!-- Zero-Error Physical Vault vs Commission Vault Audit Verification -->
@@ -482,7 +488,8 @@
             <div class="w-2 h-6 bg-emerald-600 rounded-full print:h-4"></div>
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter print:text-[10px]">١. ماڵ و سامان (Assets)</h3>
           </div>
-          <table class="w-full text-right border-collapse print:text-[9px]">
+          <div class="overflow-x-auto scrollbar-thin">
+            <table class="w-full text-right border-collapse print:text-[9px] min-w-[800px]">
             <thead>
               <tr class="bg-slate-900 dark:bg-slate-800 text-white text-[8px] font-black uppercase print:bg-slate-100 print:text-black print:text-[7px] transition-colors duration-300">
                 <th class="px-4 py-2 rounded-r-lg print:py-1 print:rounded-none">کۆدی حیساب</th>
@@ -538,16 +545,17 @@
                         هیچ جوڵەیەکی حیسابی بەردەست نییە بۆ ئەم حیسابە لەم بەروارەدا.
                       </div>
                       
-                      <table v-else class="w-full text-right text-[10px] border-collapse">
-                        <thead>
-                          <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
-                            <th class="pb-3 text-right">ڕێکەوت</th>
-                            <th class="pb-3 text-right">وەسف و تێبینی</th>
-                            <th class="pb-3 text-right text-emerald-400">لادان / هاتوو (Debtor)</th>
-                            <th class="pb-3 text-right text-rose-400">بەرانبەر / ڕۆیشتوو (Creditor)</th>
-                            <th class="pb-3 text-left">ئەنجامدەر</th>
-                          </tr>
-                        </thead>
+                      <div v-else class="overflow-x-auto scrollbar-thin">
+                        <table class="w-full text-right text-[10px] border-collapse min-w-[500px]">
+                          <thead>
+                            <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
+                              <th class="pb-3 text-right">ڕێکەوت</th>
+                              <th class="pb-3 text-right">وەسف و تێبینی</th>
+                              <th class="pb-3 text-right text-emerald-400">لادان / هاتوو (Debtor)</th>
+                              <th class="pb-3 text-right text-rose-400">بەرانبەر / ڕۆیشتوو (Creditor)</th>
+                              <th class="pb-3 text-left">ئەنجامدەر</th>
+                            </tr>
+                          </thead>
                         <tbody class="divide-y divide-white/5 font-semibold">
                           <tr v-for="d in acc.entries" :key="d.id" class="hover:bg-white/[0.02] transition-colors">
                             <td class="py-3 text-slate-400 font-bold">{{ d.date }}</td>
@@ -561,6 +569,7 @@
                           </tr>
                         </tbody>
                       </table>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -573,6 +582,7 @@
               </tr>
             </tfoot>
           </table>
+          </div>
         </section>
 
         <!-- 2. Liabilities Detail - Compact -->
@@ -637,16 +647,17 @@
                         هیچ جوڵەیەکی حیسابی بەردەست نییە بۆ ئەم حیسابە لەم بەروارەدا.
                       </div>
                       
-                      <table v-else class="w-full text-right text-[10px] border-collapse">
-                        <thead>
-                          <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
-                            <th class="pb-3 text-right">ڕێکەوت</th>
-                            <th class="pb-3 text-right">وەسف و تێبینی</th>
-                            <th class="pb-3 text-right text-emerald-400">لادان / هاتوو (Debtor)</th>
-                            <th class="pb-3 text-right text-rose-400">بەرانبەر / ڕۆیشتوو (Creditor)</th>
-                            <th class="pb-3 text-left">ئەنجامدەر</th>
-                          </tr>
-                        </thead>
+                      <div v-else class="overflow-x-auto scrollbar-thin">
+                        <table class="w-full text-right text-[10px] border-collapse min-w-[500px]">
+                          <thead>
+                            <tr class="text-slate-500 border-b border-white/5 text-[9px] font-black uppercase tracking-wider">
+                              <th class="pb-3 text-right">ڕێکەوت</th>
+                              <th class="pb-3 text-right">وەسف و تێبینی</th>
+                              <th class="pb-3 text-right text-emerald-400">لادان / هاتوو (Debtor)</th>
+                              <th class="pb-3 text-right text-rose-400">بەرانبەر / ڕۆیشتوو (Creditor)</th>
+                              <th class="pb-3 text-left">ئەنجامدەر</th>
+                            </tr>
+                          </thead>
                         <tbody class="divide-y divide-white/5 font-semibold">
                           <tr v-for="d in acc.entries" :key="d.id" class="hover:bg-white/[0.02] transition-colors">
                             <td class="py-3 text-slate-400 font-bold">{{ d.date }}</td>
@@ -660,6 +671,7 @@
                           </tr>
                         </tbody>
                       </table>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -816,7 +828,8 @@
 
         <!-- Table of anomalies -->
         <div v-else class="overflow-x-auto">
-          <table class="w-full text-right text-xs">
+          <div class="overflow-x-auto scrollbar-thin">
+          <table class="w-full text-right text-xs min-w-[600px]">
             <thead>
               <tr class="text-slate-500 border-b border-slate-200 bg-slate-50">
                 <th class="p-3 text-right">مەترسی</th>
@@ -961,6 +974,7 @@
         </div>
 
       </div>
+    </div>
     </div>
 </template>
 

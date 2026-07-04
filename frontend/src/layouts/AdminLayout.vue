@@ -6,12 +6,12 @@
 
     <!-- Main Sidebar -->
     <aside :class="[
-      'bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-l border-slate-200/60 dark:border-white/5 flex flex-col transition-all duration-500 relative z-[70] shadow-2xl shadow-slate-200/50 dark:shadow-none',
+      'bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-l border-slate-200/60 dark:border-white/5 flex flex-col transition-all duration-500 z-[70] shadow-2xl shadow-slate-200/50 dark:shadow-none',
       isCollapsed ? 'md:w-24' : 'md:w-80',
-      isMobileMenuOpen ? 'fixed inset-y-0 right-0 w-80 translate-x-0' : 'fixed inset-y-0 right-0 w-80 translate-x-full lg:translate-x-0 lg:relative lg:translate-x-0'
+      isMobileMenuOpen ? 'fixed inset-y-0 right-0 w-[80vw] sm:w-80 translate-x-0 opacity-100 pointer-events-auto' : 'fixed inset-y-0 right-0 w-[80vw] sm:w-80 translate-x-full opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto lg:translate-x-0 lg:relative'
     ]">
       <!-- Sidebar Header / Logo Area -->
-      <div class="p-6 mb-4 flex items-center" :class="isCollapsed ? 'justify-center' : 'justify-between'">
+      <div class="p-4 md:p-6 mb-2 flex items-center" :class="isCollapsed ? 'justify-center' : 'justify-between'">
         <div class="w-12 h-12 relative group cursor-pointer shrink-0">
             <div class="absolute inset-0 bg-white rounded-xl shadow-2xl shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-500"></div>
             <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain relative z-10 p-1.5 rounded-xl" @error="logoError = true" v-if="!logoError" />
@@ -32,7 +32,7 @@
           <span v-if="!isCollapsed" class="font-bold whitespace-nowrap">داشبۆرد</span>
         </router-link>
 
-        <div v-if="!isCollapsed" class="pt-4 pb-1.5 px-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">Financial Ledger</div>
+        <div v-if="!isCollapsed" class="pt-4 pb-1 px-4 md:px-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">Financial Ledger</div>
         <div v-else class="h-px bg-white/5 my-4 mx-4"></div>
 
         <!-- Links with tooltips when collapsed -->
@@ -121,7 +121,7 @@
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col relative bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300">
        <!-- Header -->
-       <header class="h-20 flex items-center justify-between px-6 md:px-10 border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl relative z-40 transition-colors duration-300">
+       <header class="h-16 md:h-20 flex items-center justify-between px-4 md:px-10 border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl relative z-40 transition-colors duration-300">
           <div class="flex items-center gap-4">
              <!-- Mobile Toggle -->
              <button @click="isMobileMenuOpen = true" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600">
@@ -137,7 +137,7 @@
                 <div class="h-6 w-px bg-slate-200 mx-1"></div>
 
                 <!-- Global Branch Switcher (Dynamic based on authorized branches) -->
-                <div v-if="branches && branches.length > 1" class="relative group/branch">
+                <div v-if="branches && branches.length > 1" class="relative group/branch hidden lg:block">
                    <button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 shadow-sm rounded-xl transition-all group">
                       <span class="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse shadow-[0_0_8px_#3b82f6]"></span>
                       <span class="flex flex-col items-start text-right">
@@ -217,7 +217,7 @@
                 </div>
              </div>
 
-             <div class="text-right hidden sm:block">
+             <div class="text-right hidden lg:block">
                 <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">{{ currentBranch?.name }} / Auth</p>
                 <p class="text-sm font-bold text-slate-900 dark:text-white transition-colors duration-300">{{ auth.user?.name }}</p>
              </div>
@@ -228,9 +228,9 @@
        </header>
 
        <!-- Dynamic View Content -->
-       <div class="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar relative z-30">
+       <div class="flex-1 overflow-y-auto overflow-x-hidden p-2 md:p-10 custom-scrollbar relative z-30">
           <router-view v-slot="{ Component }">
-            <component :is="Component" :key="$route.fullPath" />
+             <component :is="Component" :key="$route.fullPath" />
           </router-view>
        </div>
 
@@ -396,7 +396,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.85rem 1.25rem;
+  padding: 0.75rem 1rem;
   border-radius: 1rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   color: #64748b;
