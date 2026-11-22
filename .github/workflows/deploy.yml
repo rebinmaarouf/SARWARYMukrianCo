@@ -87,6 +87,8 @@ jobs:
     needs: ci-quality-gate
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
+    env:
+      COMPOSER_CHANGED: "0"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -222,7 +224,7 @@ jobs:
             REMOTE_PHP=\"/opt/cpanel/ea-php83/root/usr/bin/php\"
             cd \"\$REMOTE_CORE\"
 
-            if [[ '${{ env.COMPOSER_CHANGED }}' == '1' ]]; then
+            if [[ "${COMPOSER_CHANGED}" == "1" ]]; then
               \$REMOTE_PHP /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction
             fi
 
