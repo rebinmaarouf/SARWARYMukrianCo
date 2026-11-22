@@ -36,7 +36,10 @@ export const useAuthStore = defineStore('auth', {
           return { twoFactor: true }
         }
       } catch (err) {
-        this.error = err.response?.data?.message || 'کێشەیەک ڕوویدا لە کاتی لۆگین'
+        const firstValidationError = err.response?.data?.errors
+          ? Object.values(err.response.data.errors).flat()[0]
+          : null
+        this.error = firstValidationError || err.response?.data?.message || 'کێشەیەک ڕوویدا لە کاتی لۆگین'
         throw err
       } finally {
         this.loading = false
@@ -59,7 +62,10 @@ export const useAuthStore = defineStore('auth', {
         
         return response.data
       } catch (err) {
-        this.error = err.response?.data?.message || 'کۆدەکە هەڵەیە'
+        const firstValidationError = err.response?.data?.errors
+          ? Object.values(err.response.data.errors).flat()[0]
+          : null
+        this.error = firstValidationError || err.response?.data?.message || 'کۆدەکە هەڵەیە'
         throw err
       } finally {
         this.loading = false

@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('finance:eod-closeout')->dailyAt('23:59');
+Schedule::command('finance:eod-closeout')->dailyAt('23:59')->timezone('Asia/Baghdad');
