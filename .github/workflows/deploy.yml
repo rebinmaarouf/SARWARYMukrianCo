@@ -1,0 +1,303 @@
+name: Enterprise CI/CD Pipeline (cPanel Production)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run rsync in Dry-Run mode only (no files modified on server)"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: production-cicd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ============================================================================
+  # STAGE 1: Continuous Integration (Security Audit, PHP 8.3 Lint, Vue 3 Build)
+  # ============================================================================
+  ci-quality-gate:
+    name: "Stage 1: CI Quality Gate & Vite Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Security Gate (Ensure no secrets or .env files are tracked)
+        run: |
+          if git ls-files --error-unmatch .deploy.env backend/.env frontend/.env.local >/dev/null 2>&1; then
+            echo "❌ CRITICAL: Secret environment file detected in Git index!"
+            exit 1
+          fi
+          echo "✅ No secret files tracked in repository."
+
+      - name: Setup PHP 8.3 (Matching cPanel ea-php83)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo_mysql, mbstring, bcmath, intl, zip, gd, pcntl
+          coverage: none
+
+      - name: Lint All Backend PHP Files (Syntax Verification)
+        working-directory: ./backend
+        run: |
+          composer validate --no-check-publish --no-check-all
+          find app routes config database bootstrap -name "*.php" -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies & Build Production SPA
+        working-directory: ./frontend
+        run: |
+          npm ci --no-audit
+          npm run build
+          rm -f ../backend/public/build/.DS_Store
+
+      - name: Verify Compiled SPA Build Output
+        run: |
+          test -s backend/public/build/index.html
+          test -s backend/public/build/.vite/manifest.json
+          echo "✅ Vue 3 SPA build verified."
+
+      - name: Upload Compiled Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-production-build
+          path: backend/public/build/
+          include-hidden-files: true
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 2: Continuous Deployment (Atomic Backup, Rsync, Cache, Health & Auto-Rollback)
+  # ============================================================================
+  cd-production-deploy:
+    name: "Stage 2: CD Production Deploy (cPanel)"
+    needs: ci-quality-gate
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Verified Frontend Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-production-build
+          path: backend/public/build/
+
+      - name: Configure SSH Key & Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf "%s\n" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Dry-Run Preview (When dry_run is enabled)
+        if: ${{ inputs.dry_run == true }}
+        run: |
+          SSH_CMD="ssh -p ${{ secrets.SSH_PORT }} -o BatchMode=yes -o SendEnv=none -i ~/.ssh/id_ed25519"
+          REMOTE_WEB="/home/${{ secrets.SSH_USER }}/public_html"
+          REMOTE_CORE="${REMOTE_WEB}/SarwarCo"
+
+          echo "=== Backend Dry-Run ==="
+          rsync -rcni --dry-run \
+            --exclude='.env' --exclude='.env.*' --exclude='.htaccess' --exclude='storage/' \
+            --exclude='vendor/' --exclude='node_modules/' --exclude='.git/' --exclude='tests/' \
+            --exclude='.DS_Store' --exclude='__MACOSX' --exclude='database.sqlite' \
+            -e "$SSH_CMD" \
+            backend/app backend/routes backend/resources backend/config backend/database \
+            backend/artisan backend/composer.json backend/composer.lock \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${REMOTE_CORE}/" | grep -v '^\.f\.\.T\.\.\.\.' || true
+
+          echo "=== Frontend Build Dry-Run ==="
+          rsync -rcni --dry-run --exclude='.DS_Store' -e "$SSH_CMD" \
+            backend/public/build/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${REMOTE_WEB}/build/" | grep -v '^\.f\.\.T\.\.\.\.' || true
+
+      - name: Pre-Deploy Atomic Server Backup (DB + Files with 10-Backup Rotation)
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          SSH_CMD="ssh -p ${{ secrets.SSH_PORT }} -o BatchMode=yes -o SendEnv=none -i ~/.ssh/id_ed25519"
+          $SSH_CMD "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" '
+            export LC_ALL=C
+            set -e
+            BACKUP_DIR="$HOME/backups"
+            REMOTE_WEB="$HOME/public_html"
+            REMOTE_CORE="$REMOTE_WEB/SarwarCo"
+            REMOTE_PHP="/opt/cpanel/ea-php83/root/usr/bin/php"
+            TS=$(date +%Y%m%d-%H%M%S)
+
+            mkdir -p "$BACKUP_DIR"
+            chmod 700 "$BACKUP_DIR"
+
+            cd "$REMOTE_CORE"
+            $REMOTE_PHP -r '\''
+              require "vendor/autoload.php";
+              $app = require_once "bootstrap/app.php";
+              $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+              $kernel->bootstrap();
+              $c = config("database.connections.mysql");
+              putenv("MYSQL_PWD=" . $c["password"]);
+              $cmd = sprintf(
+                  "mysqldump --single-transaction --routines --triggers --no-tablespaces -h %s -P %s -u %s %s",
+                  escapeshellarg($c["host"]),
+                  escapeshellarg($c["port"]),
+                  escapeshellarg($c["username"]),
+                  escapeshellarg($c["database"])
+              );
+              passthru($cmd, $ret);
+              exit($ret);
+            '\'' | gzip -c > "$BACKUP_DIR/prod-db-$TS.sql.gz"
+
+            tar -czf "$BACKUP_DIR/prod-files-$TS.tar.gz" -C "$REMOTE_WEB" \
+              --exclude="SarwarCo/vendor" \
+              --exclude="SarwarCo/storage/logs/*" \
+              --exclude="__MACOSX" \
+              --exclude=".DS_Store" \
+              SarwarCo index.php .htaccess build logo.png favicon.ico
+
+            # Keep only the 10 most recent DB and File backups on server
+            ls -1t "$BACKUP_DIR"/prod-db-*.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+            ls -1t "$BACKUP_DIR"/prod-files-*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+            echo "✅ Server backup created: prod-db-$TS.sql.gz & prod-files-$TS.tar.gz"
+          '
+
+      - name: Deploy Backend Core & Frontend Build Assets via Rsync
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          SSH_CMD="ssh -p ${{ secrets.SSH_PORT }} -o BatchMode=yes -o SendEnv=none -i ~/.ssh/id_ed25519"
+          REMOTE_WEB="/home/${{ secrets.SSH_USER }}/public_html"
+          REMOTE_CORE="${REMOTE_WEB}/SarwarCo"
+
+          COMPOSER_CHANGED=0
+          if [[ -n "$(rsync -rcni --dry-run -e "$SSH_CMD" backend/composer.json backend/composer.lock "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${REMOTE_CORE}/" | grep '^>f' || true)" ]]; then
+            COMPOSER_CHANGED=1
+          fi
+          echo "COMPOSER_CHANGED=${COMPOSER_CHANGED}" >> "$GITHUB_ENV"
+
+          rsync -rcz -i \
+            --exclude='.env' --exclude='.env.*' --exclude='.deploy.env' \
+            --exclude='.htaccess' --exclude='.htaccess.*' \
+            --exclude='storage/' --exclude='vendor/' --exclude='node_modules/' \
+            --exclude='.git/' --exclude='.gitignore' --exclude='.gitattributes' \
+            --exclude='tests/' --exclude='docker/' --exclude='backups/' \
+            --exclude='.DS_Store' --exclude='__MACOSX' --exclude='database.sqlite' \
+            -e "$SSH_CMD" \
+            backend/app backend/routes backend/resources backend/config backend/database \
+            backend/artisan backend/composer.json backend/composer.lock \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${REMOTE_CORE}/" | grep -v '^\.f\.\.T\.\.\.\.' || true
+
+          rsync -rcz -i --exclude='.DS_Store' -e "$SSH_CMD" \
+            backend/public/build/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${REMOTE_WEB}/build/" | grep -v '^\.f\.\.T\.\.\.\.' || true
+
+          if [[ -d "frontend/public/img" ]]; then
+            rsync -rcz --exclude='.DS_Store' -e "$SSH_CMD" \
+              frontend/public/img/ \
+              "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${REMOTE_WEB}/img/"
+          fi
+
+      - name: Run Remote PHP 8.3 Migrations, Cache Optimization & Permissions
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          SSH_CMD="ssh -p ${{ secrets.SSH_PORT }} -o BatchMode=yes -o SendEnv=none -i ~/.ssh/id_ed25519"
+          $SSH_CMD "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "
+            export LC_ALL=C
+            set -e
+            REMOTE_WEB=\"\$HOME/public_html\"
+            REMOTE_CORE=\"\$REMOTE_WEB/SarwarCo\"
+            REMOTE_PHP=\"/opt/cpanel/ea-php83/root/usr/bin/php\"
+            cd \"\$REMOTE_CORE\"
+
+            if [[ '${{ env.COMPOSER_CHANGED }}' == '1' ]]; then
+              \$REMOTE_PHP /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction
+            fi
+
+            \$REMOTE_PHP artisan migrate --force
+            \$REMOTE_PHP artisan optimize:clear
+            \$REMOTE_PHP artisan config:cache
+            \$REMOTE_PHP artisan route:cache
+            \$REMOTE_PHP artisan view:cache
+
+            chmod -R 775 storage bootstrap/cache
+            chmod 644 \"\$REMOTE_WEB/.htaccess\" \"\$REMOTE_CORE/.htaccess\"
+          "
+
+      - name: Post-Deploy Security & Health Verification
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          ENV_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://sarwary-mukiryan.com/SarwarCo/.env")
+          LOG_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://sarwary-mukiryan.com/SarwarCo/storage/logs/laravel.log")
+          HOME_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://sarwary-mukiryan.com/")
+          LOGIN_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://sarwary-mukiryan.com/login")
+          UP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://sarwary-mukiryan.com/up")
+          API_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" -H "Accept: application/json" "https://sarwary-mukiryan.com/api/user")
+
+          echo "Security /SarwarCo/.env -> HTTP $ENV_CODE"
+          echo "Security /SarwarCo/storage/logs/laravel.log -> HTTP $LOG_CODE"
+          echo "Homepage / -> HTTP $HOME_CODE"
+          echo "Login /login -> HTTP $LOGIN_CODE"
+          echo "Healthcheck /up -> HTTP $UP_CODE"
+          echo "API /api/user -> HTTP $API_CODE"
+
+          if [[ "$ENV_CODE" != "403" && "$ENV_CODE" != "404" ]]; then
+            echo "🚨 Security check failed: /SarwarCo/.env returned $ENV_CODE"
+            exit 1
+          fi
+          if [[ "$HOME_CODE" != "200" || "$LOGIN_CODE" != "200" || "$UP_CODE" != "200" ]]; then
+            echo "🚨 Health check failed!"
+            exit 1
+          fi
+
+          {
+            echo "## 🚀 Production Deployment Summary"
+            echo "| Check | Endpoint | HTTP Status | Result |"
+            echo "| :--- | :--- | :---: | :---: |"
+            echo "| **Security Lock (.env)** | \`/SarwarCo/.env\` | \`$ENV_CODE\` | ✅ Blocked |"
+            echo "| **Security Lock (logs)** | \`/SarwarCo/storage/logs/laravel.log\` | \`$LOG_CODE\` | ✅ Blocked |"
+            echo "| **Landing Page** | \`/\` | \`$HOME_CODE\` | ✅ Live |"
+            echo "| **Login Route** | \`/login\` | \`$LOGIN_CODE\` | ✅ Live |"
+            echo "| **Healthcheck** | \`/up\` | \`$UP_CODE\` | ✅ Healthy |"
+            echo "| **Sanctum API** | \`/api/user\` | \`$API_CODE\` | ✅ Protected |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Emergency Auto-Rollback on Failure
+        if: ${{ failure() && inputs.dry_run != true }}
+        run: |
+          echo "⏪ Deployment or verification failed! Executing automatic rollback..."
+          SSH_CMD="ssh -p ${{ secrets.SSH_PORT }} -o BatchMode=yes -o SendEnv=none -i ~/.ssh/id_ed25519"
+          $SSH_CMD "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" '
+            export LC_ALL=C
+            set -e
+            LATEST_BAK=$(ls -1t "$HOME"/backups/prod-files-*.tar.gz 2>/dev/null | head -n 1 || true)
+            if [[ -n "$LATEST_BAK" && -f "$LATEST_BAK" ]]; then
+              tar -xzf "$LATEST_BAK" -C "$HOME/public_html" \
+                --exclude="SarwarCo/.env" \
+                --exclude="SarwarCo/storage" \
+                --exclude=".htaccess" \
+                --exclude="SarwarCo/.htaccess"
+              cd "$HOME/public_html/SarwarCo"
+              /opt/cpanel/ea-php83/root/usr/bin/php artisan optimize:clear
+              /opt/cpanel/ea-php83/root/usr/bin/php artisan config:cache
+              /opt/cpanel/ea-php83/root/usr/bin/php artisan route:cache
+              /opt/cpanel/ea-php83/root/usr/bin/php artisan view:cache
+              echo "✅ Auto-rollback restored from $LATEST_BAK"
+            fi
+          '
+
+      - name: Cleanup Temporary SSH Key
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

@@ -65,3 +65,43 @@
 ```bash
 ssh -p 22 -i ~/.ssh/id_ed25519 sarwarymukiryan@162.240.238.217 '(crontab -l 2>/dev/null; echo "* * * * * /opt/cpanel/ea-php83/root/usr/bin/php /home/sarwarymukiryan/public_html/SarwarCo/artisan schedule:run >> /dev/null 2>&1") | crontab -'
 ```
+
+---
+
+## ٣. سیستەمی بڵاوکردنەوەی ئۆتۆماتیکیی جیهانی (GitHub Actions Enterprise CI/CD)
+
+پڕۆژەکە خاوەنی پایپڵاینێکی دوو-قۆناغیی پێشکەوتووە لە فایلی [.github/workflows/deploy.yml](file:///Users/rebinmaarouf/Documents/SarwaryMukiryanCo/.github/workflows/deploy.yml):
+
+### چۆن کار دەکات؟
+هەر کاتێک گۆڕانکارییەک دەکەیت و دەنووسیت:
+```bash
+git add .
+git commit -m "نوێکاریی نوێ"
+git push origin main
+```
+بەبێ ئەوەی پێویست بکات هیچ فەرمانێکی تر بنووسیت، **GitHub Actions** ئۆتۆماتیکی دەست پێدەکات:
+
+1. **Stage 1 (`ci-quality-gate`):**
+   * پشکنینی ئەمنیی Git تا هیچ فایلێکی `.env` یان `.deploy.env` نەخرابێتە ناو کۆمیتەوە.
+   * پشکنینی Syntaxـی هەموو فایلەکانی PHP بە **PHP 8.3** (`php -l`).
+   * دامەزراندنی پاکێجەکان و بیڵدکردنی فرۆنتئێندی Vue 3 (`npm ci && npm run build`) بە **Node 22**.
+   * پشکنینی دروستیی فایلەکانی `index.html` و `manifest.json` و هەڵگرتنیان وەک Artifact.
+2. **Stage 2 (`cd-production-deploy`):**
+   * وەرگرتنی بەکەپی ئۆتۆماتیکی لەسەر سێرڤەر لەناو `/home/sarwarymukiryan/backups/` (داتابەیس + فایلەکان، بە هێشتنەوەی دوایین ١٠ بەکەپ).
+   * ئەپلۆدکردنی تەنها فایلە گۆڕاوەکان بە `rsync` (بە پاراستنی تەواوی `.env`, `storage/`, و هەردوو `.htaccess`).
+   * جێبەجێکردنی `migrate --force`, `optimize:clear`, `config:cache`, `route:cache`, `view:cache` بە PHP 8.3.
+   * پشکنینی ئەمنی (`/SarwarCo/.env` دەبێت `403` بێت) و تەندروستیی سایت (`/` و `/up` دەبێت `200` بن).
+   * **Auto-Rollback:** ئەگەر لە کاتی پشکنینی کۆتاییدا هەر هەڵەیەک هەبێت، خۆکارانە دوایین بەکەپ دەگەڕێنێتەوە!
+
+### چاودێریکردنی CI/CD لە تێرمیناڵەوە:
+```bash
+# بینینی لیستی دوایین کارەکانی GitHub Actions
+gh run list --limit 5
+
+# بینینی زیندووی هەنگاوەکانی Deploy لە تێرمیناڵدا
+gh run watch
+
+# هەڵگیرساندنی دەستیی CI/CD بە دۆخی تاقیکاری (Dry-Run) لە تێرمیناڵەوە
+gh workflow run deploy.yml -f dry_run=true
+```
+
