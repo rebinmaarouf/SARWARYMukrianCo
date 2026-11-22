@@ -27,6 +27,9 @@
             {{ user.name.charAt(0) }}
           </div>
           <div class="flex gap-2 font-semibold" v-if="user.email !== 'rebin.maaruf@gmail.com' || auth.user?.email === 'rebin.maaruf@gmail.com'">
+            <button v-if="user.is_locked" @click="unblockUser(user.id)" class="p-3 bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-500 hover:text-white transition-all shadow-xs border border-amber-100" title="کردنەوەی قوفڵ">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+            </button>
             <button @click="openModal(user)" class="p-3 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-xs border border-blue-100">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
@@ -39,6 +42,10 @@
         <div class="space-y-1" dir="rtl">
           <h3 class="text-xl font-black text-slate-900">{{ user.name }}</h3>
           <p class="text-slate-600 text-sm font-semibold">{{ user.email }}</p>
+          <div v-if="user.is_locked" class="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-700 text-[10px] font-black uppercase tracking-widest rounded-lg border border-rose-200 mt-1">
+            <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+            داخراوە (Locked)
+          </div>
           <div class="flex flex-wrap gap-1 mt-2">
              <span v-for="b in user.branches" :key="b.id" class="text-[8px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
                {{ b.name }}
@@ -360,6 +367,35 @@ const saveUser = async () => {
       text: errorMsg, 
       icon: 'error' 
     })
+  }
+}
+
+const unblockUser = async (id) => {
+  const result = await Swal.fire({
+    title: 'دڵنیایت لە کردنەوەی قوفڵی ئەم ئەکاونتە؟',
+    text: 'بە کردنەوەی ئەم ئەکاونتە، کارمەندەکە دەتوانێت دووبارە بچێتەوە ژوورەوە.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#f59e0b',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'بەڵێ، قوفڵی بکەرەوە',
+    cancelButtonText: 'پاشگەزبوونەوە'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.post(`/admin/users/${id}/unblock`)
+      Swal.fire({
+        title: 'سەرکەوتوو بوو!',
+        text: 'ئەکاونتەکە بە سەرکەوتوویی کرایەوە.',
+        icon: 'success',
+        confirmButtonColor: '#10b981'
+      })
+      fetchUsers()
+    } catch (err) {
+      console.error('Error unblocking user:', err)
+      Swal.fire('هەڵە', 'نەتوانرا قوفڵی ئەم ئەکاونتە بکرێتەوە', 'error')
+    }
   }
 }
 

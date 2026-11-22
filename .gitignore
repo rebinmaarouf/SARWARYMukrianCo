@@ -1,0 +1,13 @@
+# Deployment & Secrets (NEVER COMMIT)
+.deploy.env
+.env
+.env.*
+
+# Local Backups (NEVER COMMIT)
+/backups
+/backups/
+
+# macOS & Editor Junk
+.DS_Store
+**/.DS_Store
+__MACOSX/
