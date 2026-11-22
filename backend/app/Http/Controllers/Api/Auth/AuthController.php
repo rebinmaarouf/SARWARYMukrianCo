@@ -19,11 +19,52 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        $throttleKey = 'login_attempts:' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 10)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            throw ValidationException::withMessages([
+                'email' => ['زۆر هەوڵت داوە. تکایە دوای ' . $seconds . ' چرکەی تر هەوڵ بدەرەوە.'],
+            ]);
+        }
+
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if ($user) {
+            if ($user->is_locked) {
+                \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
+                throw ValidationException::withMessages([
+                    'email' => ['ئەم ئەکاونتە بەهۆی هەڵەی زۆرەوە داخراوە. تکایە پەیوەندی بە بەڕێوەبەرەوە بکە.'],
+                ]);
+            }
+
+            if (! Hash::check($request->password, $user->password)) {
+                $user->increment('failed_login_attempts');
+                \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
+
+                if ($user->failed_login_attempts >= 5) {
+                    $user->update([
+                        'is_locked' => true,
+                        'locked_at' => now(),
+                    ]);
+                    throw ValidationException::withMessages([
+                        'email' => ['ئەم ئەکاونتە بەهۆی هەڵەی زۆرەوە داخراوە. تکایە پەیوەندی بە بەڕێوەبەرەوە بکە.'],
+                    ]);
+                }
+
+                throw ValidationException::withMessages([
+                    'email' => ['وشەی تێپەڕ هەڵەیە. ' . (5 - $user->failed_login_attempts) . ' هەوڵت ماوە پێش ئەوەی ئەکاونتەکەت دابخرێت.'],
+                ]);
+            }
+
+            // Success -> reset attempts
+            if ($user->failed_login_attempts > 0) {
+                $user->update(['failed_login_attempts' => 0]);
+            }
+            \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+        } else {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
             throw ValidationException::withMessages([
-                'email' => ['زانیارییەکان هەڵەیە.'],
+                'email' => ['ئەم ئیمەیڵە بوونی نییە یان زانیارییەکان هەڵەیە.'],
             ]);
         }
 

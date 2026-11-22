@@ -107,6 +107,17 @@ class UserController extends Controller
         return response()->json(['message' => 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە.']);
     }
 
+    public function unblock(User $user)
+    {
+        $user->update([
+            'is_locked' => false,
+            'failed_login_attempts' => 0,
+            'locked_at' => null,
+        ]);
+        
+        return response()->json(['message' => 'ئەکاونتەکە بە سەرکەوتوویی کرایەوە.']);
+    }
+
     public function roles()
     {
         return response()->json(Role::all());

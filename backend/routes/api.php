@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Admin Domain
     Route::prefix('admin')->group(function () {
+        Route::post('users/{user}/unblock', [UserController::class, 'unblock']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('roles', RoleController::class);
         Route::get('/all-permissions', [RoleController::class, 'getAllPermissions']);
